@@ -18,9 +18,11 @@ ifeq (${F90},xlf90) # IBM compiler
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
   LBDR = ../celib
-  FFLAGS = -g -Rb -Rc  -z2 -nodefaultmod -p ${LBDR} 
+  FFLAGS = -g -Rb -Rc -z2 -ea -nodefaultmod -p ${LBDR} 
 #  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
-# B80  show entry in subprograms ; Rb bounds; Rc array conformance; 
+# B80  show entry in subprograms ; Rb bounds; Rc array conformance;
+# z2 warning level
+# -ea stop after one error 
   FOUND = true
 endif
 ifeq (${F90},)  # If the variable isn't set, make sure compilation bombs
@@ -32,36 +34,34 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
-# Main parts of the makefile are here
-EXENAME = enum.x
-SRC = io_utilities.f90 crystal_types.f90 labeling_related.f90 \
-      derivative_structure_generator.f90 driver.f90 
+SRC = crystal_types.f90 derivative_structure_generator.f90  io_utilities.f90 \
+      labeling_related.f90 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
          ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
 
-# Delete all default suffix rules
 .SUFFIXES :  
-.SUFFIXES :  .f90 .f .o .mod
+.SUFFIXES :  .f .f90 .f95 .o
 
-${EXENAME}: ${OBJS}    
-	${F90} ${LDFLAGS} -o ${EXENAME} ${OBJS} ${LIBS}
+all: libenum.a
+
+libenum.a: ${OBJS}
+	ar ru $@ $?
+	ranlib  $@
+
+enum.x: ${OBJS} driver.o
+	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
+
+.f95.o : 
+	${F90} ${FFLAGS} -c $<
 
 .f90.o : 
 	${F90} ${FFLAGS} -c $<
-.f.o : 
-	${F90} -c $<
 
-poly_test: ${OBJS} poly_driver.o
-	${F90} ${LDFLAGS} -o ${EXENAME} ${OBJS} poly_driver.o ${LIBS}
-
-makestr: makeStr.o
-	${F90} ${LDFLAGS} -o makestr.x makeStr.o ${LIBS}
-
-2Dplot: make2Dplot.o splot.o
-	${F90} ${LDFLAGS} -o 2D.x splot.o make2Dplot.o ${LIBS}
-clean: 
-	rm -f *.o ${EXENAME} *.mod
+CLEAN  = *.o *.mod *.a
+clean : 
+	rm -f ${CLEAN}
 	make
-clobber: 
-	rm -f ${OBJS} ${EXENAME} *.mod *~ \#*
+clobber : 
+	rm -f  ${CLEAN}  *~ \#*
+	make

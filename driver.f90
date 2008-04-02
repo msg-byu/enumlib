@@ -79,8 +79,8 @@ do ivol = max(k,nMin),nMax
               transpose(L(:,:,iHNF)),tlab(ilab,:)
          enddo
       enddo
-      call cpu_time(tend)
    enddo
+   call cpu_time(tend)
    runTot = runTot + ivolTot
    write(*,'(i4,1x,f12.2,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')&
         ivol,tend-tstart,size(HNF,3),&
