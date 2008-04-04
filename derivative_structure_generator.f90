@@ -6,6 +6,7 @@
 MODULE derivative_structure_generator
 use num_types
 use crystal_types
+use labeling_related
 use combinatorics
 use symmetry_module
 use compare_structures
@@ -15,7 +16,7 @@ use vector_matrix_utilities, only: determinant, matrix_inverse
 
 implicit none
 private
-public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs
+public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs, generate_derivative_structures
 CONTAINS
 
 !***************************************************************************************************
@@ -109,7 +110,8 @@ do ihnf = 1, nHNF ! Loop over each HNF in the list
    endif
 enddo
 if (associated(F)) deallocate(F)
-allocate(F(3,3,nfound))
+allocate(F(3,3,nfound),STAT=status)
+if(status/=0) stop "Failed to allocate memory in get_SNF for array F"
 F = tF(:,:,1:nfound)
 
 ENDSUBROUTINE get_SNF
@@ -189,7 +191,8 @@ do i = 2,Nhnf  ! Loop over each matrix in the original list
       iuq = iuq+1
       temp_hnf(:,:,iuq) = hnf(:,:,i);endif
 enddo
-allocate(uq_hnf(3,3,iuq),latts(3,3,iuq))
+allocate(uq_hnf(3,3,iuq),latts(3,3,iuq),STAT=status)
+if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: uq_hnf"
 uq_hnf = temp_hnf(:,:,:iuq)
 Nq = iuq
 forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
@@ -270,6 +273,98 @@ enddo
 allocate(diagonals(3,id))
 diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
+
+!****************************************************************************************************
+SUBROUTINE generate_derivative_structures(title, parLV, k, nMin, nMax, pLatTyp, eps)
+integer, intent(in) :: k, nMin, nMax 
+character(80), intent(in) :: title
+real(dp), intent(in) :: parLV(3,3)
+character(1), intent(in) :: pLatTyp
+
+integer, pointer, dimension(:,:,:) :: uqSNF => null()
+integer, pointer :: trgroup(:,:)=>null()
+real(dp), pointer :: uqlatts(:,:,:) => null()
+character, pointer :: table(:)
+integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim
+integer, pointer :: HNF(:,:,:) => null(), reducedHNF(:,:,:) => null(), G(:,:) => null()
+integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null()
+integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null()
+type(opList), pointer :: fixOp(:)
+integer :: ctot, csize ! counters for total number of structures and structures of each size
+integer diag(3), ld(6) ! diagonal elements of SNF, lower diagonal---elements of HNF
+real(dp) eps, tstart, tend
+
+write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
+write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
+          &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
+
+! Set up the output file and write the lattice information
+open(14,file="struct_enum.out")
+write(14,'(a80)') title
+do i = 1,3
+   write(14,'(3(e14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
+enddo
+write(14,'(i2,"-nary case")') k
+write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+
+! Check for 2D or 3D request
+if (pLatTyp=='surf') then; LatDim = 2
+   if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first vector must be 1,0,0'
+   if (.not. equal((/parLV(2,1),parLV(3,1)/),(/0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first component of second and third &
+               & must be zero'
+else if(pLatTyp=='bulk') then; LatDim = 3
+else; stop 'Specifiy "surf" or "bulk" in call to "generate_derivative_structures"';endif
+
+! This part generates all the derivative structures and writes the results to the file
+runTot = 0
+do ivol = max(k,nMin),nMax
+   iVolTot = 0
+   call cpu_time(tstart)
+   if (LatDim==3) then !<<< 2D ? or 3D? >>
+      call get_all_HNFs(ivol,HNF)  ! 3D
+   else
+      call get_all_2D_HNFs(ivol,HNF) ! 2D
+   endif
+   call remove_duplicate_lattices(HNF,LatDim,parLV,reducedHNF,fixOp,uqlatts,eps)
+   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
+   ! We have a list containing each unique derivative superlattice and
+   ! its corresponding Smith Normal Form. Now make the labelings.
+   Nq = size(uqSNF,3)  ! Number of unique SNFs
+   do iuq = 1, Nq ! Loop over all of the unique SNFs
+      diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
+      call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
+      call generate_labelings(k,diag,labelings,table,trgroup) ! Removes trans-dups,non-prims,label-exchange dups
+      do ihnf = 1, size(SNF_labels) ! Store each of the HNF and left transformation matrices
+         if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
+         ! Need to do this step for each HNF, not each SNF
+         allocate(tlab(size(labelings,1),size(labelings,2))); tlab = labelings
+         ! tlab is a temporary copy of the labelings (only the unique ones)
+         ! table is a list of markers (D,F,E,etc.) for duplicate labelings
+         ! G is a collection of 3-vectors representing members of the quotient group
+         ! trgroup is a list of all the permutations that correspond to translations
+         call remove_label_rotation_dups(L(:,:,iHNF),parLV,fixOp(iHNF)%rot,G,&
+                                        tlab,table,trgroup,k,diag,eps)
+         ivolTot = ivolTot + size(tlab,1)
+         ld = (/reducedHNF(1,1,ihnf),reducedHNF(2,1,ihnf),reducedHNF(2,2,ihnf),&
+                reducedHNF(3,1,ihnf),reducedHNF(3,2,ihnf),reducedHNF(3,3,ihnf)/)
+         do ilab = 1,size(tlab,1) ! write out the labelings to a file
+            ctot = ctot + 1
+            csize = csize + 1
+            write(14,'(i11,1x,i9,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
+              ctot, csize,ivol,size(fixOp(ihnf)%rot,3),diag,ld,&
+              transpose(L(:,:,iHNF)),tlab(ilab,:)
+         enddo
+      enddo
+   enddo
+   call cpu_time(tend)
+   runTot = runTot + iVolTot
+   write(*,'(i4,1x,f12.2,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
+        size(uqSNF,3),size(reducedHNF,3),1-size(reducedHNF,3)/real(size(HNF,3)),ivolTot, runTot
+enddo
+close(14)
+END SUBROUTINE generate_derivative_structures
 
 END MODULE derivative_structure_generator
 

@@ -34,8 +34,8 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
-SRC = crystal_types.f90 derivative_structure_generator.f90  io_utilities.f90 \
-      labeling_related.f90 
+SRC = crystal_types.f90 labeling_related.f90 derivative_structure_generator.f90 \
+	io_utils.f90 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
          ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
@@ -43,11 +43,13 @@ LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
 
-all: libenum.a
+
 
 libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
+
+all: libenum.a enum.x
 
 enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
