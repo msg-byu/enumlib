@@ -277,7 +277,7 @@ END SUBROUTINE get_HNF_2D_diagonals
 !****************************************************************************************************
 SUBROUTINE generate_derivative_structures(title, parLV, k, nMin, nMax, pLatTyp, eps)
 integer, intent(in) :: k, nMin, nMax 
-character(80), intent(in) :: title
+character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3)
 character(1), intent(in) :: pLatTyp
 
