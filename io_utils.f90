@@ -1,4 +1,4 @@
-MODULE io_utilities
+MODULE io_utils
 use num_types
 use numerical_utilities
 use vector_matrix_utilities
@@ -76,4 +76,4 @@ backspace unit
 if (ios/=0) error = .true.
 end subroutine co_ca
 
-END MODULE io_utilities
+END MODULE io_utils
