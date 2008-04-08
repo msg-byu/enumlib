@@ -300,25 +300,27 @@ write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
 
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
-write(14,'(a80)') title
+write(14,'(a10)') title
 do i = 1,3
    write(14,'(3(e14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
 enddo
 write(14,'(i2,"-nary case")') k
+write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
 write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
-if (pLatTyp=='surf') then; LatDim = 2
+if (pLatTyp=='s') then; LatDim = 2
    if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first vector must be 1,0,0'
    if (.not. equal((/parLV(2,1),parLV(3,1)/),(/0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first component of second and third &
                & must be zero'
-else if(pLatTyp=='bulk') then; LatDim = 3
-else; stop 'Specifiy "surf" or "bulk" in call to "generate_derivative_structures"';endif
+else if(pLatTyp=='b') then; LatDim = 3
+else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"';endif
 
 ! This part generates all the derivative structures and writes the results to the file
 runTot = 0
+ctot = 0
 do ivol = max(k,nMin),nMax
    iVolTot = 0
    call cpu_time(tstart)
