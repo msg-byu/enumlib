@@ -1,6 +1,7 @@
 # Set up conditional compilation so that one Makefile can handle
 # multiple platforms/compilers. Branch according to an environmental
 # variable F90. I wish someone would show me a better way of doing this.
+#
 ifeq (${F90},ifc)  # Intel compiler
   LBDR = ../celib
   FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
