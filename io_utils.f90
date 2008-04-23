@@ -42,7 +42,6 @@ if (pLatTyp=='surf') then; LatDim = 2
 else if(pLatTyp=='bulk') then; LatDim = 3
 else; stop 'Specify "surf" or "bulk" in input file';endif
 
-print *, fullpart
 if (fullpart=='full') then; full = .true.
 else if(fullpart=='part') then; full = .false.
 else; stop 'Specify "full" or "part" on line 9 of input file';endif
