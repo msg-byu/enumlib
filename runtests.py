@@ -31,7 +31,7 @@ for itest in tests:
     if rs!=0:
 	#system('diff struct_enum.out tests/struct_enum.out.'+Nt)
 	#raw_input()
-	#sys.exit("\n\nFailure in Test #:"+Nt)
+	sys.exit("\n\nFailure in Test #:"+Nt)
 	#copyfile('test.out','tests/'+Nt+'.out')
 	print "\n\nFailure in Test #:"+Nt
     else: print "Test",Nt,"Passed"

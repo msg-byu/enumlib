@@ -141,7 +141,7 @@ ENDSUBROUTINE remove_label_rotation_dups
 ! permuted. These cases are also duplicates.  But this is best done outside of and after this
 ! subroutine because those duplicates are unique to the HNF. **
 
-SUBROUTINE generate_labelings(k,d,l,lab,trgrp)
+SUBROUTINE generate_labelings(k,d,l,lab,trgrp,full)
 integer, intent(in) :: k,d(3) ! Number of colors/labels, SNF diagonal elements
 integer, pointer :: l(:,:) ! labelings
 character, pointer :: lab(:) ! Array to store markers for every raw labeling
@@ -149,6 +149,7 @@ character, pointer :: lab(:) ! Array to store markers for every raw labeling
 ! Need to pass lab out so that it can be used to remove label-rotation duplicates later
 integer, pointer :: trgrp(:,:) ! array for storing the translation group. Need to pass this out
 ! later too for when the label-rotation duplicates are removed.
+logical, intent(in) :: full ! specify whether the full labelings list should be used or not
 
 integer cnt ! Number of unique labelings (double check on the generator)
 integer j ! Index variable (place index) for the k-ary counter
@@ -162,10 +163,11 @@ integer c(0:k-1) ! running sum (count) of the number of each label type
 integer id, iq ! Counter for labels that are duplicates, for those unique
 integer, allocatable :: tl(:,:) ! temporary storage for output variable l (labelings)
 integer, pointer :: perms(:,:) ! List of permutations of the k labels
-integer :: np, ip ! Loops over permutations
+integer :: np, ip, status ! Loops over permutations, allocate error flag
 
 if (associated(lab)) deallocate(lab)
-allocate(lab(k**(d(1)*d(2)*d(3)))) 
+allocate(lab(k**(d(1)*d(2)*d(3))),STAT=status)
+if(status/=0) stop "Failed to allocate memory for 'lab' in generate_labelings"
 
 n = product(d); nexp = k**n  ! Number of digits in k-ary counter; upper limit of k-ary counter
 a = 0; multiplier = k**(/(i,i=n-1,0,-1)/) ! The counter; multiplier to convert to base 10
@@ -174,9 +176,10 @@ if (k>12) stop "Too many labels in 'generate_labelings'"
 
 np = factorial(k) ! Number of permutations of labels (not labelings)
 call get_permutations((/(i,i=0,k-1)/),perms)
-call count_full_colorings(k,d,cnt) ! Use the Polya polynomial to count the labelings
+call count_full_colorings(k,d,cnt,full) ! Use the Polya polynomial to count the labelings
 call make_translation_group(d,trgrp) ! Find equivalent translations (permutations of labelings)
-allocate(tl(cnt,n))  ! Temp storage for labelings
+allocate(tl(cnt,n),STAT=status)   ! Temp storage for labelings
+if(status/=0) stop "Failed to allocate memory for tl in generate_labelings"
 
 ic = 0; c = 0; c(0) = n ! Loop counter for fail safe; initialize digit counter
 do; ic = ic + 1
@@ -184,8 +187,8 @@ do; ic = ic + 1
    idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
    if (idx/=ic) stop "index bug!"
    if (any(c==0)) then ! Check to see if there are missing digits
-      id = id + 1;
-      if (lab(idx)=='') then ! If it isn't marked, mark it as "error"
+      id = id + 1; ! Keep track of the number of incomplete labelings
+      if (lab(idx)=='' .and. .not. full) then ! If it isn't marked and we want a partial list, mark it as "error"
          lab(idx) = 'E';    ! Could mark its brothers too...
       endif
    endif
@@ -193,25 +196,19 @@ do; ic = ic + 1
    ! and mark its duplicates as 'D'
    if (lab(idx)=='') then
       lab(idx) = 'F'
-      !write(*,'(15x,"unique: ",9i1)') a
-      !if (all(a=='000100111')) stop "found the one that should've done it"
       do q = 2,n ! Mark translation duplicates and eliminate superperiodic (non-primitive) colorings
          idx = sum(a(trgrp(q,:))*multiplier)+1
          if (idx==ic) lab(idx)='N' ! This will happen if the coloring is superperiodic
-         ! (i.e., non-primitive superstructure)
+                                   ! (i.e., non-primitive superstructure)
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a translation duplicate
-!         write(*,'("trans: ",9i1,4x,a1)') a(trgrp(q,:)),lab(idx) 
-         !write(*,*) "trans:", a(trgrp(q,:)),lab(idx) 
       enddo
       do q = 1,n ! Loop over translates; Mark label-permutation duplicates ("symmetric" concentrations)  
          do ip = 2,np ! Loop over all permutations of the labels (stored in 'perms')
-            forall(ia=1:k) ! Convert the k-ary labeling to one with the labels permuted
+            forall(ia=1:k) ! Convert the k-nary labeling to one with the labels permuted
                where(a==ia-1); b(:) = perms(ia,ip);endwhere ! b is the permuted labeling
             end forall
             idx = sum(b(trgrp(q,:))*multiplier)+1
             if  (lab(idx)=='') lab(idx) = 'N'
- !           write(*,'("labpr: ",9i1,4x,a1)') b(trgrp(q,:)),lab(idx)
-            !write(*,*) "labpr:",b(trgrp(q,:)),lab(idx)
          enddo
       enddo
       ! Store the unique labelings
@@ -234,7 +231,7 @@ do; ic = ic + 1
    a(j) = a(j) + 1 ! Update the next digit (add one to it)
    c(a(j)) = c(a(j)) + 1 ! Add 1 to the number of digits of the j+1-th kind
    c(a(j)-1) = c(a(j)-1) - 1     ! subtract 1 from the number of digits of the j-th kind
-   if (sum(c) /= n) stop 'counting bug'
+   if (sum(c) /= n .and. .not. full) stop 'counting bug'
 enddo
 if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
 ! Store the results
@@ -308,26 +305,31 @@ END SUBROUTINE make_translation_group
 ! of unique colorings of "n" things using "k" colors. The outer loop is for inclusion/exclusion
 ! so that colorings that don't use each color at least once are removed from the counting. The use
 ! of every color at least once is what is meant by a "full" coloring
-SUBROUTINE count_full_colorings(k,d,count)
+SUBROUTINE count_full_colorings(k,d,count,full)
 integer, intent(in) :: k, d(3)  ! Number of colors, diagonal entries of the Smith Normal Form matrix
 integer, intent(out) :: count   ! Number of unique, full colorings
-
+logical, intent(in) :: full ! Use a full list? (including incomplete labelings)
 integer x1,x2,x3 ! Counters over d1,d2,d3, in the triple sum
 integer p        ! Counter over number of terms in the exclusion/inclusion counting
 integer m, tc    ! Color index (counter), intermediate (temporary) counter
 integer n        ! Number of elements to be colored
 m = k; count = 0
 n = product(d)
-do p = 0,m-1  ! Loop over each term in the exclusion/inclusion expression
-   tc = 0
-   do x1 = 1,d(1)  ! Loop over the triple sum
-   do x2 = 1,d(2)
-   do x3 = 1,d(3)
-      tc = tc + (m-p)**gcd(d(1)*d(2)*d(3), x1*d(2)*d(3), d(1)*x2*d(3), d(1)*d(2)*x3)
-   enddo; enddo; enddo
-   count = count + (-1)**p*nchoosek(m,p)*tc
-enddo
-count = count/n
+if (full) then   ! The number of labelings for a full list is trivial, just k^n
+   count = k**n
+else  ! For a partial list (incomplete labelings not included) things are slightly more complicated
+   do p = 0,m-1  ! Loop over each term in the exclusion/inclusion expression
+      tc = 0
+      do x1 = 1,d(1)  ! Loop over the triple sum
+      do x2 = 1,d(2)
+      do x3 = 1,d(3)
+         tc = tc + (m-p)**gcd(d(1)*d(2)*d(3), x1*d(2)*d(3), d(1)*x2*d(3), d(1)*d(2)*x3)
+      enddo; enddo; enddo
+      count = count + (-1)**p*nchoosek(m,p)*tc
+   enddo
+   count = count/n
+endif
+
 ENDSUBROUTINE count_full_colorings
 
 

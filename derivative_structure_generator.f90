@@ -275,11 +275,12 @@ diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
 
 !****************************************************************************************************
-SUBROUTINE generate_derivative_structures(title, parLV, k, nMin, nMax, pLatTyp, eps)
+SUBROUTINE generate_derivative_structures(title, parLV, k, nMin, nMax, pLatTyp, eps, full)
 integer, intent(in) :: k, nMin, nMax 
 character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3)
 character(1), intent(in) :: pLatTyp
+logical, intent(in) :: full 
 
 integer, pointer, dimension(:,:,:) :: uqSNF => null()
 integer, pointer :: trgroup(:,:)=>null()
@@ -302,10 +303,12 @@ write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
 open(14,file="struct_enum.out")
 write(14,'(a10)') title
 do i = 1,3
-   write(14,'(3(e14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
+   write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
 enddo
 write(14,'(i2,"-nary case")') k
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
+if (full) then; write(14,'("Full list of labelings (including incomplete labelings) is used")')
+else; write(14,'("Partial list of labelings (complete labelings only) is used")'); endif
 write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
@@ -321,8 +324,9 @@ else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"
 ! This part generates all the derivative structures and writes the results to the file
 runTot = 0
 ctot = 0
-do ivol = max(k,nMin),nMax
+do ivol = nMin, nMax !max(k,nMin),nMax
    iVolTot = 0
+   csize = 0
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
       call get_all_HNFs(ivol,HNF)  ! 3D
@@ -337,7 +341,7 @@ do ivol = max(k,nMin),nMax
    do iuq = 1, Nq ! Loop over all of the unique SNFs
       diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
       call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
-      call generate_labelings(k,diag,labelings,table,trgroup) ! Removes trans-dups,non-prims,label-exchange dups
+      call generate_labelings(k,diag,labelings,table,trgroup,full) ! Removes trans-dups,non-prims,label-exchange dups
       do ihnf = 1, size(SNF_labels) ! Store each of the HNF and left transformation matrices
          if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
          ! Need to do this step for each HNF, not each SNF

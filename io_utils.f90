@@ -8,11 +8,11 @@ public read_input
 
 CONTAINS
 !***************************************************************************************************
-subroutine read_input(title,LatDim,pLV,k,Nmin,Nmax,eps)
-character(80) :: title, pLatTyp
+subroutine read_input(title,LatDim,pLV,k,Nmin,Nmax,eps,full)
+character(80) :: title, pLatTyp, fullpart
 integer,intent(out):: Nmin, Nmax, k, LatDim
 real(dp),intent(out) :: pLV(3,3), eps
-
+logical full
 logical err
 open(10,file='struct_enum.in',status='old')
 call co_ca(10,err)
@@ -31,6 +31,8 @@ call co_ca(10,err)
 read(10,*) Nmin, Nmax
 call co_ca(10,err)
 read(10,*) eps
+call co_ca(10,err)
+read(10,*) fullpart
 if (pLatTyp=='surf') then; LatDim = 2
    if (.not. equal(pLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first vector must be 1,0,0'
@@ -38,7 +40,13 @@ if (pLatTyp=='surf') then; LatDim = 2
         stop 'For "surf" setting, first component of second and third &
                & must be zero'
 else if(pLatTyp=='bulk') then; LatDim = 3
-else; stop 'Specifiy "surf" or "bulk" in input file';endif
+else; stop 'Specify "surf" or "bulk" in input file';endif
+
+print *, fullpart
+if (fullpart=='full') then; full = .true.
+else if(fullpart=='part') then; full = .false.
+else; stop 'Specify "full" or "part" on line 9 of input file';endif
+
 end subroutine read_input
 
 subroutine co_ca(unit,error)
