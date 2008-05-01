@@ -366,7 +366,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    enddo
    call cpu_time(tend)
    runTot = runTot + iVolTot
-   write(*,'(i4,1x,f12.2,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
+   write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
         size(uqSNF,3),size(reducedHNF,3),1-size(reducedHNF,3)/real(size(HNF,3)),ivolTot, runTot
 enddo
 close(14)
