@@ -8,8 +8,9 @@ ifeq (${F90},ifc)  # Intel compiler
   FOUND = true
 endif
 ifeq (${F90},ifort)  # Intel compiler
+  F90 = /opt/intel/fc/10.0.016/bin/ifort
   LBDR = ../celib
-  FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn -e95  -I${LBDR}
+  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95  -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},xlf90) # IBM compiler

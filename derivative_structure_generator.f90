@@ -25,7 +25,7 @@ SUBROUTINE get_HNF_diagonals(detS, diagonals)
 integer, intent(in) :: detS ! Cell size, i.e., determinant of S matrix
 integer, pointer :: diagonals(:,:) ! All possible diagonals
 
-integer i, j, id, quotient
+integer i, j, id, quotient, status
 integer :: tempDiag(3,detS*3)
 
 id = 0 ! Number of diagonals found
@@ -38,7 +38,8 @@ do i = 1,detS ! Loop over possible first factors
       tempDiag(:,id) = (/i, j, quotient/j /) ! Construct the factor triplet
    enddo
 enddo
-allocate(diagonals(3,id))
+allocate(diagonals(3,id),STAT=status)
+if(status/=0) stop "Allocation failed in get_HNF_diagonals, module deriv..."
 diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_diagonals
 
@@ -169,7 +170,8 @@ if (LatDim==2) then
    enddo
    nRot = irot
    deallocate(sgrots)
-   allocate(sgrots(3,3,nRot))
+   allocate(sgrots(3,3,nRot),STAT=status)
+if(status/=0) stop "Allocation of sgrots failed in remove_duplicate_lattices, module deriv..."
    sgrots=tSGrots(:,:,1:nRot)
 endif
 
@@ -192,7 +194,7 @@ do i = 2,Nhnf  ! Loop over each matrix in the original list
       temp_hnf(:,:,iuq) = hnf(:,:,i);endif
 enddo
 allocate(uq_hnf(3,3,iuq),latts(3,3,iuq),STAT=status)
-if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: uq_hnf"
+if(status/=0) stop "Failed to allocate uq_hnf/latts in remove_duplicate_lattices: uq_hnf"
 uq_hnf = temp_hnf(:,:,:iuq)
 Nq = iuq
 forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
@@ -200,8 +202,10 @@ forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
 ! symmetry operations leave the superlattice unchanged. These operations, while they leave
 ! the superlattice unchanged can permute the labels inside. Thus, this is another source of 
 ! duplicates. 
-allocate(tmpOp(Nq),fixing_op(Nq))
-do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot));enddo
+allocate(tmpOp(Nq),fixing_op(Nq),STAT=status)
+if(status/=0) stop "Allocation of tmpOp or fixing_op failed in remove_duplicate_lattices, module deriv..."
+do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),STAT=status)
+if(status/=0) stop "Allocation failed in get_HNF_diagonals, module deriv...";enddo
 do iuq = 1, Nq  ! Loop over each unique HNF
    ic = 0
    do iRot = 1,nRot  ! Loop over each rotation
@@ -213,7 +217,8 @@ do iuq = 1, Nq  ! Loop over each unique HNF
          tmpOp(iuq)%rot(:,:,ic) = thisRot
       endif
    enddo ! Now we know which rotations fix the lattice and how many there are so store them
-   do i=1,ic; allocate(fixing_op(iuq)%rot(3,3,ic)); enddo ! Allocate the storage for them
+   do i=1,ic; allocate(fixing_op(iuq)%rot(3,3,ic),STAT=status)
+if(status/=0) stop "Allocation of fixing_op%rot failed, module deriv..."; enddo ! Allocate the storage for them
    fixing_op(iuq)%rot = tmpOp(iuq)%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
 enddo
 
@@ -260,7 +265,7 @@ SUBROUTINE get_HNF_2D_diagonals(detS, diagonals)
 integer, intent(in) :: detS ! Cell size, i.e., determinant of S matrix
 integer, pointer :: diagonals(:,:) ! All possible diagonals
 
-integer i, id, quotient
+integer i, id, quotient, status
 integer :: tempDiag(3,detS*3)
 
 id = 0 ! Number of diagonals found
@@ -270,7 +275,8 @@ do i = 1,detS ! Loop over possible first factors
    id = id + 1
    tempDiag(:,id) = (/1, i, quotient /) ! Construct the factor triplet
 enddo
-allocate(diagonals(3,id))
+allocate(diagonals(3,id),STAT=status)
+if(status/=0) stop "Allocation of diagonals fails in get_HNF_2D_diagonals, module deriv..."
 diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
 
@@ -286,7 +292,7 @@ integer, pointer, dimension(:,:,:) :: uqSNF => null()
 integer, pointer :: trgroup(:,:)=>null()
 real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: table(:)
-integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim
+integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim, status
 integer, pointer :: HNF(:,:,:) => null(), reducedHNF(:,:,:) => null(), G(:,:) => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null()
 integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null()
@@ -295,6 +301,7 @@ integer :: ctot, csize ! counters for total number of structures and structures 
 integer diag(3), ld(6) ! diagonal elements of SNF, lower diagonal---elements of HNF
 real(dp) eps, tstart, tend
 
+!print *,"how big",2**16/2
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
@@ -341,15 +348,44 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    do iuq = 1, Nq ! Loop over all of the unique SNFs
       diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
       call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
-      call generate_labelings(k,diag,labelings,table,trgroup,full) ! Removes trans-dups,non-prims,label-exchange dups
+      call generate_labelings(k,diag,labelings,table,trgroup,full) ! Removes
+      ! trans-dups,non-prims,label-exchange dups
       do ihnf = 1, size(SNF_labels) ! Store each of the HNF and left transformation matrices
          if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
          ! Need to do this step for each HNF, not each SNF
-         allocate(tlab(size(labelings,1),size(labelings,2))); tlab = labelings
+         allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
+         if(status/=0) stop "Allocation of tlab failed in module deriv..."
+         do i = 1,size(labelings,1) ! debug
+            tlab(i,:) = labelings(i,:)
+            !write(*,'(i12,3x,22i1)') i,labelings(i,:)
+            !write(*,'(i12,3x,22i1)') i,tlab(i,:)
+enddo
+print *,table(1)
+print *, "Made it past the tlab allocation"
+         print *,shape(tlab),size(tlab)
+         print *,shape(labelings),size(labelings)
+
+! The following line causes "Illegal instruction" errors when labelings is large, but the do loop
+!         above works fin.
+!         tlab = labelings
+         
+print *,"Made it past tlab = labelings"
          ! tlab is a temporary copy of the labelings (only the unique ones)
          ! table is a list of markers (D,F,E,etc.) for duplicate labelings
          ! G is a collection of 3-vectors representing members of the quotient group
          ! trgroup is a list of all the permutations that correspond to translations
+do i = 1,size(table),100 ! debug
+            !write(*,'(i10,3x,a1)') i,table(i)
+   write(*,'(100a1)') table(i:min(i+99,size(table)))
+enddo
+print *, L(:,:,ihnf)
+print *, parLV
+print *, fixOp(iHNF)%rot
+print *, G
+print *,tlab
+print *,table
+print *,"just before entering remove_dups"
+
          call remove_label_rotation_dups(L(:,:,iHNF),parLV,fixOp(iHNF)%rot,G,&
                                         tlab,table,trgroup,k,diag,eps)
          ivolTot = ivolTot + size(tlab,1)

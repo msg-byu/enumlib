@@ -1,6 +1,5 @@
 MODULE labeling_related
 use num_types
-use crystal_types
 use vector_matrix_utilities
 use numerical_utilities
 use rational_mathematics, only: gcd
@@ -29,7 +28,7 @@ integer d(3) ! Diagonal elements of the SNF
 integer, allocatable :: tl(:,:) ! temporary list of labels
 integer, allocatable :: Gp(:,:)  ! G prime, the permuted (by T) image group
 character :: labTab(size(labTabin))
-integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia
+integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status
 logical err
 real(dp), dimension(3,3) :: T, Ident, A1, A1inv, invA
 integer lr(size(lab,2),48)
@@ -37,19 +36,32 @@ integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,
 real(dp) :: eps
 integer trivPerm(size(lab,2)), kc(size(lab,2))
 integer, pointer :: perm(:,:)
+print *,"entering remove_dups"
+
+print *,"entered remove"
 
 np = factorial(k)
 call get_permutations((/(i,i=0,k-1)/),perm)
+print *,"after perms"
+
 n = size(lab,2)
 trivPerm = (/(i,i=1,n)/)
 nl = size(lab,1)
 multiplier = k**(/(i,i=n-1,0,-1)/)
 Ident = 0; Ident(1,1) = 1;Ident(2,2) = 1;Ident(3,3) = 1 ! Identity matrix
-allocate(tl(size(lab,1),size(lab,2))) ! Allocate the temporary list
-allocate(Gp(size(G,1),size(G,2)))
+allocate(tl(size(lab,1),size(lab,2)),STAT=status)
+if(status/=0) stop "Allocation of tl failed in remove_label..., module labeling..." ! Allocate the temporary list
+allocate(Gp(size(G,1),size(G,2)),STAT=status)
+if(status/=0) stop "Allocation of Gp failed in remove_label_rotation_dups"
+print *,"remove: made it through the allocations"
+
 labTab = labTabin
+print *,"remove: copied LabTab"
 
 tl = lab ! Copy the labels
+print *,"Copied tl"
+
+
 call matrix_inverse(A,invA,err)  ! Need A^-1 to form the transformation
 
 ! Find the list of permutations that correspond to label-rotations
@@ -106,7 +118,8 @@ enddo
 ! numbers that aren't marked off in the label table.
 nUql = count(labTab=='F')
 if(associated(lab)) deallocate(lab)
-allocate(lab(nUql,n))
+allocate(lab(nUql,n),STAT=status)
+if(status/=0) stop "Allocation of lab failed in remove_label_rotations_dups"
 kc = 0; ic = 0
 do ! Loop over all values of a k-ary, n-digit counter
    idx = sum(kc*multiplier)+1
@@ -236,7 +249,8 @@ enddo
 if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
 ! Store the results
 if(associated(l)) deallocate(l)
-allocate(l(iq,n))
+allocate(l(iq,n),STAT=status)
+if(status/=0) stop "Allocation of 'l' failed in generate_labelings"
 l = tl(1:iq,:)
 END SUBROUTINE generate_labelings
  
@@ -248,9 +262,10 @@ SUBROUTINE make_member_list(n,p)
 integer, intent(in)  :: n(3)! Diagonal elements of the SNF
 integer, pointer :: p(:,:)  ! List of members of the translation group
 
-integer im  ! loop over members
+integer im, status  ! loop over members, allocate status flag
 if (associated(p)) deallocate(p)
-allocate(p(3,product(n)))
+allocate(p(3,product(n)),STAT=status)
+if(status/=0) stop "Allocation of 'p' failed in make_member_list"
 p = 0
 do im = 2,product(n)  ! Loop over the members of the translation group
    p(:,im) = p(:,im-1) ! Start with the same digits as in the previous increment
@@ -274,7 +289,7 @@ SUBROUTINE make_translation_group(d,trans)
 integer, intent(in) :: d(3) ! members of the group, diagonal elements of SNF
 integer, pointer :: trans(:,:) ! Translations that leave the superstructure unchanged
 
-integer n, im,i, j
+integer n, im,i, j, status
 integer tg(3,d(1)*d(2)*d(3)) ! Temporary storage for the translations
 integer, pointer :: m(:,:) ! List of group members
 
@@ -282,7 +297,8 @@ integer, pointer :: m(:,:) ! List of group members
 call make_member_list(d,m)
 n = product(d) ! Number of elements in each permutation group
 if (associated(trans)) deallocate(trans)
-allocate(trans(n,n))
+allocate(trans(n,n),STAT=status)
+if(status/=0) stop "Allocation of 'trans' failed in make_translation_group"
 
 do im = 1, n
    ! add the im-th element of the group to every element in the group, mod d
