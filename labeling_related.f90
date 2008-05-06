@@ -28,39 +28,33 @@ integer d(3) ! Diagonal elements of the SNF
 integer, allocatable :: tl(:,:) ! temporary list of labels
 integer, allocatable :: Gp(:,:)  ! G prime, the permuted (by T) image group
 character :: labTab(size(labTabin))
-integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status
-logical err
+integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status, iuq, jRot
+logical err, found
 real(dp), dimension(3,3) :: T, Ident, A1, A1inv, invA
-integer lr(size(lab,2),48)
+integer, allocatable :: lr(:,:), tlr(:,:) ! Label rotations (permutations) and temp storage
 integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
 real(dp) :: eps
 integer trivPerm(size(lab,2)), kc(size(lab,2))
 integer, pointer :: perm(:,:)
-print *,"entering remove_dups"
-
-print *,"entered remove"
 
 np = factorial(k)
 call get_permutations((/(i,i=0,k-1)/),perm)
-print *,"after perms"
 
 n = size(lab,2)
 trivPerm = (/(i,i=1,n)/)
 nl = size(lab,1)
 multiplier = k**(/(i,i=n-1,0,-1)/)
+
 Ident = 0; Ident(1,1) = 1;Ident(2,2) = 1;Ident(3,3) = 1 ! Identity matrix
 allocate(tl(size(lab,1),size(lab,2)),STAT=status)
 if(status/=0) stop "Allocation of tl failed in remove_label..., module labeling..." ! Allocate the temporary list
 allocate(Gp(size(G,1),size(G,2)),STAT=status)
 if(status/=0) stop "Allocation of Gp failed in remove_label_rotation_dups"
-print *,"remove: made it through the allocations"
+allocate(lr(size(lab,2),48),tlr(size(lab,2),48),STAT=status)
+if(status/=0) stop "Allocation of lr, tlr failed in remove_label_rotation_dups"
 
 labTab = labTabin
-print *,"remove: copied LabTab"
-
 tl = lab ! Copy the labels
-print *,"Copied tl"
-
 
 call matrix_inverse(A,invA,err)  ! Need A^-1 to form the transformation
 
@@ -89,8 +83,28 @@ do iRot = 1, nRot ! Use each rotation that fixes the lattice.
    if (any(lr(:,iRot)==0)) stop "Transform didn't work. Gp is not a permutation of G"
 enddo
 
+! One way to speed this up, perhaps drastically, would be to store only a list of *unique*
+! permutations and then loop over those. I'll try that here.
+iuq = 0
+do iRot = 1, nRot ! Loop over each lr and see if it is unique
+   found = .false.
+   do jRot = 1, iRot -1
+      if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match lr_iRot not unique
+         found = .true.; exit
+         endif
+   enddo
+   if (.not. found) then ! it is unique so store it
+      iuq = iuq + 1
+      tlr(:,iuq) = lr(:,iRot)
+   endif
+enddo
+deallocate(lr)
+allocate(lr(size(lab,2),iuq))
+lr = tlr(:,1:iuq) ! Copy the unique labels back to the original variable
+
+
 ! Now that we have a list of label permutations, use them to shrink the input list of labelings
-do iRot = 1, nRot ! There's one permutation for each rotation that fixes the lattice
+do iRot = 1, iuq ! There's one permutation for each rotation that fixes the lattice
    if (all(lr(:,iRot)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
    if (all(lr(:,iRot)==0)) cycle ! This happens for the trivial rotation (identity)
    do il = 1, nl ! loop over each labeling in the list

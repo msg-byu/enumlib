@@ -299,9 +299,8 @@ integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null()
 type(opList), pointer :: fixOp(:)
 integer :: ctot, csize ! counters for total number of structures and structures of each size
 integer diag(3), ld(6) ! diagonal elements of SNF, lower diagonal---elements of HNF
-real(dp) eps, tstart, tend
+real(dp) eps, tstart, tend, tHNFs, tDupLat, tSNF, tiuq, tML, tGenLab, tRotDup, tihnf
 
-!print *,"how big",2**16/2
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
@@ -320,6 +319,7 @@ write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
 if (full) then; write(14,'("Full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("Partial list of labelings (complete labelings only) is used")'); endif
 write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+write(99,'("index",5x,"HNFs",6x,"DupLats",3x,"SNFs",8x,"RemoveDups")')
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s') then; LatDim = 2
@@ -344,56 +344,35 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
    call cpu_time(tHNFs)
-   
    call remove_duplicate_lattices(HNF,LatDim,parLV,reducedHNF,fixOp,uqlatts,eps)
-   call cpu_time(rLat)
+   call cpu_time(tDupLat)
    call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
+   call cpu_time(tSNF)
    ! We have a list containing each unique derivative superlattice and
    ! its corresponding Smith Normal Form. Now make the labelings.
    Nq = size(uqSNF,3)  ! Number of unique SNFs
+
    do iuq = 1, Nq ! Loop over all of the unique SNFs
+      call cpu_time(tiuq)
       diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
       call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
+      call cpu_time(tML)
       call generate_labelings(k,diag,labelings,table,trgroup,full) ! Removes
       ! trans-dups,non-prims,label-exchange dups
+      call cpu_time(tGenLab)
+      !write(99,'(i2,2x,)') n,
       do ihnf = 1, size(SNF_labels) ! Store each of the HNF and left transformation matrices
+         call cpu_time(tihnf)
          if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
          ! Need to do this step for each HNF, not each SNF
          allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
          if(status/=0) stop "Allocation of tlab failed in module deriv..."
-         do i = 1,size(labelings,1) ! debug
-            tlab(i,:) = labelings(i,:)
-            !write(*,'(i12,3x,22i1)') i,labelings(i,:)
-            !write(*,'(i12,3x,22i1)') i,tlab(i,:)
-enddo
-print *,table(1)
-print *, "Made it past the tlab allocation"
-         print *,shape(tlab),size(tlab)
-         print *,shape(labelings),size(labelings)
-
-! The following line causes "Illegal instruction" errors when labelings is large, but the do loop
-!         above works fin.
-!         tlab = labelings
-         
-print *,"Made it past tlab = labelings"
-         ! tlab is a temporary copy of the labelings (only the unique ones)
-         ! table is a list of markers (D,F,E,etc.) for duplicate labelings
-         ! G is a collection of 3-vectors representing members of the quotient group
-         ! trgroup is a list of all the permutations that correspond to translations
-do i = 1,size(table),100 ! debug
-            !write(*,'(i10,3x,a1)') i,table(i)
-   write(*,'(100a1)') table(i:min(i+99,size(table)))
-enddo
-print *, L(:,:,ihnf)
-print *, parLV
-print *, fixOp(iHNF)%rot
-print *, G
-print *,tlab
-print *,table
-print *,"just before entering remove_dups"
-
+         tlab = labelings
          call remove_label_rotation_dups(L(:,:,iHNF),parLV,fixOp(iHNF)%rot,G,&
                                         tlab,table,trgroup,k,diag,eps)
+         call cpu_time(tRotDup)
+         write(99,'("HNF#: ",i8,2x,i2,2x,i2,2x,i2,2(i8,2x),f8.3)') &
+ihnf, iuq, ivol, size(fixOp(iHNF)%rot,3), size(labelings,1), size(tlab,1), tRotDup-tihnf   
          ivolTot = ivolTot + size(tlab,1)
          ld = (/reducedHNF(1,1,ihnf),reducedHNF(2,1,ihnf),reducedHNF(2,2,ihnf),&
                 reducedHNF(3,1,ihnf),reducedHNF(3,2,ihnf),reducedHNF(3,3,ihnf)/)
@@ -407,6 +386,9 @@ print *,"just before entering remove_dups"
       enddo
    enddo
    call cpu_time(tend)
+   write(99,'(i2,5x,4(f8.3,2x))') ivol, tHNFs - tstart , tDupLat - tHNFs, tSNF - tDupLat, tend - tGenLab
+
+   
    runTot = runTot + iVolTot
    write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
         size(uqSNF,3),size(reducedHNF,3),1-size(reducedHNF,3)/real(size(HNF,3)),ivolTot, runTot
