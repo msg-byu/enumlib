@@ -306,6 +306,9 @@ write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin,
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
 
+! File for timings info
+open(99,file="timings_enum.out")
+
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
 write(14,'(a10)') title
@@ -340,7 +343,10 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    else
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
+   call cpu_time(tHNFs)
+   
    call remove_duplicate_lattices(HNF,LatDim,parLV,reducedHNF,fixOp,uqlatts,eps)
+   call cpu_time(rLat)
    call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
    ! We have a list containing each unique derivative superlattice and
    ! its corresponding Smith Normal Form. Now make the labelings.
@@ -406,6 +412,7 @@ print *,"just before entering remove_dups"
         size(uqSNF,3),size(reducedHNF,3),1-size(reducedHNF,3)/real(size(HNF,3)),ivolTot, runTot
 enddo
 close(14)
+close(99)
 END SUBROUTINE generate_derivative_structures
 
 END MODULE derivative_structure_generator
