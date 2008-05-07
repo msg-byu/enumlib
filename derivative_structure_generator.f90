@@ -357,10 +357,9 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
       call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
       call cpu_time(tML)
-      call generate_labelings(k,diag,labelings,table,trgroup,full) ! Removes
-      ! trans-dups,non-prims,label-exchange dups
+      ! Removes trans-dups,non-prims,label-exchange dups
+      call generate_labelings(k,diag,labelings,table,trgroup,full) 
       call cpu_time(tGenLab)
-      !write(99,'(i2,2x,)') n,
       do ihnf = 1, size(SNF_labels) ! Store each of the HNF and left transformation matrices
          call cpu_time(tihnf)
          if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF

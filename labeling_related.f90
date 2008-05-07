@@ -87,12 +87,12 @@ enddo
 iuq = 0
 do iRot = 1, nRot ! Loop over each lr and see if it is unique
    found = .false.
-   do jRot = 1, iRot -1
+   do jRot = 1, iuq
       if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match, lr_iRot not unique
          found = .true.; exit
          endif
    enddo
-   if (.not. found) then ! it is unique so store it
+   if (.not. found .and. .not. all(lr(:,iRot)==0) .and. .not. all(lr(:,iRot)==trivPerm)) then
       iuq = iuq + 1
       tlr(:,iuq) = lr(:,iRot)
    endif
@@ -100,12 +100,12 @@ enddo
 deallocate(lr)
 allocate(lr(size(lab,2),iuq))
 lr = tlr(:,1:iuq) ! Copy the unique labels back to the original variable
-
+nRot = iuq ! Change nRot to number of unique, non-trivial permutations
 
 ! Now that we have a list of label permutations, use them to shrink the input list of labelings
-do iRot = 1, iuq ! There's one permutation for each rotation that fixes the lattice
-   if (all(lr(:,iRot)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
-   if (all(lr(:,iRot)==0)) cycle ! This happens for the trivial rotation (identity)
+do iRot = 1, nRot ! There's one permutation for each rotation that fixes the lattice
+!   if (all(lr(:,iRot)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
+!   if (all(lr(:,iRot)==0)) cycle ! This happens for the trivial rotation (identity)
    do il = 1, nl ! loop over each labeling in the list
       b = lab(il,:)  ! Get the il-th labeling (we don't want to remove this one, just label-rotated copies of itself)
       do itr = 1,size(trgrp,1) ! Loop over all possible translations of this permutation
