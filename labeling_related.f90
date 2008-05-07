@@ -18,7 +18,6 @@ integer, intent(in) :: L(:,:) !Left transformation matrices for SNF (input)
 integer, intent(in) :: G(:,:) ! image group (input)
 integer, pointer :: lab(:,:) ! labelings that are unique except for label-rotation permutations
 real(dp) :: A(3,3) ! The parent lattice
-!type(opList), pointer :: R(:)
 real(dp) :: R(:,:,:)
 character, intent(in) :: labTabin(:)
 integer, pointer :: trgrp(:,:)
@@ -89,7 +88,7 @@ iuq = 0
 do iRot = 1, nRot ! Loop over each lr and see if it is unique
    found = .false.
    do jRot = 1, iRot -1
-      if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match lr_iRot not unique
+      if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match, lr_iRot not unique
          found = .true.; exit
          endif
    enddo
@@ -135,7 +134,7 @@ if(associated(lab)) deallocate(lab)
 allocate(lab(nUql,n),STAT=status)
 if(status/=0) stop "Allocation of lab failed in remove_label_rotations_dups"
 kc = 0; ic = 0
-do ! Loop over all values of a k-ary, n-digit counter
+do ! Loop over all values of a k-nary, n-digit counter
    idx = sum(kc*multiplier)+1
    if (labTab(idx)=='F') then
       ic = ic + 1   ! Count the number of labelings found so far
