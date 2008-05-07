@@ -352,7 +352,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! its corresponding Smith Normal Form. Now make the labelings.
    Nq = size(uqSNF,3)  ! Number of unique SNFs
 
-   do iuq = 1, Nq ! Loop over all of the unique SNFs
+   do iuq = 1, Nq ! << Loop over all of the unique SNFs >>
       call cpu_time(tiuq)
       diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
       call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
@@ -360,10 +360,9 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       ! Removes trans-dups,non-prims,label-exchange dups
       call generate_labelings(k,diag,labelings,table,trgroup,full) 
       call cpu_time(tGenLab)
-      do ihnf = 1, size(SNF_labels) ! Store each of the HNF and left transformation matrices
+      do ihnf = 1, size(SNF_labels) ! << Remove rotation duplicates >>
          call cpu_time(tihnf)
          if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
-         ! Need to do this step for each HNF, not each SNF
          allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
          if(status/=0) stop "Allocation of tlab failed in module deriv..."
          tlab = labelings

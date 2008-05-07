@@ -7,8 +7,82 @@ use combinatorics
 implicit none
 private
 public  remove_label_rotation_dups, get_permutations, count_full_colorings, &
-       generate_labelings, make_member_list
+       generate_labelings, make_member_list, make_label_rotation_table
 CONTAINS
+!***************************************************************************************************
+! This routine takes in a list of HNFs and a list of rotations (orthogonal transformations) and
+! computes the permutations of the labels effected by the rotation. Then the HNFs are grouped into
+! categories according to which permutations are applicable.
+SUBROUTINE make_label_rotation_table(HNF,L,A,R,G,d,lrTab,lrIndx)
+integer, intent(in) :: HNF(:,:,:), R(:,:,:), L(:,:,:) ! HNFs, set of rotations, left SNF transformations
+real(dp), intent(in) :: A(3,3) ! Lattice vectors of the parent lattice
+integer, intent(in) :: G(:,:) ! The translation group for this SNF
+integer, pointer :: lrTab(:,:,:) ! Table of the label rotation permutations
+integer, intent(out) :: lrIndx ! Index for which table entry (permutations list) is associated with each HNF
+integer, intent(in) :: d(3) ! Diagonal elements of the SNF
+
+integer iH, iR, ilr, iq, i, j ! Loop counters
+logical found ! flag for identifying new permutation lists
+integer, allocatable :: tlr ! temporary list of label rotations for current HNF
+real(dp), dimension(3,3) :: T, A1, A1inv, Ainv ! Matrices for making the transformation
+integer :: Gp(size(G,1),size(G,2))
+
+nH = size(HNF,3) ! Number of HNFs
+nR = size(R,3) ! Number of rotations
+n = determinant(HNF(:,:,1)) ! Index of the current superlattices
+allocate(tlr(nR,n))
+
+do iH = 1, nH
+   ! Make a list of permutations for this HNF
+   call matrix_inverse(A,invA,err)  ! Need A^-1 to form the transformation
+   A1 = matmul(L,invA)
+   call matrix_inverse(A1,A1inv,err)
+   do iR = 1, nR ! Loop over all rotations
+      T = matmul(A1, matmul(R(:,:,iR),A1inv))  ! This is the transformation
+      if (.not. equal(T,nint(T),eps)) &
+         stop 'ERROR: make_label_rotation_table: Transformation is not integer'
+      Gp = matmul(nint(T),G)  ! Gp (prime) is the tranformed image group. Need this to get the permutation
+      do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
+
+      do i = 1, n
+         do j = 1, n
+            if (all(Gp(:,j)==G(:,i))) then ! the two images are the same for the i-th member
+               tlr(i,iRot) = j
+            endif
+         enddo
+      enddo
+      if (any(tlr(:,iRot)==0)) stop "Transform didn't work. Gp is not a permutation of G"
+   enddo ! End loop over rotations
+
+   ! Now that we have a list of permutations, reduce that list to the *unique* permutations
+   iq = 0
+   do iRot = 1, nRot ! Loop over each lr and see if it is unique
+      found = .false.
+      do jRot = 1, iq
+         if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match, lr_iRot not unique
+            found = .true.; exit
+         endif
+      enddo
+      if (.not. found .and. .not. all(lr(:,iRot)==0) .and. .not. all(lr(:,iRot)==trivPerm)) then
+         iq = iq + 1
+         tlr(:,iq) = lr(:,iRot)
+      endif
+   enddo
+   deallocate(lr)
+   allocate(lr(size(lab,2),iq))
+   lr = tlr(:,1:iq) ! Copy the unique labels back to the original variable
+   nRot = iuq ! Change nRot to number of unique, non-trivial permutations
+
+enddo
+   
+
+! Is this list of permutations unique? If not, index it. If so, store it
+
+
+
+
+ENDSUBROUTINE
+
 !***************************************************************************************************
 ! This routine takes a list of SNF left transformation matrices and the parent lattice and finds
 ! a list of permutations (label-rotation permutations, which leave the superlattice itself fixed).
@@ -54,53 +128,6 @@ if(status/=0) stop "Allocation of lr, tlr failed in remove_label_rotation_dups"
 
 labTab = labTabin
 tl = lab ! Copy the labels
-
-call matrix_inverse(A,invA,err)  ! Need A^-1 to form the transformation
-
-! Find the list of permutations that correspond to label-rotations
-A1 = matmul(L,invA)
-call matrix_inverse(A1,A1inv,err)
-nRot = size(R,3)
-lr = 0 ! Reset the list of label-rotation permutations
-do iRot = 1, nRot ! Use each rotation that fixes the lattice.
-   if (equal(R(:,:,iRot),Ident,eps)) cycle ! Skip the identity---it won't rotate the labels
-   T = matmul(A1, matmul(R(:,:,iRot),A1inv))  ! This is the transformation
-   if (.not. equal(T,nint(T),eps)) then
-      print *, 'ERROR: remove_label_rotation_dups: Transformation is not integer'
-      stop
-   endif
-   Gp = matmul(nint(T),G)  ! Gp (prime) is the tranformed image group. Need this to get the permutation
-   do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
-
-   do i = 1, n
-      do j = 1, n
-         if (all(Gp(:,j)==G(:,i))) then ! the two images are the same for the i-th member
-            lr(i,iRot) = j
-         endif
-      enddo
-   enddo
-   if (any(lr(:,iRot)==0)) stop "Transform didn't work. Gp is not a permutation of G"
-enddo
-
-! One way to speed this up, perhaps drastically, would be to store only a list of *unique*
-! permutations and then loop over those. I'll try that here.
-iuq = 0
-do iRot = 1, nRot ! Loop over each lr and see if it is unique
-   found = .false.
-   do jRot = 1, iuq
-      if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match, lr_iRot not unique
-         found = .true.; exit
-         endif
-   enddo
-   if (.not. found .and. .not. all(lr(:,iRot)==0) .and. .not. all(lr(:,iRot)==trivPerm)) then
-      iuq = iuq + 1
-      tlr(:,iuq) = lr(:,iRot)
-   endif
-enddo
-deallocate(lr)
-allocate(lr(size(lab,2),iuq))
-lr = tlr(:,1:iuq) ! Copy the unique labels back to the original variable
-nRot = iuq ! Change nRot to number of unique, non-trivial permutations
 
 ! Now that we have a list of label permutations, use them to shrink the input list of labelings
 do iRot = 1, nRot ! There's one permutation for each rotation that fixes the lattice
