@@ -17,23 +17,27 @@ SUBROUTINE make_label_rotation_table(HNF,L,A,R,G,d,lrTab,lrIndx)
 integer, intent(in) :: HNF(:,:,:), R(:,:,:), L(:,:,:) ! HNFs, set of rotations, left SNF transformations
 real(dp), intent(in) :: A(3,3) ! Lattice vectors of the parent lattice
 integer, intent(in) :: G(:,:) ! The translation group for this SNF
-integer, pointer :: lrTab(:,:,:) ! Table of the label rotation permutations
+integer, intent(out) :: lrTab(:,:,:) ! Table of the label rotation permutations (perm #, label, index)
 integer, intent(out) :: lrIndx ! Index for which table entry (permutations list) is associated with each HNF
 integer, intent(in) :: d(3) ! Diagonal elements of the SNF
 
-integer iH, iR, ilr, iq, i, j ! Loop counters
+integer iH, iR, jR, ilr, iq, i, j, ilq ! Loop counters
+integer nH, nR, n, nlq, nq
 logical found ! flag for identifying new permutation lists
-integer, allocatable :: tlr ! temporary list of label rotations for current HNF
+integer, allocatable :: tlr, tlrq ! temporary list of label rotations for current HNF, *unique* list
 real(dp), dimension(3,3) :: T, A1, A1inv, Ainv ! Matrices for making the transformation
-integer :: Gp(size(G,1),size(G,2))
+integer :: Gp(shape(G))
 
 nH = size(HNF,3) ! Number of HNFs
 nR = size(R,3) ! Number of rotations
 n = determinant(HNF(:,:,1)) ! Index of the current superlattices
-allocate(tlr(nR,n))
+nlq = 0 ! Number of permutation lists that are unique
+allocate(tlr(nR,n),tlrq(nR,n))
 
 do iH = 1, nH
    ! Make a list of permutations for this HNF
+   
+   ! First find the permutation on the group by each rotation
    call matrix_inverse(A,invA,err)  ! Need A^-1 to form the transformation
    A1 = matmul(L,invA)
    call matrix_inverse(A1,A1inv,err)
@@ -44,7 +48,7 @@ do iH = 1, nH
       Gp = matmul(nint(T),G)  ! Gp (prime) is the tranformed image group. Need this to get the permutation
       do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
 
-      do i = 1, n
+      do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
          do j = 1, n
             if (all(Gp(:,j)==G(:,i))) then ! the two images are the same for the i-th member
                tlr(i,iRot) = j
@@ -55,34 +59,60 @@ do iH = 1, nH
    enddo ! End loop over rotations
 
    ! Now that we have a list of permutations, reduce that list to the *unique* permutations
-   iq = 0
-   do iRot = 1, nRot ! Loop over each lr and see if it is unique
-      found = .false.
-      do jRot = 1, iq
-         if (all(lr(:,iRot)==tlr(:,jRot))) then ! the two permutations match, lr_iRot not unique
-            found = .true.; exit
+   iq = 0 ! count unique permutations
+   do iR = 1, nR ! Loop over each lr and see if it is unique
+      unique = .true. ! Flag to see if we found a duplicate
+      do jRot = 1, iq ! loop over the unique permutations found so far, look for matches
+         if (all(tlr(:,iR)==tlrq(:,jR))) then ! the two permutations match, tlr_iR not unique
+            unique = .false.; exit
          endif
       enddo
-      if (.not. found .and. .not. all(lr(:,iRot)==0) .and. .not. all(lr(:,iRot)==trivPerm)) then
+      ! See if this permutation hasn't been found yet and isn't the identity
+      if (unique .and. .not. all(lr(:,iRot)==trivPerm)) then
          iq = iq + 1
-         tlr(:,iq) = lr(:,iRot)
+         tlrq(:,iq) = tlr(:,iR)
       endif
    enddo
-   deallocate(lr)
-   allocate(lr(size(lab,2),iq))
-   lr = tlr(:,1:iq) ! Copy the unique labels back to the original variable
-   nRot = iuq ! Change nRot to number of unique, non-trivial permutations
+   nq = iq ! number of unique permutations in this list.
 
+   ! Is this list of permutations unique in the table? If not, index it. If so, store it
+   newinlist = .true.
+   do ilq = 1, nlq  ! Loop over all the perms in the list so far
+      unique = .true. ! assume unique until match is found
+      if (lists_match(tlrq,lrTab(:,:,ilq))) then
+         lrIndx(iH) = ilq; unique = .false.; exit ! Found a match in the list
+      endif
+      if (unique) then ! new perm (no match found) so store it
+         nlq = nlq + 1
+         lrTab(:,:,nlq) = tlrq
+         exit
+      endif
+   enddo
 enddo
    
+ENDSUBROUTINE make_label_rotation_label
 
-! Is this list of permutations unique? If not, index it. If so, store it
+!***************************************************************************************************
+! This routine takes two lists of integer sequences and compares them to see if they are the
+! same. The input lists are assumed to contain unique sequences and perhaps padded with zeros.
+FUNCTION lists_match(list1, list2)
+integer, intent(in) :: list1(:,:), list2(:,:) 
+logical lists_match, rowmatch
+integer n, nL ! length of each list, length of lists
+integer i,j
 
-
-
-
-ENDSUBROUTINE
-
+lists_match = .false.; rowmatch = .false.
+nL = size(list1,1) 
+do i = 1, nL
+   if (all(list1==list2)) then; rowmatch = .true.; exit; endif
+   rowmatch = .false.
+   do j = 1, nL
+      if (all(list1(:,i)==list(:,j))) rowmatch = .true.
+   enddo
+   if (.not. rowmatch) exit
+enddo
+if (rowmatch) lists_match = .true.
+ENDFUNCTION lists_match
 !***************************************************************************************************
 ! This routine takes a list of SNF left transformation matrices and the parent lattice and finds
 ! a list of permutations (label-rotation permutations, which leave the superlattice itself fixed).
