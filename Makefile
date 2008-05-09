@@ -20,7 +20,7 @@ ifeq (${F90},xlf90) # IBM compiler
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
   LBDR = ../celib
-  FFLAGS = -g -Rb -Rc -z2 -ea -et -nodefaultmod -p ${LBDR} 
+  FFLAGS = -g -Rb -Rc -z2 -et -nodefaultmod -p ${LBDR} 
 #  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level

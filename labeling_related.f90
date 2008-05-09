@@ -1,5 +1,6 @@
 MODULE labeling_related
 use num_types
+use crystal_types
 use vector_matrix_utilities
 use numerical_utilities
 use rational_mathematics, only: gcd
@@ -13,62 +14,73 @@ CONTAINS
 ! This routine takes in a list of HNFs and a list of rotations (orthogonal transformations) and
 ! computes the permutations of the labels effected by the rotation. Then the HNFs are grouped into
 ! categories according to which permutations are applicable.
-SUBROUTINE make_label_rotation_table(HNF,L,A,R,G,d,lrTab,lrIndx)
-integer, intent(in) :: HNF(:,:,:), R(:,:,:), L(:,:,:) ! HNFs, set of rotations, left SNF transformations
+SUBROUTINE make_label_rotation_table(HNF,L,A,R,G,d, eps, lrTab,lrIndx)
+integer, intent(in) :: HNF(:,:,:), L(:,:,:) ! HNFs, set of rotations, left SNF transformations
+type(opList), intent(in) :: R(:)
 real(dp), intent(in) :: A(3,3) ! Lattice vectors of the parent lattice
 integer, intent(in) :: G(:,:) ! The translation group for this SNF
 integer, intent(out) :: lrTab(:,:,:) ! Table of the label rotation permutations (perm #, label, index)
-integer, intent(out) :: lrIndx ! Index for which table entry (permutations list) is associated with each HNF
+integer, intent(out) :: lrIndx(:) ! Index for which table entry (permutations list) is associated with each HNF
 integer, intent(in) :: d(3) ! Diagonal elements of the SNF
 
-integer iH, iR, jR, ilr, iq, i, j, ilq ! Loop counters
-integer nH, nR, n, nlq, nq
-logical found ! flag for identifying new permutation lists
-integer, allocatable :: tlr, tlrq ! temporary list of label rotations for current HNF, *unique* list
+integer iH, iR, jR, iq, i, j, ilq ! Loop counters
+integer nH, nR, n, nlq, nq, status, tNr
+logical unique, err ! flag for identifying new permutation lists, error flag
+integer, allocatable :: tlr(:,:), tlrq(:,:) ! temporary list of label rotations for current HNF, *unique* list
 real(dp), dimension(3,3) :: T, A1, A1inv, Ainv ! Matrices for making the transformation
-integer :: Gp(shape(G))
+integer :: Gp(size(G,1),size(G,2))
+integer, allocatable :: trivPerm(:)
+real(dp) eps
 
 nH = size(HNF,3) ! Number of HNFs
-nR = size(R,3) ! Number of rotations
+! Find the maximum number of symmetries for the list of HNFs
+nR = 0; do i = 1, size(R); tNr = size(R(i)%rot,3); if(tNr>nR) nR = tNr; enddo  
 n = determinant(HNF(:,:,1)) ! Index of the current superlattices
 nlq = 0 ! Number of permutation lists that are unique
-allocate(tlr(nR,n),tlrq(nR,n))
+allocate(tlr(n,nR),tlrq(n,nR),trivPerm(n),STAT=status)
+if (status/=0) stop "Trouble allocating tlr, tlrq, trivPerm in make_label_rotation_table"
+trivPerm = (/(i,i=1,n)/); lrTab = 0
 
 do iH = 1, nH
    ! Make a list of permutations for this HNF
-   
+   write(*,*) "iH",iH,"n",n,"nR",nR
    ! First find the permutation on the group by each rotation
-   call matrix_inverse(A,invA,err)  ! Need A^-1 to form the transformation
-   A1 = matmul(L,invA)
+   call matrix_inverse(A,Ainv,err)  ! Need A^-1 to form the transformation
+   A1 = matmul(L(:,:,iH),Ainv)
    call matrix_inverse(A1,A1inv,err)
-   do iR = 1, nR ! Loop over all rotations
-      T = matmul(A1, matmul(R(:,:,iR),A1inv))  ! This is the transformation
+   do iR = 1, size(R(iH)%rot,3) ! Loop over all rotations
+      T = matmul(A1, matmul(R(iH)%rot(:,:,iR),A1inv))  ! This is the transformation
       if (.not. equal(T,nint(T),eps)) &
          stop 'ERROR: make_label_rotation_table: Transformation is not integer'
       Gp = matmul(nint(T),G)  ! Gp (prime) is the tranformed image group. Need this to get the permutation
       do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
-
+         write(*,*)
+         do j = 1, n
+            write(*,'(3(i1,1x),3x,3(i1,1x))') Gp(:,j),G(:,j)
+         enddo
       do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
          do j = 1, n
             if (all(Gp(:,j)==G(:,i))) then ! the two images are the same for the i-th member
-               tlr(i,iRot) = j
+               tlr(i,iR) = j
             endif
          enddo
       enddo
-      if (any(tlr(:,iRot)==0)) stop "Transform didn't work. Gp is not a permutation of G"
+      write(*,'(8i1)') tlr(1:n,iR)
+      write(*,'(3i2)') d
+      if (any(tlr(1:n,iR)==0)) stop "Transform didn't work. Gp is not a permutation of G"
    enddo ! End loop over rotations
 
    ! Now that we have a list of permutations, reduce that list to the *unique* permutations
    iq = 0 ! count unique permutations
    do iR = 1, nR ! Loop over each lr and see if it is unique
       unique = .true. ! Flag to see if we found a duplicate
-      do jRot = 1, iq ! loop over the unique permutations found so far, look for matches
+      do jR = 1, iq ! loop over the unique permutations found so far, look for matches
          if (all(tlr(:,iR)==tlrq(:,jR))) then ! the two permutations match, tlr_iR not unique
             unique = .false.; exit
          endif
       enddo
       ! See if this permutation hasn't been found yet and isn't the identity
-      if (unique .and. .not. all(lr(:,iRot)==trivPerm)) then
+      if (unique .and. .not. all(tlr(:,iR)==trivPerm) .and. .not. all(tlr(:,iR)==0)) then
          iq = iq + 1
          tlrq(:,iq) = tlr(:,iR)
       endif
@@ -76,21 +88,20 @@ do iH = 1, nH
    nq = iq ! number of unique permutations in this list.
 
    ! Is this list of permutations unique in the table? If not, index it. If so, store it
-   newinlist = .true.
-   do ilq = 1, nlq  ! Loop over all the perms in the list so far
-      unique = .true. ! assume unique until match is found
+   unique = .true. ! assume new list is unique until matching list is found
+   do ilq = 1, nlq  ! Loop over all the lists in the table so far
       if (lists_match(tlrq,lrTab(:,:,ilq))) then
          lrIndx(iH) = ilq; unique = .false.; exit ! Found a match in the list
       endif
-      if (unique) then ! new perm (no match found) so store it
-         nlq = nlq + 1
-         lrTab(:,:,nlq) = tlrq
-         exit
-      endif
    enddo
+   if (unique) then ! new perm (no match found) so store it
+      nlq = nlq + 1
+      lrTab(:,:,nlq) = tlrq 
+       write(*,'(8i1)') tlrq
+   endif   
 enddo
-   
-ENDSUBROUTINE make_label_rotation_label
+
+ENDSUBROUTINE make_label_rotation_table
 
 !***************************************************************************************************
 ! This routine takes two lists of integer sequences and compares them to see if they are the
@@ -98,16 +109,15 @@ ENDSUBROUTINE make_label_rotation_label
 FUNCTION lists_match(list1, list2)
 integer, intent(in) :: list1(:,:), list2(:,:) 
 logical lists_match, rowmatch
-integer n, nL ! length of each list, length of lists
+integer nL ! length of each list, length of lists
 integer i,j
-
 lists_match = .false.; rowmatch = .false.
-nL = size(list1,1) 
+nL = size(list1,2) 
 do i = 1, nL
    if (all(list1==list2)) then; rowmatch = .true.; exit; endif
    rowmatch = .false.
    do j = 1, nL
-      if (all(list1(:,i)==list(:,j))) rowmatch = .true.
+      if (all(list1(:,i)==list2(:,j))) then; rowmatch = .true.; exit; endif
    enddo
    if (.not. rowmatch) exit
 enddo
@@ -131,14 +141,12 @@ integer d(3) ! Diagonal elements of the SNF
 integer, allocatable :: tl(:,:) ! temporary list of labels
 integer, allocatable :: Gp(:,:)  ! G prime, the permuted (by T) image group
 character :: labTab(size(labTabin))
-integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status, iuq, jRot
-logical err, found
-real(dp), dimension(3,3) :: T, Ident, A1, A1inv, invA
+integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status
 integer, allocatable :: lr(:,:), tlr(:,:) ! Label rotations (permutations) and temp storage
 integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
 real(dp) :: eps
 integer trivPerm(size(lab,2)), kc(size(lab,2))
-integer, pointer :: perm(:,:)
+integer, pointer :: perm(:,:) => null()
 
 np = factorial(k)
 call get_permutations((/(i,i=0,k-1)/),perm)
@@ -148,7 +156,6 @@ trivPerm = (/(i,i=1,n)/)
 nl = size(lab,1)
 multiplier = k**(/(i,i=n-1,0,-1)/)
 
-Ident = 0; Ident(1,1) = 1;Ident(2,2) = 1;Ident(3,3) = 1 ! Identity matrix
 allocate(tl(size(lab,1),size(lab,2)),STAT=status)
 if(status/=0) stop "Allocation of tl failed in remove_label..., module labeling..." ! Allocate the temporary list
 allocate(Gp(size(G,1),size(G,2)),STAT=status)
@@ -361,7 +368,7 @@ integer, pointer :: trans(:,:) ! Translations that leave the superstructure unch
 
 integer n, im,i, j, status
 integer tg(3,d(1)*d(2)*d(3)) ! Temporary storage for the translations
-integer, pointer :: m(:,:) ! List of group members
+integer, pointer :: m(:,:) => null() ! List of group members
 
 ! Get a list of group members; essentially a mixed-radix, 3 digit counter
 call make_member_list(d,m)

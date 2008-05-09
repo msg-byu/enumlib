@@ -292,15 +292,16 @@ integer, pointer, dimension(:,:,:) :: uqSNF => null()
 integer, pointer :: trgroup(:,:)=>null()
 real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: table(:)
-integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim, status
+integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim, status, ilr, nHNF, nRedHNF
 integer, pointer :: HNF(:,:,:) => null(), reducedHNF(:,:,:) => null(), G(:,:) => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null()
-integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null()
+integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null(), newL => null()
 type(opList), pointer :: fixOp(:)
 integer :: ctot, csize ! counters for total number of structures and structures of each size
 integer diag(3), ld(6) ! diagonal elements of SNF, lower diagonal---elements of HNF
 real(dp) eps, tstart, tend, tHNFs, tDupLat, tSNF, tiuq, tML, tGenLab, tRotDup, tihnf
-
+integer, pointer :: LabRotTable(:,:,:) => null(), LabRotIndx(:) => null ()
+logical, pointer :: SNFmask(:,:,:) => null()
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
@@ -348,10 +349,10 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    call cpu_time(tDupLat)
    call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
    call cpu_time(tSNF)
+
    ! We have a list containing each unique derivative superlattice and
    ! its corresponding Smith Normal Form. Now make the labelings.
    Nq = size(uqSNF,3)  ! Number of unique SNFs
-
    do iuq = 1, Nq ! << Loop over all of the unique SNFs >>
       call cpu_time(tiuq)
       diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
@@ -360,9 +361,33 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       ! Removes trans-dups,non-prims,label-exchange dups
       call generate_labelings(k,diag,labelings,table,trgroup,full) 
       call cpu_time(tGenLab)
-      do ihnf = 1, size(SNF_labels) ! << Remove rotation duplicates >>
-         call cpu_time(tihnf)
-         if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
+
+      ! Really want to pass in only those HNFs that have the same SNF, but we don't have them sorted
+      ! that way in reducedHNF. So grab those of the current SNF and pack into another variable, HNF
+      deallocate(HNF); nHNF = count(SNF_labels==iuq); nRedHNF = size(reducedHNF,3)
+      allocate(HNF(3,3,nHNF),SNFmask(3,3,nRedHNF),LabRotIndx(nRedHNF),newL(3,3,nHNF))
+      SNFmask = reshape(spread(SNF_labels==iuq,1,9),(/3,3,nRedHNF/))
+      HNF = reshape(pack(reducedHNF,SNFmask),(/3,3,nHNF/))
+      newL = reshape(pack(L,SNFmask),(/3,3,nHNF/)); deallocate(SNFmask)
+      allocate(LabRotTable(8,48,20))
+      print *,"nHNFs",nHNF
+      do i = 1,nHNF
+         write(*,'(9i1)') HNF(:,:,i)
+      enddo
+      call make_label_rotation_table(HNF,newL,parLV,fixOp,G,diag,eps,LabRotTable,LabRotIndx)
+!      do i = 1, nHNF
+!         do ihnf = 1, ivol
+            write(*,'(8i1)') pack(LabRotTable(:,:,:),LabRotTable(:,:,:)/=0)
+!         enddo
+!      enddo
+write(*,'(20i1)') LabRotIndx
+deallocate(newL)
+enddo
+enddo
+stop "Made the label rotation table"
+      do ilr = 1, size(LabRotTable,3) ! loop over the number of label rotation subgroups
+!      do ihnf = 1, size(SNF_labels) ! << Remove rotation duplicates >>
+!         if (SNF_labels(ihnf)/=iuq) cycle ! Skip structures that don't have the current SNF
          allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
          if(status/=0) stop "Allocation of tlab failed in module deriv..."
          tlab = labelings
@@ -382,7 +407,7 @@ ihnf, iuq, ivol, size(fixOp(iHNF)%rot,3), size(labelings,1), size(tlab,1), tRotD
               transpose(L(:,:,iHNF)),tlab(ilab,:)
          enddo
       enddo
-   enddo
+  ! enddo
    call cpu_time(tend)
    write(99,'(i2,5x,4(f8.3,2x))') ivol, tHNFs - tstart , tDupLat - tHNFs, tSNF - tDupLat, tend - tGenLab
 
@@ -390,7 +415,7 @@ ihnf, iuq, ivol, size(fixOp(iHNF)%rot,3), size(labelings,1), size(tlab,1), tRotD
    runTot = runTot + iVolTot
    write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
         size(uqSNF,3),size(reducedHNF,3),1-size(reducedHNF,3)/real(size(HNF,3)),ivolTot, runTot
-enddo
+!enddo
 close(14)
 close(99)
 END SUBROUTINE generate_derivative_structures
