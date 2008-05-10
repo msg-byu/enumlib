@@ -32,9 +32,11 @@ integer :: Gp(size(G,1),size(G,2))
 integer, allocatable :: trivPerm(:)
 real(dp) eps
 
+print *,"shape HNF in: ",shape(HNF)
 nH = size(HNF,3) ! Number of HNFs
 ! Find the maximum number of symmetries for the list of HNFs
-nR = 0; do i = 1, size(R); tNr = size(R(i)%rot,3); if(tNr>nR) nR = tNr; enddo  
+!nR = 0; do i = 1, size(R); tNr = size(R(i)%rot,3); if(tNr>nR) nR = tNr; enddo  
+nR = 48 ! debug
 n = determinant(HNF(:,:,1)) ! Index of the current superlattices
 nlq = 0 ! Number of permutation lists that are unique
 allocate(tlr(n,nR),tlrq(n,nR),trivPerm(n),STAT=status)
@@ -43,7 +45,8 @@ trivPerm = (/(i,i=1,n)/); lrTab = 0
 
 do iH = 1, nH
    ! Make a list of permutations for this HNF
-   write(*,*) "iH",iH,"n",n,"nR",nR
+
+!   print *, "iH",iH,"n",n,"nR",nR
    ! First find the permutation on the group by each rotation
    call matrix_inverse(A,Ainv,err)  ! Need A^-1 to form the transformation
    A1 = matmul(L(:,:,iH),Ainv)
@@ -54,10 +57,10 @@ do iH = 1, nH
          stop 'ERROR: make_label_rotation_table: Transformation is not integer'
       Gp = matmul(nint(T),G)  ! Gp (prime) is the tranformed image group. Need this to get the permutation
       do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
-         write(*,*)
-         do j = 1, n
-            write(*,'(3(i1,1x),3x,3(i1,1x))') Gp(:,j),G(:,j)
-         enddo
+!         write(*,*)
+!         do j = 1, n
+!            write(*,'(3(i1,1x),3x,3(i1,1x))') Gp(:,j),G(:,j)
+!         enddo
       do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
          do j = 1, n
             if (all(Gp(:,j)==G(:,i))) then ! the two images are the same for the i-th member
@@ -65,8 +68,8 @@ do iH = 1, nH
             endif
          enddo
       enddo
-      write(*,'(8i1)') tlr(1:n,iR)
-      write(*,'(3i2)') d
+      !write(*,'(8i1)') tlr(1:n,iR)
+      !write(*,'(3i2)') d
       if (any(tlr(1:n,iR)==0)) stop "Transform didn't work. Gp is not a permutation of G"
    enddo ! End loop over rotations
 
@@ -96,11 +99,14 @@ do iH = 1, nH
    enddo
    if (unique) then ! new perm (no match found) so store it
       nlq = nlq + 1
-      lrTab(:,:,nlq) = tlrq 
-       write(*,'(8i1)') tlrq
+      !print *, shape(lrTab(:,:,nlq))
+      !print *, shape(tlrq)
+      lrTab(:,:,nlq) = tlrq
+      ! write(*,'(8i1)') tlrq
    endif   
+   lrIndx(iH) = ilq
 enddo
-
+print *,"looped over",nh," HNFs"
 ENDSUBROUTINE make_label_rotation_table
 
 !***************************************************************************************************
@@ -124,56 +130,55 @@ enddo
 if (rowmatch) lists_match = .true.
 ENDFUNCTION lists_match
 !***************************************************************************************************
-! This routine takes a list of SNF left transformation matrices and the parent lattice and finds
-! a list of permutations (label-rotation permutations, which leave the superlattice itself fixed).
-! The routine then takes a list of labelings and removes the duplicates
-SUBROUTINE remove_label_rotation_dups(L,A,R,G,lab,labTabin,trgrp,k,d,eps)
-integer, intent(in) :: L(:,:) !Left transformation matrices for SNF (input)
-integer, intent(in) :: G(:,:) ! image group (input)
+! This routine takes a list of label permutations and a list of labelings and reduces the labelings
+! list by removing those that are duplicate under the label rotation.
+SUBROUTINE remove_label_rotation_dups(lr,lab,labTabin,trgrp,k,d,eps)
+integer, intent(in) :: lr(:,:) ! Label rotations (permutations) and temp storage
 integer, pointer :: lab(:,:) ! labelings that are unique except for label-rotation permutations
-real(dp) :: A(3,3) ! The parent lattice
-real(dp) :: R(:,:,:)
-character, intent(in) :: labTabin(:)
-integer, pointer :: trgrp(:,:)
-integer k ! Number of colors in the labelings
-integer d(3) ! Diagonal elements of the SNF
+character, intent(in) :: labTabin(:) ! Complete table of labeling "flags", F, N, D, E, etc. 
+integer, pointer :: trgrp(:,:) ! translation group, permutations that lead to equivalent labelings
+integer, intent(in):: k ! Number of colors in the labelings
+integer, intent(in):: d(3) ! Diagonal elements of the SNF
+real(dp), intent(in) :: eps ! Finite precision tolerance
 
-integer, allocatable :: tl(:,:) ! temporary list of labels
-integer, allocatable :: Gp(:,:)  ! G prime, the permuted (by T) image group
 character :: labTab(size(labTabin))
-integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status
-integer, allocatable :: lr(:,:), tlr(:,:) ! Label rotations (permutations) and temp storage
+integer i, j, n, ip, np, il, nl, idx, ic, nUql, itr, nlr(1), ilr, ia, status
 integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
-real(dp) :: eps
 integer trivPerm(size(lab,2)), kc(size(lab,2))
 integer, pointer :: perm(:,:) => null()
 
 np = factorial(k)
-call get_permutations((/(i,i=0,k-1)/),perm)
+call get_permutations((/(i,i=0,k-1)/),perm) ! Since we enter this loop so often (for same k) perhaps
+! this should be an input
+
+nlr = count(lr/=0,2)
+print *,"nlr+1", nlr+1
+
+do i = 1, nlr(1)
+   write(*,'(20i1)') lr(:,i)
+enddo
 
 n = size(lab,2)
 trivPerm = (/(i,i=1,n)/)
 nl = size(lab,1)
 multiplier = k**(/(i,i=n-1,0,-1)/)
 
-allocate(tl(size(lab,1),size(lab,2)),STAT=status)
-if(status/=0) stop "Allocation of tl failed in remove_label..., module labeling..." ! Allocate the temporary list
-allocate(Gp(size(G,1),size(G,2)),STAT=status)
-if(status/=0) stop "Allocation of Gp failed in remove_label_rotation_dups"
-allocate(lr(size(lab,2),48),tlr(size(lab,2),48),STAT=status)
-if(status/=0) stop "Allocation of lr, tlr failed in remove_label_rotation_dups"
+!allocate(tl(size(lab,1),size(lab,2)),STAT=status)
+!if(status/=0) stop "Allocation of tl failed in remove_label..., module labeling..." ! Allocate the temporary list
+!allocate(Gp(size(G,1),size(G,2)),STAT=status)
+!if(status/=0) stop "Allocation of Gp failed in remove_label_rotation_dups"
 
 labTab = labTabin
-tl = lab ! Copy the labels
+!tl = lab ! Copy the labels  !! unnecessary?
 
 ! Now that we have a list of label permutations, use them to shrink the input list of labelings
-do iRot = 1, nRot ! There's one permutation for each rotation that fixes the lattice
-!   if (all(lr(:,iRot)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
-!   if (all(lr(:,iRot)==0)) cycle ! This happens for the trivial rotation (identity)
+do ilr = 1, nlr(1) ! There's one permutation for each rotation that fixes the lattice
+!   if (all(lr(:,ilr)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
+!   if (all(lr(:,ilr)==0)) cycle ! This happens for the trivial rotation (identity)
    do il = 1, nl ! loop over each labeling in the list
       b = lab(il,:)  ! Get the il-th labeling (we don't want to remove this one, just label-rotated copies of itself)
       do itr = 1,size(trgrp,1) ! Loop over all possible translations of this permutation
-         c = b(lr(:,iRot)) ! Permute the labels according to the permutation of this rotation
+         c = b(lr(:,ilr)) ! Permute the labels according to the permutation of this rotation
          c = c(trgrp(itr,:)) ! Permute the labeling according to each translation
          ctemp = c
          do ip = 1,np ! Loop over all permutations (exchanges) of the labels (stored in 'perms')
@@ -196,7 +201,7 @@ enddo
 nUql = count(labTab=='F')
 if(associated(lab)) deallocate(lab)
 allocate(lab(nUql,n),STAT=status)
-if(status/=0) stop "Allocation of lab failed in remove_label_rotations_dups"
+if(status/=0) stop "Allocation of lab failed in remove_label_rotation_dups"
 kc = 0; ic = 0
 do ! Loop over all values of a k-nary, n-digit counter
    idx = sum(kc*multiplier)+1
@@ -217,6 +222,101 @@ enddo
 if (ic/=nUql) stop "relabeling error"
 
 ENDSUBROUTINE remove_label_rotation_dups
+
+!!***************************************************************************************************
+!! This routine takes a list of SNF left transformation matrices and the parent lattice and finds
+!! a list of permutations (label-rotation permutations, which leave the superlattice itself fixed).
+!! The routine then takes a list of labelings and removes the duplicates
+!SUBROUTINE remove_label_rotation_dups(L,A,R,G,lab,labTabin,trgrp,k,d,eps)
+!integer, intent(in) :: L(:,:) !Left transformation matrices for SNF (input)
+!integer, intent(in) :: G(:,:) ! image group (input)
+!integer, pointer :: lab(:,:) ! labelings that are unique except for label-rotation permutations
+!real(dp) :: A(3,3) ! The parent lattice
+!real(dp) :: R(:,:,:)
+!character, intent(in) :: labTabin(:)
+!integer, pointer :: trgrp(:,:)
+!integer k ! Number of colors in the labelings
+!integer d(3) ! Diagonal elements of the SNF
+!
+!integer, allocatable :: tl(:,:) ! temporary list of labels
+!integer, allocatable :: Gp(:,:)  ! G prime, the permuted (by T) image group
+!character :: labTab(size(labTabin))
+!integer i, j, n, iRot, nRot, il, nl, idx, ic, nUql, itr, np, ip, ia, status
+!integer, allocatable :: lr(:,:), tlr(:,:) ! Label rotations (permutations) and temp storage
+!integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
+!real(dp) :: eps
+!integer trivPerm(size(lab,2)), kc(size(lab,2))
+!integer, pointer :: perm(:,:) => null()
+!
+!np = factorial(k)
+!call get_permutations((/(i,i=0,k-1)/),perm)
+!
+!n = size(lab,2)
+!trivPerm = (/(i,i=1,n)/)
+!nl = size(lab,1)
+!multiplier = k**(/(i,i=n-1,0,-1)/)
+!
+!allocate(tl(size(lab,1),size(lab,2)),STAT=status)
+!if(status/=0) stop "Allocation of tl failed in remove_label..., module labeling..." ! Allocate the temporary list
+!allocate(Gp(size(G,1),size(G,2)),STAT=status)
+!if(status/=0) stop "Allocation of Gp failed in remove_label_rotation_dups"
+!allocate(lr(size(lab,2),48),tlr(size(lab,2),48),STAT=status)
+!if(status/=0) stop "Allocation of lr, tlr failed in remove_label_rotation_dups"
+!
+!labTab = labTabin
+!tl = lab ! Copy the labels
+!
+!! Now that we have a list of label permutations, use them to shrink the input list of labelings
+!do iRot = 1, nRot ! There's one permutation for each rotation that fixes the lattice
+!!   if (all(lr(:,iRot)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
+!!   if (all(lr(:,iRot)==0)) cycle ! This happens for the trivial rotation (identity)
+!   do il = 1, nl ! loop over each labeling in the list
+!      b = lab(il,:)  ! Get the il-th labeling (we don't want to remove this one, just label-rotated copies of itself)
+!      do itr = 1,size(trgrp,1) ! Loop over all possible translations of this permutation
+!         c = b(lr(:,iRot)) ! Permute the labels according to the permutation of this rotation
+!         c = c(trgrp(itr,:)) ! Permute the labeling according to each translation
+!         ctemp = c
+!         do ip = 1,np ! Loop over all permutations (exchanges) of the labels (stored in 'perms')
+!            do ia=1,k ! Convert the k-ary labeling to one with the labels permuted
+!               where(ctemp==ia-1); c(:) = perm(ia,ip);endwhere ! b is the permuted labeling
+!            end do
+!            if (all(b==c)) cycle ! This permutation didn't change the labeling         
+!            idx = sum(c*multiplier)+1 ! Find the index for this permutation in the table
+!            if (labTab(idx)=='F' ) then ! This structure is a label rotation duplicate
+!               idx = sum(b*multiplier)+1
+!               labTab(idx) = 'R'
+!            endif
+!         enddo
+!      enddo
+!   enddo
+!enddo
+!! Now replace the input list of labelings with the new list that has shrunk by the number of label-rot dups
+!! Probably easiest to do this by using the k-nary counter again and just making a list of k-nary n-digit 
+!! numbers that aren't marked off in the label table.
+!nUql = count(labTab=='F')
+!if(associated(lab)) deallocate(lab)
+!allocate(lab(nUql,n),STAT=status)
+!if(status/=0) stop "Allocation of lab failed in remove_label_rotations_dups"
+!kc = 0; ic = 0
+!do ! Loop over all values of a k-nary, n-digit counter
+!   idx = sum(kc*multiplier)+1
+!   if (labTab(idx)=='F') then
+!      ic = ic + 1   ! Count the number of labelings found so far
+!      lab(ic,:) = kc ! Store this labeling
+!   endif
+!   j = n
+!   do ! Check to see if we need to roll over any digits, start at the right
+!      if (kc(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
+!      kc(j) = 0  ! Rolling over so set to zero
+!      j = j - 1;       ! Look at the next (going leftways) digit
+!      if (j < 1) exit  ! If we updated the leftmost digit then we're done
+!   enddo
+!   if (j < 1) exit ! We're done counting, exit
+!   kc(j) = kc(j) + 1 ! Update the next digit (add one to it)
+!enddo
+!if (ic/=nUql) stop "relabeling error"
+!
+!ENDSUBROUTINE remove_label_rotation_dups
 
 !****************************************************************************************************
 ! This routine takes in the size of the three cyclic groups (i.e., the diagonal elements of the
