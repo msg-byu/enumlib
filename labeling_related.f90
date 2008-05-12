@@ -1,6 +1,6 @@
 MODULE labeling_related
 use num_types
-use crystal_types
+use enumeration_types
 use vector_matrix_utilities
 use numerical_utilities
 use rational_mathematics, only: gcd
@@ -19,94 +19,125 @@ integer, intent(in) :: HNF(:,:,:), L(:,:,:) ! HNFs, set of rotations, left SNF t
 type(opList), intent(in) :: R(:)
 real(dp), intent(in) :: A(3,3) ! Lattice vectors of the parent lattice
 integer, intent(in) :: G(:,:) ! The translation group for this SNF
-integer, intent(out) :: lrTab(:,:,:) ! Table of the label rotation permutations (perm #, label, index)
-integer, intent(out) :: lrIndx(:) ! Index for which table entry (permutations list) is associated with each HNF
+integer, intent(out) :: lrTab(:,:,:) ! Table of the label rotation permutations (perm #, label, lrlist#)
+integer, intent(out) :: lrIndx(:) ! Index for permutations list associated with each HNF
 integer, intent(in) :: d(3) ! Diagonal elements of the SNF
 
-integer iH, iR, jR, iq, i, j, ilq ! Loop counters
-integer nH, nR, n, nlq, nq, status, tNr
+integer iH, iR, jR, iq, i, j, k, ilq, iM, iHindx, il ! Loop counters
+integer nH, nR, n, nlq, nq, status, tNr, b, nM(1)
 logical unique, err ! flag for identifying new permutation lists, error flag
-integer, allocatable :: tlr(:,:), tlrq(:,:) ! temporary list of label rotations for current HNF, *unique* list
+integer, allocatable :: tlr(:,:) ! temporary list of label rotations for current HNF
 real(dp), dimension(3,3) :: T, A1, A1inv, Ainv ! Matrices for making the transformation
 integer :: Gp(size(G,1),size(G,2))
-integer, allocatable :: trivPerm(:)
+integer, allocatable :: trivPerm(:), tM(:,:,:)
 real(dp) eps
+integer, dimension(3,3) :: M
 
-print *,"shape HNF in: ",shape(HNF)
+!print *,"shape HNF in: ",shape(HNF)
 nH = size(HNF,3) ! Number of HNFs
 ! Find the maximum number of symmetries for the list of HNFs
 !nR = 0; do i = 1, size(R); tNr = size(R(i)%rot,3); if(tNr>nR) nR = tNr; enddo  
 nR = 48 ! debug
 n = determinant(HNF(:,:,1)) ! Index of the current superlattices
 nlq = 0 ! Number of permutation lists that are unique
-allocate(tlr(n,nR),tlrq(n,nR),trivPerm(n),STAT=status)
+allocate(tlr(nH,nR),trivPerm(n),STAT=status)
 if (status/=0) stop "Trouble allocating tlr, tlrq, trivPerm in make_label_rotation_table"
-trivPerm = (/(i,i=1,n)/); lrTab = 0
+allocate(tM(3,3,48),STAT=status)
+if (status/=0) stop "Trouble allocating tM in make_label_rotation_table"
+trivPerm = (/(i,i=1,n)/); lrTab = 0; tM = 0; lrIndx = 0
 
+nq = 0; ilq = 0 ! Number of unique transformation matrices (M's), number of unique lists of M's
 do iH = 1, nH
    ! Make a list of permutations for this HNF
-
 !   print *, "iH",iH,"n",n,"nR",nR
    ! First find the permutation on the group by each rotation
    call matrix_inverse(A,Ainv,err)  ! Need A^-1 to form the transformation
    A1 = matmul(L(:,:,iH),Ainv)
    call matrix_inverse(A1,A1inv,err)
+   iHindx = 0 ! Keep track of the number of transformations that apply to each HNF
    do iR = 1, size(R(iH)%rot,3) ! Loop over all rotations
       T = matmul(A1, matmul(R(iH)%rot(:,:,iR),A1inv))  ! This is the transformation
       if (.not. equal(T,nint(T),eps)) &
          stop 'ERROR: make_label_rotation_table: Transformation is not integer'
-      Gp = matmul(nint(T),G)  ! Gp (prime) is the tranformed image group. Need this to get the permutation
+      M = modulo(nint(T),spread(d,2,3))
+      !write(*,*)
+      !write(*,'(3i2)') M
+      ! See if this transformation matrix M is unique
+      unique = .true.
+      do iq = 1, nq
+         if (all(tM(:,:,iq) == M)) then; unique = .false.; exit; endif
+      enddo
+      if (unique) then
+         nq = nq + 1 ! Update number of unique matrices found
+         tM(:,:,nq) = M ! Store new matrix in temp list of M's
+         iq = nq ! Which matrix in the list is this one? Store in iq
+      endif
+      if (.not. any(tlr(iH,:)==iq)) then ! This M is not yet associated with this HNF
+         iHindx = iHindx + 1             ! so store it in the next place in the list
+         tlr(iH,iHindx) = iq
+      endif
+   enddo ! Loop over rotations
+   ! Check if the list of M's for this HNF is unique, or if it is already in the list of lists
+   ! First let's sort the list so that the comparisons are robust. (Insertion sort, fine for short lists)
+   do j = 2, count(tlr(iH,:)/=0) ! Loop over each non-zero element in the list
+      b = tlr(iH,j) ! Temp storage
+      k = j-1 ! index pointer to preceding element
+      do while(k>0)
+         if (tlr(iH,k)<=b) exit
+         tlr(iH,k+1)=tlr(iH,k)
+         k = k-1
+      enddo
+      tlr(iH,k+1)=b
+   enddo ! <<< End sorting
+   ! Fail safe on sorting
+   do j = 2, count(tlr(iH,:)/=0); if (tlr(iH,j)<tlr(iH,j-1)) stop "Sorting failed";enddo
+
+   ! Now check to see if we have a unique list of M's
+   unique = .true.
+   do iM = 1, iH
+      if (all(tlr(iH,:)==tlr(iM,:)) .and. lrIndx(iM)/= 0) then ! the list has already been found for another HNF
+         lrIndx(iH) = lrIndx(iM); unique = .false.; exit; endif
+   enddo
+   if (unique) then; ilq = ilq + 1; lrIndx(iH) = ilq; endif ! ilq is the number of unique *lists*
+enddo
+!print *,"exit iH loop"
+!print *,"shape tlr", shape(tlr),nH
+!do iH = 1, nH 
+!   write(*,'(48i2)') tlr(iH,:)
+!enddo
+!
+
+! <<< Make the permutation lists >>>
+! We now know which group of permutations is applicable to each HNF. So we just make the lists of
+! permutations (right now we just have a list of matrices) and pass that back out
+!write(*,'(/,20i2)') lrIndx
+!do iM = 1,nq ; write(*,'(3i2)') tM(:,:,iM)
+!enddo
+
+do il = 1, ilq ! Loop over all lists
+   ! What is the first list in tlr that corresponds to il?
+   nM = minloc(lrIndx,(lrIndx==il))
+   !print *,'nM',nM
+   do iM = 1, count(tlr(nM(1),:)/=0)
+      Gp = matmul(tM(:,:,tlr(nM(1),iM)),G)
       do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
-!         write(*,*)
-!         do j = 1, n
-!            write(*,'(3(i1,1x),3x,3(i1,1x))') Gp(:,j),G(:,j)
-!         enddo
+!!         write(*,*)
+!!         do j = 1, n
+!!            write(*,'(3(i1,1x),3x,3(i1,1x))') Gp(:,j),G(:,j)
+!!         enddo
       do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
          do j = 1, n
             if (all(Gp(:,j)==G(:,i))) then ! the two images are the same for the i-th member
-               tlr(i,iR) = j
+               lrTab(i,iM,il) = j
             endif
          enddo
       enddo
       !write(*,'(8i1)') tlr(1:n,iR)
       !write(*,'(3i2)') d
-      if (any(tlr(1:n,iR)==0)) stop "Transform didn't work. Gp is not a permutation of G"
-   enddo ! End loop over rotations
-
-   ! Now that we have a list of permutations, reduce that list to the *unique* permutations
-   iq = 0 ! count unique permutations
-   do iR = 1, nR ! Loop over each lr and see if it is unique
-      unique = .true. ! Flag to see if we found a duplicate
-      do jR = 1, iq ! loop over the unique permutations found so far, look for matches
-         if (all(tlr(:,iR)==tlrq(:,jR))) then ! the two permutations match, tlr_iR not unique
-            unique = .false.; exit
-         endif
-      enddo
-      ! See if this permutation hasn't been found yet and isn't the identity
-      if (unique .and. .not. all(tlr(:,iR)==trivPerm) .and. .not. all(tlr(:,iR)==0)) then
-         iq = iq + 1
-         tlrq(:,iq) = tlr(:,iR)
-      endif
+      if (any(lrTab(1:n,iM,il)==0)) stop "Transform didn't work. Gp is not a permutation of G"
+      write(*,'("lrTab",20i2)') lrTab(1:8,iM,il)
    enddo
-   nq = iq ! number of unique permutations in this list.
-
-   ! Is this list of permutations unique in the table? If not, index it. If so, store it
-   unique = .true. ! assume new list is unique until matching list is found
-   do ilq = 1, nlq  ! Loop over all the lists in the table so far
-      if (lists_match(tlrq,lrTab(:,:,ilq))) then
-         lrIndx(iH) = ilq; unique = .false.; exit ! Found a match in the list
-      endif
-   enddo
-   if (unique) then ! new perm (no match found) so store it
-      nlq = nlq + 1
-      !print *, shape(lrTab(:,:,nlq))
-      !print *, shape(tlrq)
-      lrTab(:,:,nlq) = tlrq
-      ! write(*,'(8i1)') tlrq
-   endif   
-   lrIndx(iH) = ilq
 enddo
-print *,"looped over",nh," HNFs"
 ENDSUBROUTINE make_label_rotation_table
 
 !***************************************************************************************************
@@ -152,7 +183,7 @@ call get_permutations((/(i,i=0,k-1)/),perm) ! Since we enter this loop so often 
 ! this should be an input
 
 nlr = count(lr/=0,2)
-print *,"nlr+1", nlr+1
+!print *,"nlr", nlr
 
 do i = 1, nlr(1)
    write(*,'(20i1)') lr(:,i)
@@ -172,7 +203,8 @@ labTab = labTabin
 !tl = lab ! Copy the labels  !! unnecessary?
 
 ! Now that we have a list of label permutations, use them to shrink the input list of labelings
-do ilr = 1, nlr(1) ! There's one permutation for each rotation that fixes the lattice
+do ilr = 2, nlr(1) ! There's one permutation for each rotation that fixes the lattice
+   ! The first permutation in the list is the identity, so skip it (start ilr at 2)
 !   if (all(lr(:,ilr)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
 !   if (all(lr(:,ilr)==0)) cycle ! This happens for the trivial rotation (identity)
    do il = 1, nl ! loop over each labeling in the list

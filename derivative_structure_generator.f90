@@ -5,7 +5,7 @@
 
 MODULE derivative_structure_generator
 use num_types
-use crystal_types
+use enumeration_types
 use labeling_related
 use combinatorics
 use symmetry_module
@@ -378,9 +378,9 @@ do ivol = nMin, nMax !max(k,nMin),nMax
 !      HNF = reshape(pack(reducedHNF,SNFmask),(/3,3,nHNF/))
       allocate(LabRotTable(ivol,48,20)) ! Need to find a better way for this...
       print *,"nHNFs",nHNF
-!      do i = 1,nHNF
-         write(*,'(3(3i1,1x))') reducedHNF(:,:,vs)
-!      enddo
+      do i = 1,nHNF
+         write(*,'(3(3i1,1x),i5)') reducedHNF(:,:,vs(i)), size(fixOp(vs(i))%rot,3)
+      enddo
       call make_label_rotation_table(reducedHNF(:,:,vs),L(:,:,vs),parLV,fixOp(vs),&
                                      G,diag,eps,LabRotTable,LabRotIndx)
       print *,iuq,"Exited lr_table maker"
@@ -413,15 +413,16 @@ do ivol = nMin, nMax !max(k,nMin),nMax
             ivolTot = ivolTot + size(tlab,1)
             print *,"iHNF",iHNF
 
-            ld = (/reducedHNF(1,1,ihnf),reducedHNF(2,1,ihnf),reducedHNF(2,2,ihnf),&
-                reducedHNF(3,1,ihnf),reducedHNF(3,2,ihnf),reducedHNF(3,3,ihnf)/)
+            ld = (/reducedHNF(1,1,vs(irg)),reducedHNF(2,1,vs(irg)),reducedHNF(2,2,vs(irg)),&
+                reducedHNF(3,1,vs(irg)),reducedHNF(3,2,vs(irg)),reducedHNF(3,3,vs(irg))/)
             do ilab = 1,size(tlab,1) ! write out the labelings to a file
                ctot = ctot + 1
                csize = csize + 1
                !is fixOp reference correct here? Yeah, I think so.
+               print *,'irg',irg,'ihnf',ihnf,'vs',vs(irg)
                write(14,'(i11,1x,i9,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
-                    ctot, csize,ivol,size(fixOp(ihnf)%rot,3),diag,ld,&
-                    transpose(L(:,:,iHNF)),tlab(ilab,:)
+                    ctot, csize,ivol,size(fixOp(vs(irg))%rot,3),diag,ld,&
+                    transpose(L(:,:,vs(irg))),tlab(ilab,:)
             enddo
          enddo
       enddo ! End of loop over label rotation groups
