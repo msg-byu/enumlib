@@ -302,7 +302,7 @@ integer :: ctot, csize ! counters for total number of structures and structures 
 integer diag(3), ld(6) ! diagonal elements of SNF, lower diagonal---elements of HNF
 real(dp) eps, tstart, tend, tHNFs, tDupLat, tSNF, tiuq, tML, tGenLab, tRotDup
 integer, pointer :: LabRotTable(:,:,:) => null(), LabRotIndx(:) => null ()
-integer, allocatable :: vs(:)
+integer, allocatable :: vs(:), lrvs(:)
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
@@ -369,7 +369,8 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       nRedHNF = size(reducedHNF,3)
       nHNF = count(SNF_labels==iuq)
       if(allocated(vs)) deallocate(vs)
-      allocate(vs(nHNF))
+      if(allocated(lrvs)) deallocate(lrvs)
+      allocate(vs(nHNF),lrvs(nHNF))
       vs = pack((/(i,i=1,nRedHNF)/),SNF_labels==iuq)
       write(*,'(20i3)') vs(1:nHNF)
       allocate(LabRotIndx(nRedHNF))
@@ -400,14 +401,18 @@ do ivol = nMin, nMax !max(k,nMin),nMax
 ! ******************** Loop over HNF with same perm group
       do ilr = 1, maxval(LabRotIndx) ! loop over the number of label rotation subgroups
          print *, "ilr, max", ilr, maxval(LabRotIndx)
-         write(*,'(20i2)') LabRotIndx(1:nHNF)
          nrg = count(LabRotIndx==ilr)
          print *, "nrg",nrg
          call remove_label_rotation_dups(LabRotTable(:,:,ilr),tlab,table,trgroup,k,diag,eps)
          call cpu_time(tRotDup)
-!         write(99,'("HNF#: ",i8,2x,i2,2x,i2,2x,i2,2(i8,2x),f8.3)') &
-!                ihnf, iuq, ivol, size(fixOp(iHNF)%rot,3), size(labelings,1), &
-!                size(tlab,1), tRotDup-tihnf
+         lrvs(1:nHNF) = 0
+         write(*,'("Before pack:", 20i3)') lrvs
+
+         lrvs = pack((/(i,i=1,nHNF)/), LabRotIndx==ilr)
+         write(*,'("Pack:       ", 20i3)') pack((/(i,i=1,nHNF)/), LabRotIndx==ilr)
+         write(*,'("Mask:       ",20l3)') LabRotIndx==ilr
+         write(*,'("LR indx:    ",20i3)') LabRotIndx
+         write(*,'("LR vec sub: ", 20i3)') lrvs
          do irg = 1, nrg
             iHNF = iHNF + 1
             ivolTot = ivolTot + size(tlab,1)
