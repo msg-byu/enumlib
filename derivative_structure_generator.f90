@@ -409,25 +409,26 @@ do ivol = nMin, nMax !max(k,nMin),nMax
          write(*,'("Before pack:", 20i3)') lrvs
 
          lrvs = pack((/(i,i=1,nHNF)/), LabRotIndx==ilr)
-         write(*,'("Pack:       ", 20i3)') pack((/(i,i=1,nHNF)/), LabRotIndx==ilr)
+         write(*,'("Pack:       ", 20i3)') pack((/(i,i=1,nHNF)/),LabRotIndx==ilr)
          write(*,'("Mask:       ",20l3)') LabRotIndx==ilr
          write(*,'("LR indx:    ",20i3)') LabRotIndx
          write(*,'("LR vec sub: ", 20i3)') lrvs
+         write(*,'("vs ",20i3)') vs
          do irg = 1, nrg
             iHNF = iHNF + 1
             ivolTot = ivolTot + size(tlab,1)
             print *,"iHNF",iHNF
-
-            ld = (/reducedHNF(1,1,vs(irg)),reducedHNF(2,1,vs(irg)),reducedHNF(2,2,vs(irg)),&
-                reducedHNF(3,1,vs(irg)),reducedHNF(3,2,vs(irg)),reducedHNF(3,3,vs(irg))/)
+            i = vs(lrvs(irg))
+            ld = (/reducedHNF(1,1,i),reducedHNF(2,1,i),reducedHNF(2,2,i),&
+                reducedHNF(3,1,i),reducedHNF(3,2,i),reducedHNF(3,3,i)/)
             do ilab = 1,size(tlab,1) ! write out the labelings to a file
                ctot = ctot + 1
                csize = csize + 1
                !is fixOp reference correct here? Yeah, I think so.
-               print *,'irg',irg,'ihnf',ihnf,'vs',vs(irg)
+               print *,'irg',irg,'ihnf',ihnf,'lrvs',i
                write(14,'(i11,1x,i9,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
-                    ctot, csize,ivol,size(fixOp(vs(irg))%rot,3),diag,ld,&
-                    transpose(L(:,:,vs(irg))),tlab(ilab,:)
+                    ctot, csize,ivol,size(fixOp(i)%rot,3),diag,ld,&
+                    transpose(L(:,:,i)),tlab(ilab,:)
             enddo
          enddo
       enddo ! End of loop over label rotation groups

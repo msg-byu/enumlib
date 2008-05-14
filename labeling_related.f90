@@ -42,9 +42,10 @@ n = determinant(HNF(:,:,1)) ! Index of the current superlattices
 nlq = 0 ! Number of permutation lists that are unique
 allocate(tlr(nH,nR),trivPerm(n),STAT=status)
 if (status/=0) stop "Trouble allocating tlr, tlrq, trivPerm in make_label_rotation_table"
+trivPerm = (/(i,i=1,n)/); tlr = 0;
 allocate(tM(3,3,48),STAT=status)
 if (status/=0) stop "Trouble allocating tM in make_label_rotation_table"
-trivPerm = (/(i,i=1,n)/); lrTab = 0; tM = 0; lrIndx = 0
+lrTab = 0; tM = 0; lrIndx = 0
 
 nq = 0; ilq = 0 ! Number of unique transformation matrices (M's), number of unique lists of M's
 do iH = 1, nH
