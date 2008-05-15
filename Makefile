@@ -51,10 +51,14 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a enum.x
+all: libenum.a enum.x compare.x
 
 enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
+
+compare.x: compare.o
+	${F90} ${LDFLAGS} -o $@ compare.o ${LIBS}
+
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<

@@ -372,52 +372,53 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       if(allocated(lrvs)) deallocate(lrvs)
       allocate(vs(nHNF),lrvs(nHNF))
       vs = pack((/(i,i=1,nRedHNF)/),SNF_labels==iuq)
-      write(*,'(20i3)') vs(1:nHNF)
+!      write(*,'(20i3)') vs(1:nHNF)
       allocate(LabRotIndx(nRedHNF))
       LabRotIndx = 0
 !      SNFmask = reshape(spread(SNF_labels==iuq,1,9),(/3,3,nRedHNF/))
 !      HNF = reshape(pack(reducedHNF,SNFmask),(/3,3,nHNF/))
       allocate(LabRotTable(ivol,48,20)) ! Need to find a better way for this...
-      print *,"nHNFs",nHNF
-      do i = 1,nHNF
-         write(*,'(3(3i1,1x),i5)') reducedHNF(:,:,vs(i)), size(fixOp(vs(i))%rot,3)
-      enddo
+!      print *,"nHNFs",nHNF
+!      do i = 1,nHNF
+!         write(*,'(3(3i1,1x),i5)') reducedHNF(:,:,vs(i)), size(fixOp(vs(i))%rot,3)
+!      enddo
       call make_label_rotation_table(reducedHNF(:,:,vs),L(:,:,vs),parLV,fixOp(vs),&
                                      G,diag,eps,LabRotTable,LabRotIndx)
-      print *,iuq,"Exited lr_table maker"
+!      print *,iuq,"Exited lr_table maker"
       ! Third dimension of LabRotTable is the list of 
 !      do i = 1, nHNF
 !         do ihnf = 1, ivol
 !            write(*,'(8i1)') pack(LabRotTable(:,:,:),LabRotTable(:,:,:)/=0)
 !         enddo
 !      enddo
-      write(*,'("index: ",20i1)') LabRotIndx(1:nHNF)
+!      write(*,'("index: ",20i1)') LabRotIndx(1:nHNF)
 
 !enddo
 !enddo
-      allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
-      if(status/=0) stop "Allocation of tlab failed in module deriv..."
-      tlab = labelings
 ! ******************** Loop over HNF with same perm group
       do ilr = 1, maxval(LabRotIndx) ! loop over the number of label rotation subgroups
-         print *, "ilr, max", ilr, maxval(LabRotIndx)
+         if (associated(tlab)) deallocate(tlab)
+         allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
+         if(status/=0) stop "Allocation of tlab failed in module deriv..."
+         tlab = labelings
+!         print *, "ilr, max", ilr, maxval(LabRotIndx)
          nrg = count(LabRotIndx==ilr)
-         print *, "nrg",nrg
+!         print *, "nrg",nrg
          call remove_label_rotation_dups(LabRotTable(:,:,ilr),tlab,table,trgroup,k,diag,eps)
          call cpu_time(tRotDup)
          lrvs(1:nHNF) = 0
-         write(*,'("Before pack:", 20i3)') lrvs
+!         write(*,'("Before pack:", 20i3)') lrvs
 
          lrvs = pack((/(i,i=1,nHNF)/), LabRotIndx==ilr)
-         write(*,'("Pack:       ", 20i3)') pack((/(i,i=1,nHNF)/),LabRotIndx==ilr)
-         write(*,'("Mask:       ",20l3)') LabRotIndx==ilr
-         write(*,'("LR indx:    ",20i3)') LabRotIndx
-         write(*,'("LR vec sub: ", 20i3)') lrvs
-         write(*,'("vs ",20i3)') vs
+!         write(*,'("Pack:       ", 20i3)') pack((/(i,i=1,nHNF)/),LabRotIndx==ilr)
+!         write(*,'("Mask:       ",20l3)') LabRotIndx==ilr
+!         write(*,'("LR indx:    ",20i3)') LabRotIndx
+!         write(*,'("LR vec sub: ", 20i3)') lrvs
+!         write(*,'("vs ",20i3)') vs
          do irg = 1, nrg
             iHNF = iHNF + 1
             ivolTot = ivolTot + size(tlab,1)
-            print *,"iHNF",iHNF
+            !print *,"iHNF",iHNF
             i = vs(lrvs(irg))
             ld = (/reducedHNF(1,1,i),reducedHNF(2,1,i),reducedHNF(2,2,i),&
                 reducedHNF(3,1,i),reducedHNF(3,2,i),reducedHNF(3,3,i)/)
@@ -425,7 +426,6 @@ do ivol = nMin, nMax !max(k,nMin),nMax
                ctot = ctot + 1
                csize = csize + 1
                !is fixOp reference correct here? Yeah, I think so.
-               print *,'irg',irg,'ihnf',ihnf,'lrvs',i
                write(14,'(i11,1x,i9,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
                     ctot, csize,ivol,size(fixOp(i)%rot,3),diag,ld,&
                     transpose(L(:,:,i)),tlab(ilab,:)
