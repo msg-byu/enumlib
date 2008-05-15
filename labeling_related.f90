@@ -200,6 +200,7 @@ nUql = count(labTab=='F')
 if(associated(lab)) deallocate(lab)
 allocate(lab(nUql,n),STAT=status)
 if(status/=0) stop "Allocation of lab failed in remove_label_rotation_dups"
+
 kc = 0; ic = 0
 do ! Loop over all values of a k-nary, n-digit counter
    idx = sum(kc*multiplier)+1

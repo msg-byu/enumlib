@@ -8,9 +8,9 @@ ifeq (${F90},ifc)  # Intel compiler
   FOUND = true
 endif
 ifeq (${F90},ifort)  # Intel compiler
-  F90 = /opt/intel/fc/10.0.016/bin/ifort
+  F90 = ifort
   LBDR = ../celib
-  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95  -I${LBDR}
+  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95 -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},xlf90) # IBM compiler
@@ -20,7 +20,7 @@ ifeq (${F90},xlf90) # IBM compiler
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
   LBDR = ../celib
-  FFLAGS = -g -Rb -Rc -z2 -et -nodefaultmod -p ${LBDR} 
+  FFLAGS = -g -Rb -Rc -z2 -et -nodefaultmod -P -p ${LBDR} 
 #  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
@@ -59,12 +59,17 @@ enum.x: ${OBJS} driver.o
 compare.x: compare.o
 	${F90} ${LDFLAGS} -o $@ compare.o ${LIBS}
 
+2Dplot.x: make2Dplot.o splot.o
+	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
-
 .f90.o : 
 	${F90} ${FFLAGS} -c $<
+.f.o : 
+	${F90} -c $<
+
+
 
 CLEAN  = *.o *.mod *.a
 clean : 
