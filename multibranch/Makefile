@@ -8,8 +8,9 @@ ifeq (${F90},ifc)  # Intel compiler
   FOUND = true
 endif
 ifeq (${F90},ifort)  # Intel compiler
+  F90 = ifort
   LBDR = ../celib
-  FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn -e95  -I${LBDR}
+  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95 -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},xlf90) # IBM compiler
@@ -19,7 +20,7 @@ ifeq (${F90},xlf90) # IBM compiler
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
   LBDR = ../celib
-  FFLAGS = -g -Rb -Rc -z2 -ea -et -nodefaultmod -p ${LBDR} 
+  FFLAGS =  -profile -p ${LBDR} 
 #  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
@@ -35,7 +36,7 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
-SRC = crystal_types.f90 labeling_related.f90 derivative_structure_generator.f90 \
+SRC = enumeration_types.f90 labeling_related.f90 derivative_structure_generator.f90 \
 	io_utils.f90 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
@@ -50,16 +51,25 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a enum.x
+all: libenum.a enum.x compare.x
 
 enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
+compare.x: compare.o
+	${F90} ${LDFLAGS} -o $@ compare.o ${LIBS}
+
+2Dplot.x: make2Dplot.o splot.o
+	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
+
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
-
 .f90.o : 
 	${F90} ${FFLAGS} -c $<
+.f.o : 
+	${F90} -c $<
+
+
 
 CLEAN  = *.o *.mod *.a
 clean : 

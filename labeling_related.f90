@@ -23,8 +23,8 @@ integer, intent(out) :: lrTab(:,:,:) ! Table of the label rotation permutations 
 integer, intent(out) :: lrIndx(:) ! Index for permutations list associated with each HNF
 integer, intent(in) :: d(3) ! Diagonal elements of the SNF
 
-integer iH, iR, jR, iq, i, j, k, ilq, iM, iHindx, il ! Loop counters
-integer nH, nR, n, nlq, nq, status, tNr, b, nM(1)
+integer iH, iR, iq, i, j, k, ilq, iM, iHindx, il ! Loop counters
+integer nH, nR, n, nlq, nq, status, b, nM(1)
 logical unique, err ! flag for identifying new permutation lists, error flag
 integer, allocatable :: tlr(:,:) ! temporary list of label rotations for current HNF
 real(dp), dimension(3,3) :: T, A1, A1inv, Ainv ! Matrices for making the transformation
@@ -36,14 +36,13 @@ integer, dimension(3,3) :: M
 !print *,"shape HNF in: ",shape(HNF)
 nH = size(HNF,3) ! Number of HNFs
 ! Find the maximum number of symmetries for the list of HNFs
-!nR = 0; do i = 1, size(R); tNr = size(R(i)%rot,3); if(tNr>nR) nR = tNr; enddo  
 nR = 48 ! debug
 n = determinant(HNF(:,:,1)) ! Index of the current superlattices
 nlq = 0 ! Number of permutation lists that are unique
 allocate(tlr(nH,nR),trivPerm(n),STAT=status)
 if (status/=0) stop "Trouble allocating tlr, tlrq, trivPerm in make_label_rotation_table"
 trivPerm = (/(i,i=1,n)/); tlr = 0;
-allocate(tM(3,3,96),STAT=status)
+allocate(tM(3,3,96),STAT=status) ! Why the 96? What's the appropriate number here? >48 but what?
 if (status/=0) stop "Trouble allocating tM in make_label_rotation_table"
 lrTab = 0; tM = 0; lrIndx = 0
 
