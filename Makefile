@@ -10,7 +10,7 @@ endif
 ifeq (${F90},ifort)  # Intel compiler
   F90 = ifort
   LBDR = ../celib
-  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95 -I${LBDR}
+  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95 -heap-arrays -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},xlf90) # IBM compiler
@@ -20,8 +20,7 @@ ifeq (${F90},xlf90) # IBM compiler
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
   LBDR = ../celib
-  FFLAGS =   -g -Rb -Rc -z2 -et -nodefaultmod -profile -p ${LBDR}
-  LDFLAGS = -profile	 
+  FFLAGS = -g -Rb -Rc -z2 -et -nodefaultmod -p ${LBDR} 
 #  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
@@ -43,10 +42,9 @@ OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
          ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
 
+# The blank line undefines all suffix rules. The second redefines only those for fortran.
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
-
-
 
 libenum.a: ${OBJS}
 	ar ru $@ $?
@@ -65,12 +63,12 @@ compare.x: compare.o
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
+
 .f90.o : 
 	${F90} ${FFLAGS} -c $<
+
 .f.o : 
 	${F90} -c $<
-
-
 
 CLEAN  = *.o *.mod *.a
 clean : 

@@ -8,12 +8,14 @@ public read_input
 
 CONTAINS
 !***************************************************************************************************
-subroutine read_input(title,LatDim,pLV,k,Nmin,Nmax,eps,full)
+subroutine read_input(title,LatDim,pLV,nD,d,k,Nmin,Nmax,eps,full)
 character(80) :: title, pLatTyp, fullpart
-integer,intent(out):: Nmin, Nmax, k, LatDim
+integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
-logical full
-logical err
+real(dp), pointer :: d(:,:)
+logical full, err
+integer iD
+
 open(10,file='struct_enum.in',status='old')
 call co_ca(10,err)
 read(10,'(a80)') title
@@ -25,6 +27,13 @@ call co_ca(10,err)
 read(10,*) pLV(:,2)
 call co_ca(10,err)
 read(10,*) pLV(:,3)
+call co_ca(10,err)
+read(10,*)  nD
+allocate(d(3,nD))
+do iD = 1, nD
+   call co_ca(10,err)
+   read(10,*) d(:,iD)
+enddo
 call co_ca(10,err)
 read(10,*) k
 call co_ca(10,err)

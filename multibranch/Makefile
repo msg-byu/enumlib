@@ -2,24 +2,21 @@
 # multiple platforms/compilers. Branch according to an environmental
 # variable F90. I wish someone would show me a better way of doing this.
 #
+  LBDR = ../../celib
 ifeq (${F90},ifc)  # Intel compiler
-  LBDR = ../celib
   FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},ifort)  # Intel compiler
   F90 = ifort
-  LBDR = ../celib
   FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95 -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},xlf90) # IBM compiler
-  LBDR = ../celib
   FFLAGS = -g -C -qsuffix=f=f90  -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
-  LBDR = ../celib
   FFLAGS =  -profile -p ${LBDR} 
 #  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
@@ -53,7 +50,7 @@ libenum.a: ${OBJS}
 
 all: libenum.a enum.x compare.x
 
-enum.x: ${OBJS} driver.o
+multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
 compare.x: compare.o
