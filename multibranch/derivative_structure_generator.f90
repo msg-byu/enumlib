@@ -281,7 +281,7 @@ diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
 
 !****************************************************************************************************
-SUBROUTINE generate_derivative_structures(title, parLV, k, nMin, nMax, pLatTyp, eps, full)
+SUBROUTINE generate_derivative_structures(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full)
 integer, intent(in) :: k, nMin, nMax 
 character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3)
@@ -290,10 +290,10 @@ logical, intent(in) :: full
 
 integer, pointer, dimension(:,:,:) :: uqSNF => null()
 integer, pointer :: trgroup(:,:)=>null()
-real(dp), pointer :: uqlatts(:,:,:) => null()
+real(dp), pointer :: uqlatts(:,:,:) => null(), d(:,:)=>null()
 character, pointer :: table(:)
 integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim, status, ilr, nHNF, nRedHNF
-integer irg, nrg
+integer irg, nrg, nD
 integer, pointer :: HNF(:,:,:) => null(), reducedHNF(:,:,:) => null(), G(:,:) => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null()
 integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null()

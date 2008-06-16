@@ -24,7 +24,7 @@ for itest in tests:
     print string.rstrip(f.readline()) # Print corresponding line from "testlist"
 
     copyfile('tests/struct_enum.in.'+Nt,'struct_enum.in')
-    system('./enum.x')
+    system('./multienum.x')
     # Check for difference between this run and saved output 
     rs=system('diff -q  struct_enum.out tests/struct_enum.out.'+Nt)
     
