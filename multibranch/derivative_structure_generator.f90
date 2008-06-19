@@ -16,7 +16,8 @@ use vector_matrix_utilities, only: determinant, matrix_inverse
 
 implicit none
 private
-public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs, generate_derivative_structures
+public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
+     & generate_derivative_structures, gen_multilattice_derivatives
 CONTAINS
 
 !***************************************************************************************************
@@ -83,12 +84,14 @@ END SUBROUTINE get_all_HNFs
 !*******************************************************************************
 ! Find all the SNFs of a group of HNFs. A and B are the transformation matrices.
 ! F is a list of the *unique* SNFs. SNF_label indicates which of the unique SNFs
-! corresponds to each HNF.
+! corresponds to each HNF. The transformations, SNFs, and labels are ordered on output
+! into blocks of identical SNFs.
 SUBROUTINE get_SNF(HNF,A,SNF,B,F,SNF_label)
 integer, pointer :: HNF(:,:,:), SNF_label(:)
 integer, pointer, dimension(:,:,:) :: A, SNF, B, F
 
-integer ihnf, nHNF, nfound, ifound, status
+integer :: indx(size(HNF,3))
+integer ihnf, nHNF, nfound, ifound, status, ic, jc, i
 logical duplicate
 integer, allocatable, dimension(:,:,:) :: tF
 
@@ -110,11 +113,47 @@ do ihnf = 1, nHNF ! Loop over each HNF in the list
       SNF_label(ihnf) = nfound
    endif
 enddo
+! We have all the SNFs now, as well as the transformations. But they are not in any kind of
+! order. Rearrange the transformations, labels, and HNFs so that they are in blocks of matching SNFs
+
+!allocate(tLab(nHNF)) ! Temporary storage for the labels
+!do iHNF =1,nHNF
+!   write(*,'(3i3,1x)',advance='no') SNF(1,1,iHNF),SNF(2,2,iHNF),SNF(3,3,iHNF)
+!enddo
+!print *
+!write (*,'(30i3)') SNF_label
+!
+ic = 1; jc = 0
+do ifound = 1, nfound
+   jc = count(SNF_label==ifound) ! How many HNFs have this SNF?
+   indx(ic:ic+jc-1) = pack((/(i,i=1,nHNF)/),SNF_label==ifound) ! Get the index of each matching case
+   ic = ic + jc ! Compute the offset where the index is stored
+!   do ihnf = 1, nHNF
+!      if (SNF_label(ihnf) == ifound) then
+!         ic = ic + 1
+!         indx(ic) = ihnf 
+!      endif
+!   enddo
+enddo
+
+!write (*,'(30i4)') indx
+! Use the computed order index, indx, to reorder the A, B, and SNF matrices
+SNF = SNF(1:3,1:3,indx)
+A = A(1:3,1:3,indx)
+B = B(1:3,1:3,indx)
+SNF_label = SNF_label(indx) ! Reorder the labels for which SNF each HNF is
+
+!do iHNF =1,nHNF
+!   write(*,'(3i3,1x)',advance='no') SNF(1,1,iHNF),SNF(2,2,iHNF),SNF(3,3,iHNF)
+!enddo
+!print *
+!write (*,'(30i3)') SNF_label
+!
+if (ic/=nHNF+1) stop "SNF sort in get_SNF didn't work"
 if (associated(F)) deallocate(F)
 allocate(F(3,3,nfound),STAT=status)
 if(status/=0) stop "Failed to allocate memory in get_SNF for array F"
 F = tF(:,:,1:nfound)
-
 ENDSUBROUTINE get_SNF
 
 !*******************************************************************************
@@ -445,5 +484,77 @@ close(14)
 close(99)
 END SUBROUTINE generate_derivative_structures
 
+!***************************************************************************************************
+! This routine is should eventually replace "generate_derivative_structures". The difference with
+! this one is that it applies to superstructures derived from multilattices. This is more general
+! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
+! implemented here has been slightly reorder from the original routine and that discussed in the
+! first paper.
+SUBROUTINE gen_multilattice_derivatives(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full)
+integer, intent(in) :: k, nMin, nMax, nD 
+character(10), intent(in) :: title
+real(dp), intent(in) :: parLV(3,3), eps
+real(dp), pointer :: d(:,:)
+character(1), intent(in) :: pLatTyp
+logical, intent(in) :: full 
+
+integer iD, i, ivol, LatDim, runTot, ctot, ivoltot, csize
+integer, pointer, dimension(:,:,:) :: HNF => null(), reducedHNF => null(),SNF => null(), L => null(), B => null()
+integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
+real(dp) tstart
+type(opList), pointer :: fixOp(:)
+real(dp), pointer :: uqlatts(:,:,:) => null()
+
+
+write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
+write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
+          &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
+
+! Set up the output file and write the lattice information
+open(14,file="struct_enum.out")
+write(14,'(a10)') title
+do i = 1,3
+   write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
+enddo
+write(14, '(i5," # Number of points in the multilattice")') nD
+do iD = 1,nD
+   write(14,'(3(g14.8,1x),3x,"# d",i2.2," d-vector")') d(:,iD),iD
+enddo
+write(14,'(i2,"-nary case")') k
+write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
+if (full) then; write(14,'("Full list of labelings (including incomplete labelings) is used")')
+else; write(14,'("Partial list of labelings (complete labelings only) is used")'); endif
+write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+
+! Check for 2D or 3D request
+if (pLatTyp=='s') then; LatDim = 2
+   if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first vector must be 1,0,0'
+   if (.not. equal((/parLV(2,1),parLV(3,1)/),(/0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first component of second and third &
+               & must be zero'
+else if(pLatTyp=='b') then; LatDim = 3
+else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"';endif
+
+! This part generates all the derivative structures. Results are writen to unit 14.
+runTot = 0
+ctot = 0
+do ivol = nMin, nMax !max(k,nMin),nMax
+   iVolTot = 0
+   csize = 0
+   call cpu_time(tstart)
+   if (LatDim==3) then !<<< 2D ? or 3D? >>
+      call get_all_HNFs(ivol,HNF)  ! 3D
+   else
+      call get_all_2D_HNFs(ivol,HNF) ! 2D
+   endif
+   call remove_duplicate_lattices(HNF,LatDim,parLV,reducedHNF,fixOp,uqlatts,eps)
+   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
+
+!** working from here
+
+enddo ! loop over cell sizes (ivol)
+
+ENDSUBROUTINE gen_multilattice_derivatives
 END MODULE derivative_structure_generator
 

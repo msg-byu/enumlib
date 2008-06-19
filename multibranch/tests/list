@@ -3,3 +3,4 @@
 3D binary fcc 2..8 sites (complete labelings only)
 3D binary simple cubic 2..8 sites (complete labelings only)
 3D ternary fcc 1..8 sites (include incomplete labelings as well)
+3D low-sym 1..10 sites

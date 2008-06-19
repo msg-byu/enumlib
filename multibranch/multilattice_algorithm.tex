@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage{amssymb}
+\begin{document}
+\begin{enumerate}
+\item Read input and set up.
+\item Generate superlattices remove duplicates (need set of symmetries, $\{\mathbb{N},t\}$). 
+\item Find SNF for each HNF and sort into matching SNF blocks
+\item Find $d_{\pi}$, $v$ for each $\mathbb{N}$.
+\item For each SNF:
+  \begin{enumerate}
+  \item Find the rotation permutations for each HNF and sort the HNFs into groups with matching
+    rotation permutations. The rotations that apply to each HNF will be a subgroup of
+    $\{\mathbb{N}\}$ above. The order of the permutation group will often be small
+  \item Optional:
+    \begin{enumerate}
+    \item Remove label-exchange duplicates
+    \item Remove incomplete labelings
+    \item Remove super-periodic labelings
+    \end{enumerate}
+  \end{enumerate}
+\item For each block of matching permutations, from the remaining labelings, remove the rotation and
+  translation duplicates. We use the subgroup of permutations from step 3 to do this.
+\begin{enumerate}
+\item If we skipped 4(b) then we can use Polya to verify the number.
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

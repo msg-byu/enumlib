@@ -54,7 +54,6 @@ else; stop 'Specify "surf" or "bulk" in input file';endif
 if (fullpart=='full') then; full = .true.
 else if(fullpart=='part') then; full = .false.
 else; stop 'Specify "full" or "part" on line 9 of input file';endif
-
 end subroutine read_input
 
 subroutine co_ca(unit,error)

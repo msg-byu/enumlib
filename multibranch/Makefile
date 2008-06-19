@@ -17,10 +17,11 @@ ifeq (${F90},xlf90) # IBM compiler
   FOUND = true
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
-  FFLAGS =  -profile -p ${LBDR} 
-#  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
+#  FFLAGS =  -profile -p ${LBDR} 
+  FFLAGS = -g -Rb -Rc  -nodefaultmod -p ${LBDR} #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
+# -O3 optimization
 # -ea stop after one error 
   FOUND = true
 endif
