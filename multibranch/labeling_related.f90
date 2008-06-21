@@ -33,7 +33,6 @@ integer, allocatable :: trivPerm(:), tM(:,:,:)
 real(dp) eps
 integer, dimension(3,3) :: M
 
-print *,"Entering make_label_rotation_tabel"
 nH = size(HNF,3) ! Number of HNFs
 ! Find the maximum number of symmetries for the list of HNFs
 nR = 48 ! debug
@@ -49,29 +48,15 @@ lrTab = 0; tM = 0; lrIndx = 0
 nq = 0; ilq = 0 ! Number of unique transformation matrices (M's), number of unique lists of M's
 call matrix_inverse(A,Ainv,err)  ! Need A^-1 to form the transformation
 do iH = 1, nH   ! Make a list of permutations for this HNF
-   write(*,'("HNF: ",i2)') iH
-   do i = 1,3
-      write(*,'(3i3)') HNF(i,:,iH)
-   enddo
    ! First find the permutation on the group by each rotation
    A1 = matmul(L(:,:,iH),Ainv)
    call matrix_inverse(A1,A1inv,err)
    iHindx = 0 ! Keep track of the number of transformations that apply to each HNF
-   write(*,'("Num of R: ",i4)') size(R(iH)%rot,3)
    do iR = 1, size(R(iH)%rot,3) ! Loop over all rotations
-      write(*,'("Rot #: ",i4)') iR
-      do i = 1,3
-         write(*,'(3f6.2)') R(iH)%rot(i,:,iR)
-      enddo
       T = matmul(A1, matmul(R(iH)%rot(:,:,iR),A1inv))  ! This is the transformation
       if (.not. equal(T,nint(T),eps)) &
          stop 'ERROR: make_label_rotation_table: Transformation is not integer'
       M = modulo(nint(T),spread(d,2,3))
-      write(*,'("Transformation:")')
-      do i = 1,3
-         write(*,'(3i3)') M(i,:)
-      enddo
-
       ! See if this transformation matrix M is unique
       unique = .true.
       do iq = 1, nq
@@ -114,28 +99,11 @@ enddo
 ! <<< Make the permutation lists >>>
 ! We now know which group of permutations is applicable to each HNF. So we just make the lists of
 ! permutations (right now we just have a list of matrices) and pass that back out
-
-write(*,'("The transformations for the HNFs form ",i3," unique lists")') ilq
-write(*,'("Which HNF has which list:",20i2)') lrindx(1:nH)
-
-print *
-print *,"group"
-do il = 1,3
-   write(*,'(20i3)') G(il,:)
-enddo
-
 do il = 1, ilq ! Loop over all lists
-   print *
-   write(*,'("Perm list #: ",i3)') il
    ! What is the first list in tlr that corresponds to il?
    nM = minloc(lrIndx,(lrIndx==il))
    do iM = 1, count(tlr(nM(1),:)/=0)
-      write(*,'("Transform #: ",i3)') iM
       Gp = matmul(tM(:,:,tlr(nM(1),iM)),G)
-print *,"G'"      
-do i = 1,3
-   write(*,'(20i3)') Gp(i,:)
-enddo
       do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do this without the loop, using vector notation?
       do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
          do j = 1, n
@@ -144,13 +112,7 @@ enddo
             endif
          enddo
       enddo
-      write(*,'(20i2)') lrTab(1:n,iM,il)
       if (any(lrTab(1:n,iM,il)==0)) then
-         write(*,'(20i2)') lrTab(1:n,iM,il)
-         write(*,'("number of HNFs: ",i4)') nH
-         !do iH = 1,nH
-         !   write(*,'(20i2)') lrTab(1:n,
-         !enddo
          stop "Transform didn't work. Gp is not a permutation of G"
       endif
    enddo
@@ -461,7 +423,4 @@ else  ! For a partial list (incomplete labelings not included) things are slight
 endif
 
 ENDSUBROUTINE count_full_colorings
-
-
-
 END MODULE labeling_related

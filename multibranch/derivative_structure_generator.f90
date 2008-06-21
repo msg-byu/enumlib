@@ -86,9 +86,10 @@ END SUBROUTINE get_all_HNFs
 ! F is a list of the *unique* SNFs. SNF_label indicates which of the unique SNFs
 ! corresponds to each HNF. The transformations, SNFs, and labels are ordered on output
 ! into blocks of identical SNFs.
-SUBROUTINE get_SNF(HNF,A,SNF,B,F,SNF_label)
+SUBROUTINE get_SNF(HNF,A,SNF,B,F,SNF_label,fixing_op)
 integer, pointer :: HNF(:,:,:), SNF_label(:)
 integer, pointer, dimension(:,:,:) :: A, SNF, B, F
+type(opList), pointer :: fixing_op(:) ! List of operations that fix each HNF
 
 integer :: indx(size(HNF,3))
 integer ihnf, nHNF, nfound, ifound, status, ic, jc, i
@@ -116,39 +117,22 @@ enddo
 ! We have all the SNFs now, as well as the transformations. But they are not in any kind of
 ! order. Rearrange the transformations, labels, and HNFs so that they are in blocks of matching SNFs
 
-!allocate(tLab(nHNF)) ! Temporary storage for the labels
-!do iHNF =1,nHNF
-!   write(*,'(3i3,1x)',advance='no') SNF(1,1,iHNF),SNF(2,2,iHNF),SNF(3,3,iHNF)
-!enddo
-!print *
-!write (*,'(30i3)') SNF_label
-!
 ic = 1; jc = 0
 do ifound = 1, nfound
    jc = count(SNF_label==ifound) ! How many HNFs have this SNF?
    indx(ic:ic+jc-1) = pack((/(i,i=1,nHNF)/),SNF_label==ifound) ! Get the index of each matching case
    ic = ic + jc ! Compute the offset where the index is stored
-!   do ihnf = 1, nHNF
-!      if (SNF_label(ihnf) == ifound) then
-!         ic = ic + 1
-!         indx(ic) = ihnf 
-!      endif
-!   enddo
 enddo
 
-!write (*,'(30i4)') indx
 ! Use the computed order index, indx, to reorder the A, B, and SNF matrices
+HNF = HNF(1:3,1:3,indx)
 SNF = SNF(1:3,1:3,indx)
 A = A(1:3,1:3,indx)
 B = B(1:3,1:3,indx)
 SNF_label = SNF_label(indx) ! Reorder the labels for which SNF each HNF is
+fixing_op = fixing_op(indx)
 
-!do iHNF =1,nHNF
-!   write(*,'(3i3,1x)',advance='no') SNF(1,1,iHNF),SNF(2,2,iHNF),SNF(3,3,iHNF)
-!enddo
-!print *
-!write (*,'(30i3)') SNF_label
-!
+! Fail safe trigger and storage of unique SNFs
 if (ic/=nHNF+1) stop "SNF sort in get_SNF didn't work"
 if (associated(F)) deallocate(F)
 allocate(F(3,3,nfound),STAT=status)
@@ -161,13 +145,14 @@ ENDSUBROUTINE get_SNF
 ! rotationally equivalent (under the rotations of the parent lattice). Also
 ! returns all the unique derivative _lattices_ for this parent. Returns also 
 ! a list of rotations that fix each superlattice. 
-SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,uq_hnf,fixing_op,latts,eps)
+SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,uq_hnf,fixing_op,latts,eps)
 integer, pointer :: hnf(:,:,:) ! HNF matrices (input)
 integer :: LatDim ! Is the parent lattice 2D or 3D?
 real(dp), intent(in) :: parent_lattice(3,3) ! parent lattice (input)
 integer, pointer :: uq_hnf(:,:,:) ! list of symmetrically distinct HNFs (output)
 type(opList), pointer :: fixing_op(:) ! List of operations that fix each HNF
 real(dp),intent(in):: eps ! finite precision (input)
+real(dp), pointer :: d(:,:)
 
 real(dp), pointer:: sgrots(:,:,:)
 real(dp), dimension(3,3) :: test_latticei, test_latticej, thisRot, rotLat, origLat
@@ -178,9 +163,7 @@ logical duplicate
 type(opList), allocatable :: tmpOp(:)
 real(dp), allocatable :: tSGrots(:,:,:)
 
-!do i=1,3
-! write(*,'(3f10.6)') parent_lattice(:,i)
-!enddo
+
 call get_lattice_pointGroup(parent_lattice,sgrots,eps)
 nRot = size(sgrots,3)
 !print *,"<<< parent Ops found:",nRot
@@ -385,9 +368,9 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
    call cpu_time(tHNFs)
-   call remove_duplicate_lattices(HNF,LatDim,parLV,reducedHNF,fixOp,uqlatts,eps)
+   call remove_duplicate_lattices(HNF,LatDim,d,parLV,reducedHNF,fixOp,uqlatts,eps)
    call cpu_time(tDupLat)
-   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
+   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
    call cpu_time(tSNF)
 
    ! We have a list containing each unique derivative superlattice and
@@ -411,7 +394,6 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       if(allocated(lrvs)) deallocate(lrvs)
       allocate(vs(nHNF),lrvs(nHNF))
       vs = pack((/(i,i=1,nRedHNF)/),SNF_labels==iuq)
-!      write(*,'(20i3)') vs(1:nHNF)
       allocate(LabRotIndx(nRedHNF))
       LabRotIndx = 0
 !      SNFmask = reshape(spread(SNF_labels==iuq,1,9),(/3,3,nRedHNF/))
@@ -548,8 +530,8 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    else
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
-   call remove_duplicate_lattices(HNF,LatDim,parLV,reducedHNF,fixOp,uqlatts,eps)
-   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels)
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,reducedHNF,fixOp,uqlatts,eps)
+   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
 
 !** working from here
 

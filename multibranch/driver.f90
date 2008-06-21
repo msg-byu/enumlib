@@ -19,8 +19,8 @@ logical fullLab
 call read_input(title,LatDim,parLV,nD,d,k,nMin,nMax,eps,fullLab) ! Read in parent lattice vectors, etc.
 if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
 ! With test case 006 there is a problem with the original code. label rotation fails...
- call generate_derivative_structures(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
+! call generate_derivative_structures(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
 
-!call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
+call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
 
 END PROGRAM driver
