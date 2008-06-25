@@ -114,9 +114,9 @@ do ihnf = 1, nHNF ! Loop over each HNF in the list
       SNF_label(ihnf) = nfound
    endif
 enddo
+
 ! We have all the SNFs now, as well as the transformations. But they are not in any kind of
 ! order. Rearrange the transformations, labels, and HNFs so that they are in blocks of matching SNFs
-
 ic = 1; jc = 0
 do ifound = 1, nfound
    jc = count(SNF_label==ifound) ! How many HNFs have this SNF?
@@ -154,23 +154,26 @@ type(opList), pointer :: fixing_op(:) ! List of operations that fix each HNF
 real(dp),intent(in):: eps ! finite precision (input)
 real(dp), pointer :: d(:,:)
 
-real(dp), pointer:: sgrots(:,:,:)
+real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
 real(dp), dimension(3,3) :: test_latticei, test_latticej, thisRot, rotLat, origLat
-integer i, Nhnf, iuq, irot, j, nRot, Nq, ic, status
+integer i, Nhnf, iuq, irot, j, nRot, Nq, ic, status, nD
 integer, allocatable :: temp_hnf(:,:,:)
 real(dp), pointer :: latts(:,:,:)
 logical duplicate
 type(opList), allocatable :: tmpOp(:)
 real(dp), allocatable :: tSGrots(:,:,:)
+integer, pointer :: aTyp(:)
 
+nD = size(d,2)
+allocate(aTyp(nD),STAT=status)
+if(status/=0)stop "Allocation failed in remove_duplicate_lattices: aTyp"
 
-call get_lattice_pointGroup(parent_lattice,sgrots,eps)
+call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
-!print *,"<<< parent Ops found:",nRot
 
 Nhnf = size(hnf,3)
 allocate(temp_hnf(3,3,Nhnf),STAT=status)
-if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices"
+if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp_hnf"
 temp_hnf = hnf
 
 ! For the 2D case, eliminate the "3D" operations.
@@ -183,11 +186,6 @@ if (LatDim==2) then
            & equal(sgrots(1,1,i),1._dp,eps)) then ! this operation is "2D"
          irot = irot + 1
          tSGrots(:,:,irot) = sgrots(:,:,i)
-         !do j = 1,3  ! Take this out after debugging...
-         !   print *, irot, sgrots(j,:,i)
-         !   !write(10,'(3f8.3)') sgrots(j,:,i)
-         !enddo
-         !print *
       endif
    enddo
    nRot = irot
@@ -225,9 +223,9 @@ forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
 ! the superlattice unchanged can permute the labels inside. Thus, this is another source of 
 ! duplicates. 
 allocate(tmpOp(Nq),fixing_op(Nq),STAT=status)
-if(status/=0) stop "Allocation of tmpOp or fixing_op failed in remove_duplicate_lattices, module deriv..."
-do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),STAT=status)
-if(status/=0) stop "Allocation failed in get_HNF_diagonals, module deriv...";enddo
+if(status/=0) stop "Allocation of tmpOp or fixing_op failed in remove_duplicate_lattices"
+do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),tmpOp(i)%shift(3,nRot),STAT=status)
+if(status/=0) stop "Allocation failed in remove_duplicat_lattices: tmpOp%rot or shift";enddo
 do iuq = 1, Nq  ! Loop over each unique HNF
    ic = 0
    do iRot = 1,nRot  ! Loop over each rotation
@@ -237,13 +235,14 @@ do iuq = 1, Nq  ! Loop over each unique HNF
       if (is_equiv_lattice(rotLat,origLat,eps)) then ! this operation fixes the lattice and should be recorded
          ic = ic + 1
          tmpOp(iuq)%rot(:,:,ic) = thisRot
+         tmpOp(iuq)%shift(:,ic) = sgshift(:,iRot)
       endif
    enddo ! Now we know which rotations fix the lattice and how many there are so store them
-   do i=1,ic; allocate(fixing_op(iuq)%rot(3,3,ic),STAT=status)
-if(status/=0) stop "Allocation of fixing_op%rot failed, module deriv..."; enddo ! Allocate the storage for them
+   do i=1,ic; allocate(fixing_op(iuq)%rot(3,3,ic),fixing_op(iuq)%shift(3,ic),STAT=status)
+if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo ! Allocate the storage for them
    fixing_op(iuq)%rot = tmpOp(iuq)%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
+   fixing_op(iuq)%shift = tmpOp(iuq)%shift(:,1:ic) ! Stuff the shifts into the permanent array
 enddo
-
 END SUBROUTINE remove_duplicate_lattices
 
 !*******************************************************************************
@@ -368,7 +367,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
    call cpu_time(tHNFs)
-   call remove_duplicate_lattices(HNF,LatDim,d,parLV,reducedHNF,fixOp,uqlatts,eps)
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,reducedHNF,fixOp,uqlatts,eps)
    call cpu_time(tDupLat)
    call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
    call cpu_time(tSNF)

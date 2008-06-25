@@ -6,6 +6,7 @@ public derivCryst, opList, LabelRotationList
 
 type opList  ! A list of rotation operations
    real(dp), pointer :: rot(:,:,:)
+   real(dp), pointer :: shift(:,:)
 endtype opList
 
 type LabelRotationList ! A list of indices corresponding to label rotations

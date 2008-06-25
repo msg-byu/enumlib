@@ -6,6 +6,7 @@ public derivCryst, opList
 
 type opList  ! A list of rotation operations
    real(dp), pointer :: rot(:,:,:)
+   real(dp), pointer :: shift(:,:)
 endtype opList
 
 type derivCryst 
