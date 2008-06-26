@@ -371,7 +371,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    call cpu_time(tDupLat)
    call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
    call cpu_time(tSNF)
-
+   write(*,'(20i3)') SNF_labels
    ! We have a list containing each unique derivative superlattice and
    ! its corresponding Smith Normal Form. Now make the labelings.
    Nq = size(uqSNF,3)  ! Number of unique SNFs
@@ -480,7 +480,7 @@ character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
 
 integer iD, i, ivol, LatDim, runTot, ctot, ivoltot, csize
-integer, pointer, dimension(:,:,:) :: HNF => null(), reducedHNF => null(),SNF => null(), L => null(), B => null()
+integer, pointer, dimension(:,:,:) :: HNF => null(), rHNF => null(),SNF => null(), L => null(), B => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
 real(dp) tstart
 type(opList), pointer :: fixOp(:)
@@ -529,10 +529,18 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    else
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
-   call remove_duplicate_lattices(HNF,LatDim,parLV,d,reducedHNF,fixOp,uqlatts,eps)
-   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
-
-!** working from here
+   ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
+   ! multilattice to reduce the list to those that are symmetrically distinct.
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,rdHNF,fixOp,uqlatts,eps)
+   ! Superlattices with the same SNF will have the same list of translation permutations of the
+   ! labelings. So they can all be done at once if we find the SNF. rHNF is the reduced list.
+   call get_SNF(rHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
+   ! Each HNF will have a certain number of rotations that leave the superlattice fixed, call
+   ! fixOp. These operations will effect a permutation on the (d,g) table. Since many of the HNFs
+   ! will have an identical list of rotation permutations, it'll be efficient to reduce the
+   ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
+   ! sort the HNFs into blocks with matching permutation lists.
+   call get_rotation_perm_lists(rHNF,L,SNF,fixOp,rotPermList,rotPermListIndx)
 
 enddo ! loop over cell sizes (ivol)
 
