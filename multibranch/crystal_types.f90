@@ -2,7 +2,12 @@ MODULE crystal_types
 use num_types
 implicit none
 private
-public derivCryst, opList
+public derivCryst, opList, RotPermList
+
+type RotPermList
+   integer(si), pointer :: perm(:,:) ! First index is the permutation number
+   integer nL ! Number of permutations in the list (perm is nL x nAtoms)
+endtype RotPermList
 
 type opList  ! A list of rotation operations
    real(dp), pointer :: rot(:,:,:)

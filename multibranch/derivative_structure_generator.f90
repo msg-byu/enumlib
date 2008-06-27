@@ -482,8 +482,10 @@ logical, intent(in) :: full
 integer iD, i, ivol, LatDim, runTot, ctot, ivoltot, csize
 integer, pointer, dimension(:,:,:) :: HNF => null(), rHNF => null(),SNF => null(), L => null(), B => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
-real(dp) tstart
-type(opList), pointer :: fixOp(:)
+real(dp) tstart, tend
+type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
+type(RPlist), pointer :: rotPermList(:) ! Master list of the rotation permutation lists
+integer, pointer ::  RPLindx ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 
 
@@ -540,7 +542,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
-   call get_rotation_perm_lists(rHNF,L,SNF,fixOp,rotPermList,rotPermListIndx)
+   call get_rotation_perm_lists(rHNF,L,SNF,fixOp,rotPermList,RPLindx)
 
 enddo ! loop over cell sizes (ivol)
 
