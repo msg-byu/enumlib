@@ -4,7 +4,7 @@
 #
 ifeq (${F90},ifc)  # Intel compiler
   LBDR = ../celib
-  FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
+  FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn -heap-arrays -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},ifort)  # Intel compiler

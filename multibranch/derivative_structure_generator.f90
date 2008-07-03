@@ -466,7 +466,7 @@ close(99)
 END SUBROUTINE generate_derivative_structures
 
 !***************************************************************************************************
-! This routine is should eventually replace "generate_derivative_structures". The difference with
+! This routine should eventually replace "generate_derivative_structures". The difference with
 ! this one is that it applies to superstructures derived from multilattices. This is more general
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
 ! implemented here has been slightly reorder from the original routine and that discussed in the
