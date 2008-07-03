@@ -19,6 +19,15 @@ private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      & generate_derivative_structures, gen_multilattice_derivatives
 CONTAINS
+!***************************************************************************************************
+SUBROUTINE get_rotation_perm_lists(HNF,L,SNF,Op,RPlist,RPLx)
+integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
+type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
+type(RotationPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
+integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
+
+
+ENDSUBROUTINE get_rotation_perm_lists
 
 !***************************************************************************************************
 ! Finds all the possible diagonals of the HNF matrices of a given size
@@ -466,7 +475,7 @@ close(99)
 END SUBROUTINE generate_derivative_structures
 
 !***************************************************************************************************
-! This routine should eventually replace "generate_derivative_structures". The difference with
+! This routine is should eventually replace "generate_derivative_structures". The difference with
 ! this one is that it applies to superstructures derived from multilattices. This is more general
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
 ! implemented here has been slightly reorder from the original routine and that discussed in the
@@ -484,8 +493,8 @@ integer, pointer, dimension(:,:,:) :: HNF => null(), rHNF => null(),SNF => null(
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
 real(dp) tstart, tend
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
-type(RPlist), pointer :: rotPermList(:) ! Master list of the rotation permutation lists
-integer, pointer ::  RPLindx ! Index showing which list of rotation permutations corresponds to which HNF
+type(RotationPermList), pointer :: rotPermList(:) ! Master list of the rotation permutation lists
+integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 
 

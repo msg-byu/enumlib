@@ -2,7 +2,12 @@ MODULE enumeration_types
 use num_types
 implicit none
 private
-public derivCryst, opList, LabelRotationList
+public derivCryst, opList, LabelRotationList, RotationPermList
+
+type RotationPermList
+   integer(si), pointer :: perm(:,:) ! First index is the permutation number
+   integer nL ! Number of permutations in the list (perm is nL x nAtoms)
+endtype RotationPermList
 
 type opList  ! A list of rotation operations
    real(dp), pointer :: rot(:,:,:)
