@@ -122,11 +122,11 @@ ENDSUBROUTINE make_label_rotation_table
 
 !***************************************************************************************************
 ! This routine takes two lists of integer sequences and compares them to see if they are the
-! same. The input lists are assumed to contain unique sequences and perhaps padded with zeros.
+! same. The input lists are assumed to contain unique entries and perhaps be padded with zeros.
 FUNCTION lists_match(list1, list2)
 integer, intent(in) :: list1(:,:), list2(:,:) 
 logical lists_match, rowmatch
-integer nL ! length of each list, length of lists
+integer nL ! length of each list
 integer i,j
 lists_match = .false.; rowmatch = .false.
 nL = size(list1,2) 

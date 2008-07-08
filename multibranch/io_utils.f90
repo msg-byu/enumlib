@@ -23,8 +23,6 @@ call co_ca(10,err)
 read(10,'(a4)') pLatTyp
 call co_ca(10,err)
 read(10,*) pLV(:,1)
-print *,pLV(:,1)
-
 call co_ca(10,err)
 read(10,*) pLV(:,2)
 call co_ca(10,err)
