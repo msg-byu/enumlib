@@ -80,87 +80,87 @@ enddo ! loop over operations
 deallocate(dRPList%perm,dRPList%v)
 allocate(dRPList%perm(nqP,nD),dRPList%v(3,nD,nqP))      
 ENDSUBROUTINE get_dvector_permutations
-!***************************************************************************************************
-! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
-! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
-! d-vectors (interior points of the multilattice) effected by the rotations. Then sort the HNFs into
-! blocks that have the same rotation permutations.
-SUBROUTINE get_rotation_perm_lists(pLV,pd,HNF,L,SNF,Op,RPlist,RPLx,eps)
-real(dp) :: pLV(3,3) ! Lattice vectors of the primary lattice (parent lattice)
-real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
-integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
-type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
-type(RotationPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
-integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
-real(dp), intent(in) :: eps ! finite precision tolerance
-
-integer iR, iH, iD, idummy ! various counters
-integer n, nD ! Index of superlattice, number of d-vectors
-integer status ! Flag for allocations that fail
-real(dp), pointer :: d(:,:), rd(:,:), trd(:,:) ! d-vectors of the superlattice, rotated versions of the same
-real(dp) :: sLV(3,3), sLVinv(3,3)
-logical err
-integer, pointer :: tRP(:), tRPlist(:,:) ! temp. rotation perm, list of the same
-real(dp), pointer :: v(:,:,:)  !vector that returns the rotated d-vector back into the first cell
-
-n = determinant(HNF(:,:,1)) ! Index of the superlattices in this block
-nD = n*size(pd,2) ! 
-allocate(d(3,nD),Rd(3,nD),trd(3,nD),STAT=status)
-if(status/=0) stop "Allocation failed in get_rotation_perm_lists: d, rd, trd"
-allocate(tRP(nD),tRPlist(48,nD), v(3,nD,48),STAT=status)
-if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tRP, tRPlist, v"
-
-! For each HNF, loop over all fixing Ops and hit the multilattice with the Op. Then move the
-! d-vectors back to the first unit cell. Then construct an index vector (the permutation) that
-! indicates how each d-vector in the rotated lattice matches with those in the original.
-do iH = 1,size(HNF,3)
-   !print *,"********************************"
-   !write(*,'(/,20(3i3,/))') transpose(HNF(:,:,iH))
-   
-   sLV = matmul(pLV,HNF(:,:,iH))
-   call matrix_inverse(sLV,sLVinv,err)
-   if(err) stop "Matrix inverse didn't work in get_rotation_perm_lists"
-
-   ! Need to define the d-vectors of the superlattice (right now we only have those for the parent)
-   call expand_dvectors(n,pLV,sLV,sLVinv,HNF(:,:,iH),SNF(:,:,iH),L(:,:,iH),pd,d,eps)
-   do iR = 1,size(Op(iH)%rot,3)
-      idummy = size(Op(iH)%rot,3)
-      !write(*,'("nRot:",i3," dummy")') idummy
-      !write(10,'("nRot:",i3)') size(Op(iH)%rot,3)
-      !print *,"dummy"
-
-      ! Rotate all the d-vectors by one of the rotations and add the shift, if present
-      rd = matmul(Op(iH)%rot(:,:,iR),d)+spread(Op(iH)%shift(:,iR),2,nD)
-      trd = rd ! Make a temporary copy before we bounce the rd's back into the cell
-      !write(*,'(/,20(3i3,/))') nint(d(:,1:nD))
-      !write(*,'(/,20(3i3,/))') nint(rd(:,1:nD))
-      !
-      !write(*,'(/,20(3f7.3,/))') Op(iH)%shift(:,iR)
-      !write(*,'(/,20(3f7.3,/))') matmul(sLVinv,rd(:,1:nD))
-      do iD = 1, nD ! Move each of the d-vectors into the first unit cell of the superlattice
-         call bring_into_cell(rd(:,iD),sLVinv,sLV,eps)
-      enddo 
-      v(:,:,iR) = rd(:,:) - trd(:,:)
-      !write(*,'(/,"Rot#: ",i2,/)') iR
-      !write(*,'(/,20(3f7.3,/))') matmul(sLVinv,rd(:,1:nD))
-
-      !write(*,'(/,20(3i3,/))') nint(rd(:,1:nD))
-
-      ! determine how the d-vectors have been permuted by the symmetry operation
-      !write(*,'(/,20(3i3,/))') transpose(nint(Op(iH)%Rot(:,:,iR)))
-      call map_dvector_permutation(rd,d,tRPlist(iR,:),eps)
-   enddo ! loop over rotations
-   !write(*,'("HNF:",3(3i3,/),/)') transpose(HNF(:,:,iH))
-   
-   
-   ! tRPlist now has a list of permutations. We need to remove redundant perms and then
-   ! order the list so it is easy to compare to other lists for uniqueness. Probably ought to remove
-   ! instances of the trivial permutation too, for the sake of efficiency.
-   !call make_permutations_unique(tRPlist,v)
-   !call add_permutations_to_list
-   
-enddo ! end loop over HNFs
-ENDSUBROUTINE get_rotation_perm_lists
+!!***************************************************************************************************
+!! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
+!! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
+!! d-vectors (interior points of the multilattice) effected by the rotations. Then sort the HNFs into
+!! blocks that have the same rotation permutations.
+!SUBROUTINE get_rotation_perm_lists(pLV,pd,HNF,L,SNF,Op,RPlist,RPLx,eps)
+!real(dp) :: pLV(3,3) ! Lattice vectors of the primary lattice (parent lattice)
+!real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
+!integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
+!type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
+!type(RotPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
+!integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
+!real(dp), intent(in) :: eps ! finite precision tolerance
+!
+!integer iR, iH, iD, idummy ! various counters
+!integer n, nD ! Index of superlattice, number of d-vectors
+!integer status ! Flag for allocations that fail
+!real(dp), pointer :: d(:,:), rd(:,:), trd(:,:) ! d-vectors of the superlattice, rotated versions of the same
+!real(dp) :: sLV(3,3), sLVinv(3,3)
+!logical err
+!integer, pointer :: tRP(:), tRPlist(:,:) ! temp. rotation perm, list of the same
+!real(dp), pointer :: v(:,:,:)  !vector that returns the rotated d-vector back into the first cell
+!
+!n = determinant(HNF(:,:,1)) ! Index of the superlattices in this block
+!nD = n*size(pd,2) ! 
+!allocate(d(3,nD),Rd(3,nD),trd(3,nD),STAT=status)
+!if(status/=0) stop "Allocation failed in get_rotation_perm_lists: d, rd, trd"
+!allocate(tRP(nD),tRPlist(48,nD), v(3,nD,48),STAT=status)
+!if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tRP, tRPlist, v"
+!
+!! For each HNF, loop over all fixing Ops and hit the multilattice with the Op. Then move the
+!! d-vectors back to the first unit cell. Then construct an index vector (the permutation) that
+!! indicates how each d-vector in the rotated lattice matches with those in the original.
+!do iH = 1,size(HNF,3)
+!   !print *,"********************************"
+!   !write(*,'(/,20(3i3,/))') transpose(HNF(:,:,iH))
+!   
+!   sLV = matmul(pLV,HNF(:,:,iH))
+!   call matrix_inverse(sLV,sLVinv,err)
+!   if(err) stop "Matrix inverse didn't work in get_rotation_perm_lists"
+!
+!   ! Need to define the d-vectors of the superlattice (right now we only have those for the parent)
+!   call expand_dvectors(n,pLV,sLV,sLVinv,HNF(:,:,iH),SNF(:,:,iH),L(:,:,iH),pd,d,eps)
+!   do iR = 1,size(Op(iH)%rot,3)
+!      idummy = size(Op(iH)%rot,3)
+!      !write(*,'("nRot:",i3," dummy")') idummy
+!      !write(10,'("nRot:",i3)') size(Op(iH)%rot,3)
+!      !print *,"dummy"
+!
+!      ! Rotate all the d-vectors by one of the rotations and add the shift, if present
+!      rd = matmul(Op(iH)%rot(:,:,iR),d)+spread(Op(iH)%shift(:,iR),2,nD)
+!      trd = rd ! Make a temporary copy before we bounce the rd's back into the cell
+!      !write(*,'(/,20(3i3,/))') nint(d(:,1:nD))
+!      !write(*,'(/,20(3i3,/))') nint(rd(:,1:nD))
+!      !
+!      !write(*,'(/,20(3f7.3,/))') Op(iH)%shift(:,iR)
+!      !write(*,'(/,20(3f7.3,/))') matmul(sLVinv,rd(:,1:nD))
+!      do iD = 1, nD ! Move each of the d-vectors into the first unit cell of the superlattice
+!         call bring_into_cell(rd(:,iD),sLVinv,sLV,eps)
+!      enddo 
+!      v(:,:,iR) = rd(:,:) - trd(:,:)
+!      !write(*,'(/,"Rot#: ",i2,/)') iR
+!      !write(*,'(/,20(3f7.3,/))') matmul(sLVinv,rd(:,1:nD))
+!
+!      !write(*,'(/,20(3i3,/))') nint(rd(:,1:nD))
+!
+!      ! determine how the d-vectors have been permuted by the symmetry operation
+!      !write(*,'(/,20(3i3,/))') transpose(nint(Op(iH)%Rot(:,:,iR)))
+!      call map_dvector_permutation(rd,d,tRPlist(iR,:),eps)
+!   enddo ! loop over rotations
+!   !write(*,'("HNF:",3(3i3,/),/)') transpose(HNF(:,:,iH))
+!   
+!   
+!   ! tRPlist now has a list of permutations. We need to remove redundant perms and then
+!   ! order the list so it is easy to compare to other lists for uniqueness. Probably ought to remove
+!   ! instances of the trivial permutation too, for the sake of efficiency.
+!   !call make_permutations_unique(tRPlist,v)
+!   !call add_permutations_to_list
+!   
+!enddo ! end loop over HNFs
+!ENDSUBROUTINE get_rotation_perm_lists
 
 !!***************************************************************************************************
 !! This routine takes a list of permutations, removes the trivial permutation and all other
@@ -203,7 +203,7 @@ ENDSUBROUTINE get_rotation_perm_lists
 !***************************************************************************************************
 SUBROUTINE map_dvector_permutation(rd,d,RP,eps)
 real(dp), pointer, dimension(:,:) :: rd, d
-integer :: RP(:)
+integer(si) :: RP(:)
 real(dp), intent(in) :: eps
 
 integer iD, jD, nD
@@ -737,7 +737,7 @@ integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
-type(RotationPermList), pointer :: rotPermList(:) ! Master list of the rotation permutation lists
+type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 
@@ -796,7 +796,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
-   call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,rotPermList,RPLindx,eps)
+   call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
 
 enddo ! loop over cell sizes (ivol)
 
