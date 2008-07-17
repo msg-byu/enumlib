@@ -7,8 +7,8 @@ public derivCryst, opList, RotPermList
 type RotPermList
    integer(si), pointer :: perm(:,:) ! First index is the permutation number
    integer nL ! Number of permutations in the list (perm is nL x nAtoms)
-   real(dp), pointer :: v(:) ! Lattice vectors that return the rotated d-vectors
-                             ! back into the first cell
+   real(dp), pointer :: v(:,:,:) ! Lattice vectors that return the rotated d-vectors
+                                 ! back into the first cell 3xnDxnOp
 endtype RotPermList
 
 type opList  ! A list of rotation operations

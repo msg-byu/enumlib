@@ -19,6 +19,67 @@ private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      & generate_derivative_structures, gen_multilattice_derivatives
 CONTAINS
+
+!***************************************************************************************************
+SUBROUTINE get_dvector_permutations(pLV,pd,dRPList,eps)
+real(dp) :: pLV(3,3) ! Lattice vectors of the primary lattice (parent lattice)
+real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
+type(RotPermList), intent(out) :: dRPList ! Output. A list permutations effected by the Ops
+real(dp), intent(in) :: eps ! finite precision tolerance
+
+integer nD, iD, nOp, iOp, status, uqP, nqP
+integer, pointer :: aTyp(:), tList(:,:)
+real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
+real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
+real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
+logical err, unique
+
+nD = size(pd,2)
+allocate(aTyp(nD),STAT=status)
+if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
+aTyp = 1
+
+call get_spaceGroup(pLV,aTyp,pd,rot,shift,.false.,eps)
+nOp = size(rot,3)
+allocate(tList(nOp,nD),tv(3,nD,nOp),STAT=status)
+if(status/=0)stop "Allocation failed in get_dvector_permutations: tList"
+allocate(dRPList%perm(nOp,nD),dRPList%v(3,nD,nOp),STAT=status)
+if(status/=0)stop "Allocation failed in get_dvector_permutations: dRPList"
+
+
+call matrix_inverse(pLV,inv_pLV,err)
+if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
+
+do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permuted for each
+   rd = matmul(rot(:,:,iOp),pd)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
+   tRD = rd
+   do iD = 1, nD
+      call bring_into_cell(rd(:,iD),inv_pLV,pLV,eps)
+   enddo
+   dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
+   call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
+enddo
+! Now that we have the permutations, we need to reduce the list to only those that are unique
+! Since this is a small set (no bigger than 48) and we only do this once, a straightforward approach
+! should be fine (that is, efficiency isn't an issue here).
+nqP = 0
+do iOp = 1, nOp
+   unique = .true.
+   do uqP = 1, nqP
+      if (all(dRPlist%perm(iOp,:)==tList(uqP,:))) then
+         unique = .false.
+         exit
+      endif
+   enddo ! End loop over unique permutations
+   if (unique) then ! found a new permutation
+      nqP = nqP + 1
+      tList(nqP,:) = dRPlist%perm(iOp,:)
+      tv(:,:,nqP) = dRPList%v(:,:,iOp)
+   endif
+enddo ! loop over operations
+deallocate(dRPList%perm,dRPList%v)
+allocate(dRPList%perm(nqP,nD),dRPList%v(3,nD,nqP))      
+ENDSUBROUTINE get_dvector_permutations
 !***************************************************************************************************
 ! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
 ! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
@@ -95,49 +156,49 @@ do iH = 1,size(HNF,3)
    ! tRPlist now has a list of permutations. We need to remove redundant perms and then
    ! order the list so it is easy to compare to other lists for uniqueness. Probably ought to remove
    ! instances of the trivial permutation too, for the sake of efficiency.
-   call make_permutations_unique(tRPlist,v)
-   call add_permutations_to_list
+   !call make_permutations_unique(tRPlist,v)
+   !call add_permutations_to_list
    
 enddo ! end loop over HNFs
 ENDSUBROUTINE get_rotation_perm_lists
 
-!***************************************************************************************************
-! This routine takes a list of permutations, removes the trivial permutation and all other
-! permutations that are redundant. 
-SUBROUTINE make_permutations_unique(list,v)
-integer, pointer :: list(:,:)
-
-integer nP, nD, iP, jP, iD, trivPerm(size(list,2)), uqP, nq, status
-logical found, unique
-integer, allocatable :: tlist(:,:) ! Temporary copy of "list"
-real(dp), allocatable :: tv(:,:,:) ! Temporary copy of the v's
-
-nP = size(list,1); nD = size(list,2)
-trivPerm = (/(iD,iD=1,nD)/); nq = 0
-allocate(tlist(nP,nD),tv(3,nD,nP),STAT=status)
-if (status/=0) stop "Allocation failed in make_permutations_unique: tlist"
-do iP = 1, nP
-   if (all(list(iP,:) == trivPerm)) cycle
-   unique = .true.
-   do uqP = 1, nq
-      if (all(list(iP,:)==tlist(uqP,:))) then
-         found = .false. ! Found
-         exit
-      endif
-   enddo ! loop over unique permutations
-   if (unique) then
-      nq = nq + 1
-      tlist(nq,:) = list(iP,:)
-      tv(:,:,nq) = v(:,:,iP)
-   endif
-enddo ! loop over permutations
-! store unique permutations
-deallocate(list,v)
-allocate(list(nq,nD),v(3,nD,nq),STAT=status)
-if (status/=0) stop "Allocation failed in make_permutations_unique: list"
-list = tlist(1:nq,:) ! Store the reduced list
-v = tv(:,:,1:nq)
-ENDSUBROUTINE make_permutations_unique
+!!***************************************************************************************************
+!! This routine takes a list of permutations, removes the trivial permutation and all other
+!! permutations that are redundant. 
+!SUBROUTINE make_permutations_unique(list,v)
+!integer, pointer :: list(:,:)
+!
+!integer nP, nD, iP, jP, iD, trivPerm(size(list,2)), uqP, nq, status
+!logical found, unique
+!integer, allocatable :: tlist(:,:) ! Temporary copy of "list"
+!real(dp), allocatable :: tv(:,:,:) ! Temporary copy of the v's
+!
+!nP = size(list,1); nD = size(list,2)
+!trivPerm = (/(iD,iD=1,nD)/); nq = 0
+!allocate(tlist(nP,nD),tv(3,nD,nP),STAT=status)
+!if (status/=0) stop "Allocation failed in make_permutations_unique: tlist"
+!do iP = 1, nP
+!   if (all(list(iP,:) == trivPerm)) cycle
+!   unique = .true.
+!   do uqP = 1, nq
+!      if (all(list(iP,:)==tlist(uqP,:))) then
+!         found = .false. ! Found
+!         exit
+!      endif
+!   enddo ! loop over unique permutations
+!   if (unique) then
+!      nq = nq + 1
+!      tlist(nq,:) = list(iP,:)
+!      tv(:,:,nq) = v(:,:,iP)
+!   endif
+!enddo ! loop over permutations
+!! store unique permutations
+!deallocate(list,v)
+!allocate(list(nq,nD),v(3,nD,nq),STAT=status)
+!if (status/=0) stop "Allocation failed in make_permutations_unique: list"
+!list = tlist(1:nq,:) ! Store the reduced list
+!v = tv(:,:,1:nq)
+!ENDSUBROUTINE make_permutations_unique
 
 !***************************************************************************************************
 SUBROUTINE map_dvector_permutation(rd,d,RP,eps)
@@ -357,6 +418,7 @@ integer, pointer :: aTyp(:)
 nD = size(d,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in remove_duplicate_lattices: aTyp"
+aTyp = 1
 
 call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
