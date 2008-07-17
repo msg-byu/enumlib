@@ -17,7 +17,8 @@ use vector_matrix_utilities, only: determinant, matrix_inverse
 implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
-     & generate_derivative_structures, gen_multilattice_derivatives
+     & generate_derivative_structures, gen_multilattice_derivatives, &
+     get_dvector_permutations
 CONTAINS
 
 !***************************************************************************************************
@@ -27,7 +28,7 @@ real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary latt
 type(RotPermList), intent(out) :: dRPList ! Output. A list permutations effected by the Ops
 real(dp), intent(in) :: eps ! finite precision tolerance
 
-integer nD, iD, nOp, iOp, status, uqP, nqP
+integer nD, iD, nOp, iOp, status, iqP, nqP
 integer, pointer :: aTyp(:), tList(:,:)
 real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
 real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
@@ -65,8 +66,8 @@ enddo
 nqP = 0
 do iOp = 1, nOp
    unique = .true.
-   do uqP = 1, nqP
-      if (all(dRPlist%perm(iOp,:)==tList(uqP,:))) then
+   do iqP = 1, nqP
+      if (all(dRPlist%perm(iOp,:)==tList(iqP,:))) then
          unique = .false.
          exit
       endif
@@ -79,6 +80,17 @@ do iOp = 1, nOp
 enddo ! loop over operations
 deallocate(dRPList%perm,dRPList%v)
 allocate(dRPList%perm(nqP,nD),dRPList%v(3,nD,nqP))      
+dRPList%perm = tList(1:nqP,:)
+dRPList%v = tv(:,:,1:nqP)
+
+do iqP = 1, nqP
+   write(*,'(20i1)') dRPList%perm(iqP,:)
+enddo
+do iqP = 1, nqP
+   !write(*,'(20(3(i2,1x)))') nint(dRPList%v(:,:,iqP))
+   write(*,'(20(3(f7.3,1x)))') dRPList%v(:,:,iqP)
+enddo
+
 ENDSUBROUTINE get_dvector_permutations
 !!***************************************************************************************************
 !! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
@@ -202,7 +214,7 @@ ENDSUBROUTINE get_dvector_permutations
 
 !***************************************************************************************************
 SUBROUTINE map_dvector_permutation(rd,d,RP,eps)
-real(dp), pointer, dimension(:,:) :: rd, d
+real(dp), dimension(:,:) :: rd, d
 integer(si) :: RP(:)
 real(dp), intent(in) :: eps
 
@@ -737,8 +749,9 @@ integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
-type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
-integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
+!type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
+type(RotPermList) :: ParentDvecRotPermList ! Just the list for the parent lattice
+!integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 
 
@@ -773,6 +786,9 @@ if (pLatTyp=='s') then; LatDim = 2
 else if(pLatTyp=='b') then; LatDim = 3
 else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"';endif
 
+! The permutations of the interior points (d-vectors) under symmetry operations of the parent
+! multilattice are used later on. Generate them here
+call get_dvector_permutations(parLV,d,ParentDvecRotPermList,eps)
 ! This part generates all the derivative structures. Results are writen to unit 14.
 runTot = 0
 ctot = 0
@@ -796,9 +812,10 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
-   call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
-
+   !call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
+    !call
 enddo ! loop over cell sizes (ivol)
+call cpu_time(tend)
 
 ENDSUBROUTINE gen_multilattice_derivatives
 END MODULE derivative_structure_generator
