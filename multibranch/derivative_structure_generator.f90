@@ -87,8 +87,8 @@ do iqP = 1, nqP
    write(*,'(20i1)') dRPList%perm(iqP,:)
 enddo
 do iqP = 1, nqP
-   !write(*,'(20(3(i2,1x)))') nint(dRPList%v(:,:,iqP))
-   write(*,'(20(3(f7.3,1x)))') dRPList%v(:,:,iqP)
+   write(*,'(20(3i3,1x)))') nint(dRPList%v(:,:,iqP))
+   !write(*,'(20(3(f7.3,1x)))') dRPList%v(:,:,iqP)
 enddo
 
 ENDSUBROUTINE get_dvector_permutations
@@ -807,7 +807,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! Superlattices with the same SNF will have the same list of translation permutations of the
    ! labelings. So they can all be done at once if we find the SNF. rHNF is the reduced list.
    call get_SNF(rdHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
-   ! Each HNF will have a certain number of rotations that leave the superlattice fixed, call
+   ! Each HNF will have a certain number of rotations that leave the superlattice fixed, called
    ! fixOp. These operations will effect a permutation on the (d,g) table. Since many of the HNFs
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
