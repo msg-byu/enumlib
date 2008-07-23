@@ -362,8 +362,8 @@ ENDSUBROUTINE make_member_list
 !***************************************************************************************************
 ! This routine finds all the permutations of the group members that leave the decoration unchanged.
 ! Essentially we are finding a list of mappings: add to the group one of the members of the group
-! to get another member of the group. This list of mappings in the list of labelings (colorings) 
-! that leave the superstructure unchanged.
+! to get another member of the group. This list of mappings is the list of labeling (coloring) 
+! permutations that leave the superstructure unchanged.
 SUBROUTINE make_translation_group(d,trans)
 integer, intent(in) :: d(3) ! members of the group, diagonal elements of SNF
 integer, pointer :: trans(:,:) ! Translations that leave the superstructure unchanged
@@ -383,7 +383,7 @@ do im = 1, n
    ! add the im-th element of the group to every element in the group, mod d
    forall(i=1:size(tg,2)); tg(:,i) = mod(m(:,im) + m(:,i),d);end forall
    ! Find the index of the group member in the translated group
-   do i = 1,n ! This approach is an N^2 loop. Can this be improved? Does it matter?
+   do i = 1,n ! This approach is an N^2 loop. Can this be improved? Does it matter? I don't think so N is small
       do j = 1,n
          if (all(tg(:,i)==m(:,j))) then ! the two members are equal
             trans(im,i) = j             ! Save the index and exit the loop

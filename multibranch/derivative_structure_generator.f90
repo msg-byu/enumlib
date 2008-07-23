@@ -92,6 +92,49 @@ do iqP = 1, nqP
 enddo
 
 ENDSUBROUTINE get_dvector_permutations
+!***************************************************************************************************
+! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
+! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
+! d-vectors (interior points of the multilattice) effected by the rotations. Then sort the HNFs into
+! blocks that have the same rotation permutations.
+SUBROUTINE get_rotation_perm_lists(A,pd,HNF,L,SNF,dperms,Op,RPlist,RPLx,eps)
+real(dp), intent(in) :: A(3,3) ! Lattice vectors of the primary lattice (parent lattice)
+real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
+integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
+type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
+type(RotPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
+integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
+real(dp), intent(in) :: eps ! finite precision tolerance
+type(RotPermList) :: dperm
+integer, pointer :: dgPermList(:,:), g, dg(:,:,:)
+integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d', g') "rotated" table
+integer iH, nH, diag(3), iD, nD, iOp, nOp
+real(dp), dimension(3,3) :: Ainv, T, Tinv
+logical err
+
+nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(dperms%v,2) ! Num superlattices, index, Num d's
+allocate(gp(3,n),dgp(nD,n)); nOp = size
+! make the group for the first SNF
+diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
+call make_member_list(diag,g)
+call matrix_inverse(A,Ainv,err)
+if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
+
+do iH = 1,nH ! loop over each superlattice
+   ! unless the SNF is different than the previous (they should be sorted into blocks) don't bother
+   ! making the group again. Just use the same one.
+   if(iH > 1) then; if(.not. all(SNF(:,:,ih)==SNF(:,:,ih-1))) then
+      diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
+      call make_member_list(diag,g)
+   endif; endif
+   Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
+   if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
+   gp = matmul(Tinv,(v_i+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+RAL^-1)G
+   call get_rotation_permutations(A,L(:,:,iH),dperms,g,dgPermList)
+enddo ! loop over iH (superlattices)
+
+ENDSUBROUTINE get_rotation_perm_lists
+
 !!***************************************************************************************************
 !! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
 !! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
@@ -813,6 +856,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
    !call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
+   call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,ParentDvecRotPermList,fixOp,RPList,RPLindx,eps)
     !call
 enddo ! loop over cell sizes (ivol)
 call cpu_time(tend)
