@@ -107,13 +107,13 @@ integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which 
 real(dp), intent(in) :: eps ! finite precision tolerance
 type(RotPermList) :: dperm
 integer, pointer :: dgPermList(:,:), g, dg(:,:,:)
-integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d', g') "rotated" table
+integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated" table
 integer iH, nH, diag(3), iD, nD, iOp, nOp
 real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
 
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(dperms%v,2) ! Num superlattices, index, Num d's
-allocate(gp(3,n),dgp(nD,n)); nOp = size
+allocate(gp(3,n),dgp(nD,n)); 
 ! make the group for the first SNF
 diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
 call make_member_list(diag,g)
@@ -129,8 +129,15 @@ do iH = 1,nH ! loop over each superlattice
    endif; endif
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
-   gp = matmul(Tinv,(v_i+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+RAL^-1)G
-   call get_rotation_permutations(A,L(:,:,iH),dperms,g,dgPermList)
+   nOp = size(Op(iH)%rot,3)
+   do iOp = 1, nOp
+      do iD = 1, nD
+         gp = matmul(Tinv,(dperms%v(:,iD,iOp)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+(RAL^-1)G)
+         gp = modulo(gp,diag) ! Mod by each entry of the SNF to bring into group
+         dgp(dperm(iD,iOp),:) = gp
+      enddo ! loop over d-vectors
+      ! Now we have the (d',g') table for this rotation. Now record the permutation
+   enddo ! loop over rotations
 enddo ! loop over iH (superlattices)
 
 ENDSUBROUTINE get_rotation_perm_lists
