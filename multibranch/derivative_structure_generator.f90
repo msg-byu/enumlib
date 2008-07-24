@@ -60,36 +60,40 @@ do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permu
    dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
    call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
 enddo
-! Now that we have the permutations, we need to reduce the list to only those that are unique
-! Since this is a small set (no bigger than 48) and we only do this once, a straightforward approach
-! should be fine (that is, efficiency isn't an issue here).
-nqP = 0
-do iOp = 1, nOp
-   unique = .true.
-   do iqP = 1, nqP
-      if (all(dRPlist%perm(iOp,:)==tList(iqP,:))) then
-         unique = .false.
-         exit
-      endif
-   enddo ! End loop over unique permutations
-   if (unique) then ! found a new permutation
-      nqP = nqP + 1
-      tList(nqP,:) = dRPlist%perm(iOp,:)
-      tv(:,:,nqP) = dRPList%v(:,:,iOp)
-   endif
-enddo ! loop over operations
-deallocate(dRPList%perm,dRPList%v)
-allocate(dRPList%perm(nqP,nD),dRPList%v(3,nD,nqP))      
-dRPList%perm = tList(1:nqP,:)
-dRPList%v = tv(:,:,1:nqP)
 
-do iqP = 1, nqP
-   write(*,'(20i1)') dRPList%perm(iqP,:)
-enddo
-do iqP = 1, nqP
-   write(*,'(20(3i3,1x)))') nint(dRPList%v(:,:,iqP))
-   !write(*,'(20(3(f7.3,1x)))') dRPList%v(:,:,iqP)
-enddo
+! I don't think making the unique list is correct. Some rotations that don't permute the d's could
+!still permute the g's. So we have to keep all the d's.
+
+!! Now that we have the permutations, we need to reduce the list to only those that are unique
+!! Since this is a small set (no bigger than 48) and we only do this once, a straightforward approach
+!! should be fine (that is, efficiency isn't an issue here).
+!nqP = 0
+!do iOp = 1, nOp
+!   unique = .true.
+!   do iqP = 1, nqP
+!      if (all(dRPlist%perm(iOp,:)==tList(iqP,:))) then
+!         unique = .false.
+!         exit
+!      endif
+!   enddo ! End loop over unique permutations
+!   if (unique) then ! found a new permutation
+!      nqP = nqP + 1
+!      tList(nqP,:) = dRPlist%perm(iOp,:)
+!      tv(:,:,nqP) = dRPList%v(:,:,iOp)
+!   endif
+!enddo ! loop over operations
+!deallocate(dRPList%perm,dRPList%v)
+!allocate(dRPList%perm(nqP,nD),dRPList%v(3,nD,nqP))      
+!dRPList%perm = tList(1:nqP,:)
+!dRPList%v = tv(:,:,1:nqP)
+
+!do iqP = 1, nqP
+!   write(*,'(20i1)') dRPList%perm(iqP,:)
+!enddo
+!do iqP = 1, nqP
+!   write(*,'(20(3i3,1x))') nint(dRPList%v(:,:,iqP))
+!   !write(*,'(20(3(f7.3,1x)))') dRPList%v(:,:,iqP)
+!enddo
 
 ENDSUBROUTINE get_dvector_permutations
 !***************************************************************************************************
@@ -105,39 +109,73 @@ type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for
 type(RotPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
 integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
 real(dp), intent(in) :: eps ! finite precision tolerance
-type(RotPermList) :: dperm
-integer, pointer :: dgPermList(:,:), g, dg(:,:,:)
+type(RotPermList), intent(in) :: dperms
+integer, pointer :: dgPermList(:,:), g(:,:), dg(:,:,:)
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated" table
-integer iH, nH, diag(3), iD, nD, iOp, nOp
+integer iH, nH, diag(3), iD, nD, iOp, nOp, n, im, jm
 real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
+logical, allocatable :: skip(:)
+real(dp) status
+real(dp), allocatable :: rgp(:,:)
 
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(dperms%v,2) ! Num superlattices, index, Num d's
-allocate(gp(3,n),dgp(nD,n)); 
+allocate(gp(3,n), dgp(nD,n), skip(n),rgp(3,n)) ! Why can't I set status here?
+!if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, skip" 
 ! make the group for the first SNF
 diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
 call make_member_list(diag,g)
 call matrix_inverse(A,Ainv,err)
 if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
 
+write(*,'(4(i2,1x))') transpose(dperms%perm)
 do iH = 1,nH ! loop over each superlattice
    ! unless the SNF is different than the previous (they should be sorted into blocks) don't bother
    ! making the group again. Just use the same one.
    if(iH > 1) then; if(.not. all(SNF(:,:,ih)==SNF(:,:,ih-1))) then
-      diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
+      diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
       call make_member_list(diag,g)
    endif; endif
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
-   nOp = size(Op(iH)%rot,3)
+   nOp = size(Op(iH)%rot,3);print*,"nop",nOp
    do iOp = 1, nOp
-      do iD = 1, nD
-         gp = matmul(Tinv,(dperms%v(:,iD,iOp)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+(RAL^-1)G)
-         gp = modulo(gp,diag) ! Mod by each entry of the SNF to bring into group
-         dgp(dperm(iD,iOp),:) = gp
+      dgp = 0
+      do iD = 1, nD ! Loop over each row in the (d,g) table
+         write(*,'("iH:",i2,3x,"iOp:",i2,3x,"iD:",i2)') iH,iOp,iD
+write(*,'(3(i2,1x))') transpose( SNF(:,:,iH));print*
+write(*,'(3(f7.3,1x))') transpose( matmul(A,HNF(:,:,iH)));print*
+!write(*,'(4(f7.3,1x))') spread(dperms%v(:,iD,iOp),2,n); print *
+write(*,'(4(f7.3,1x))') matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))); print*
+write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
+ 
+         rgp = matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+(RAL^-1)G)
+         if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
+         gp = nint(rgp)
+         write(*,'(4i2)') transpose(gp); print *
+         write(*,'(4i2)') transpose(spread(diag,2,n));print*
+         
+         gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
+write(*,'(4i2)') transpose(gp); print*
+         skip = .false.
+         do im = 1, n
+            do jm = 1, n
+               if (skip(jm)) cycle
+               if (all(gp(:,jm)==g(:,im))) then
+                  write(*,'("iOp",i3,1x,"loc:",4i3)')iop,dperms%perm(iOp,iD)
+                  dgp(dperms%perm(iOp,iD),im) = jm+(iD-1)*n
+                  skip(jm) = .true.
+                  exit
+               endif
+            enddo ! jm
+         enddo ! im
+         write(*,'(4(i2,1x))') transpose(dgp); print *
       enddo ! loop over d-vectors
+      write(*,'(4(i2,1x))') transpose(dgp)
+      if (any(dgp==0)) stop "(d,g)-->d(d',g') mapping failed in get_rotation_perm_lists"
       ! Now we have the (d',g') table for this rotation. Now record the permutation
    enddo ! loop over rotations
+   ! Now see if this list of rotation permutations is unique. Put it in the master list if so.
 enddo ! loop over iH (superlattices)
 
 ENDSUBROUTINE get_rotation_perm_lists
@@ -799,9 +837,9 @@ integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
-!type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
+type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 type(RotPermList) :: ParentDvecRotPermList ! Just the list for the parent lattice
-!integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
+integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 
 
