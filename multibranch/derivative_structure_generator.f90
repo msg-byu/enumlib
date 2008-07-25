@@ -136,42 +136,45 @@ do iH = 1,nH ! loop over each superlattice
       diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
       call make_member_list(diag,g)
    endif; endif
+   if (all(HNF(:,:,iH)==reshape((/1,0,0,0,2,0,0,0,2/),(/3,3/)))) print *,"########" 
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
    nOp = size(Op(iH)%rot,3);print*,"nop",nOp
    do iOp = 1, nOp
+write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
+ 
       dgp = 0
       do iD = 1, nD ! Loop over each row in the (d,g) table
          write(*,'("iH:",i2,3x,"iOp:",i2,3x,"iD:",i2)') iH,iOp,iD
-write(*,'(3(i2,1x))') transpose( SNF(:,:,iH));print*
-write(*,'(3(f7.3,1x))') transpose( matmul(A,HNF(:,:,iH)));print*
+!write(*,'(3(i2,1x))') transpose( SNF(:,:,iH));print*
+!write(*,'(3(f7.3,1x))') transpose( matmul(A,HNF(:,:,iH)));print*
 !write(*,'(4(f7.3,1x))') spread(dperms%v(:,iD,iOp),2,n); print *
-write(*,'(4(f7.3,1x))') matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))); print*
-write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
+!write(*,'(4(f7.3,1x))') matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))); print*
+!write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
  
          rgp = matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+(RAL^-1)G)
          if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
          gp = nint(rgp)
-         write(*,'(4i2)') transpose(gp); print *
-         write(*,'(4i2)') transpose(spread(diag,2,n));print*
+         !write(*,'(4i2)') transpose(gp); print *
+         !write(*,'(4i2)') transpose(spread(diag,2,n));print*
          
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
-write(*,'(4i2)') transpose(gp); print*
+!write(*,'(4i2)') transpose(gp); print*
          skip = .false.
          do im = 1, n
             do jm = 1, n
                if (skip(jm)) cycle
                if (all(gp(:,jm)==g(:,im))) then
-                  write(*,'("iOp",i3,1x,"loc:",4i3)')iop,dperms%perm(iOp,iD)
+ !                 write(*,'("iOp",i3,1x,"loc:",4i3)')iop,dperms%perm(iOp,iD)
                   dgp(dperms%perm(iOp,iD),im) = jm+(iD-1)*n
                   skip(jm) = .true.
                   exit
                endif
             enddo ! jm
          enddo ! im
-         write(*,'(4(i2,1x))') transpose(dgp); print *
+  !       write(*,'(4(i2,1x))') transpose(dgp); print *
       enddo ! loop over d-vectors
-      write(*,'(4(i2,1x))') transpose(dgp)
+      write(*,'(4(i2,1x))') transpose(dgp-1)
       if (any(dgp==0)) stop "(d,g)-->d(d',g') mapping failed in get_rotation_perm_lists"
       ! Now we have the (d',g') table for this rotation. Now record the permutation
    enddo ! loop over rotations
