@@ -28,12 +28,12 @@ real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary latt
 type(RotPermList), intent(out) :: dRPList ! Output. A list permutations effected by the Ops
 real(dp), intent(in) :: eps ! finite precision tolerance
 
-integer nD, iD, nOp, iOp, status, iqP, nqP
+integer nD, iD, nOp, iOp, status
 integer, pointer :: aTyp(:), tList(:,:)
 real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
 real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
 real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
-logical err, unique
+logical err
 
 nD = size(pd,2)
 allocate(aTyp(nD),STAT=status)
@@ -62,7 +62,7 @@ do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permu
 enddo
 
 ! I don't think making the unique list is correct. Some rotations that don't permute the d's could
-!still permute the g's. So we have to keep all the d's.
+!still permute the g's. So we have to keep all the d permutations, even if they look redundant here.
 
 !! Now that we have the permutations, we need to reduce the list to only those that are unique
 !! Since this is a small set (no bigger than 48) and we only do this once, a straightforward approach
@@ -101,34 +101,35 @@ ENDSUBROUTINE get_dvector_permutations
 ! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
 ! d-vectors (interior points of the multilattice) effected by the rotations. Then sort the HNFs into
 ! blocks that have the same rotation permutations.
-SUBROUTINE get_rotation_perm_lists(A,pd,HNF,L,SNF,dperms,Op,RPlist,RPLx,eps)
+SUBROUTINE get_rotation_perm_lists(A,HNF,L,SNF,dperms,Op,RPlist,RPLx,eps)
 real(dp), intent(in) :: A(3,3) ! Lattice vectors of the primary lattice (parent lattice)
-real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
 integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
 type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
 type(RotPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
 integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
 real(dp), intent(in) :: eps ! finite precision tolerance
-type(RotPermList), intent(in) :: dperms
+type(RotPermList), intent(in) :: dperms 
+type(RotPermList) :: rperms
 integer, pointer :: dgPermList(:,:), g(:,:), dg(:,:,:)
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated" table
-integer iH, nH, diag(3), iD, nD, iOp, nOp, n, im, jm
+integer iH, nH, diag(3), iD, nD, iOp, nOp, n, im, jm, status, nL
 real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
 logical, allocatable :: skip(:)
-real(dp) status
 real(dp), allocatable :: rgp(:,:)
 
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(dperms%v,2) ! Num superlattices, index, Num d's
-allocate(gp(3,n), dgp(nD,n), skip(n),rgp(3,n)) ! Why can't I set status here?
-!if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, skip" 
-! make the group for the first SNF
+allocate(gp(3,n), dgp(nD,n), skip(n),rgp(3,n),STAT=status)
+if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, skip, rgp" 
+allocate(RPLx(nH),RPlist(nH))
+forall iH = 1:nH; RPlist(iH)%nL=0; endforall
+
+! Make the group member list for the first SNF
 diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
 call make_member_list(diag,g)
 call matrix_inverse(A,Ainv,err)
 if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
 
-write(*,'(4(i2,1x))') transpose(dperms%perm)
 do iH = 1,nH ! loop over each superlattice
    ! unless the SNF is different than the previous (they should be sorted into blocks) don't bother
    ! making the group again. Just use the same one.
@@ -136,28 +137,28 @@ do iH = 1,nH ! loop over each superlattice
       diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
       call make_member_list(diag,g)
    endif; endif
-   if (all(HNF(:,:,iH)==reshape((/1,0,0,0,2,0,0,0,2/),(/3,3/)))) print *,"########" 
+   !if (all(HNF(:,:,iH)==reshape((/1,1,0,0,2,0,0,0,2/),(/3,3/)))) print *,"########" 
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
-   nOp = size(Op(iH)%rot,3);print*,"nop",nOp
+   nOp = size(Op(iH)%rot,3);!print*,"nop",nOp
+   if (associated(rperms%perm)) deallocate(rperms%perm)
+   allocate(rperms%perm(nOp,nD*n))
    do iOp = 1, nOp
-write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
- 
+!write(*,'(3(f7.3,1x))') transpose(Op(iH)%rot(:,:,iOp));print*
       dgp = 0
       do iD = 1, nD ! Loop over each row in the (d,g) table
-         write(*,'("iH:",i2,3x,"iOp:",i2,3x,"iD:",i2)') iH,iOp,iD
+         !write(*,'("iH:",i2,3x,"iOp:",i2,3x,"iD:",i2)') iH,iOp,iD
 !write(*,'(3(i2,1x))') transpose( SNF(:,:,iH));print*
 !write(*,'(3(f7.3,1x))') transpose( matmul(A,HNF(:,:,iH)));print*
 !write(*,'(4(f7.3,1x))') spread(dperms%v(:,iD,iOp),2,n); print *
 !write(*,'(4(f7.3,1x))') matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))); print*
 !write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
- 
-         rgp = matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))! LA^-1(v_i+(RAL^-1)G)
+         ! LA^-1(v_i+(RAL^-1)G)
+         rgp = matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
          if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
          gp = nint(rgp)
          !write(*,'(4i2)') transpose(gp); print *
          !write(*,'(4i2)') transpose(spread(diag,2,n));print*
-         
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
 !write(*,'(4i2)') transpose(gp); print*
          skip = .false.
@@ -174,14 +175,42 @@ write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
          enddo ! im
   !       write(*,'(4(i2,1x))') transpose(dgp); print *
       enddo ! loop over d-vectors
-      write(*,'(4(i2,1x))') transpose(dgp-1)
-      if (any(dgp==0)) stop "(d,g)-->d(d',g') mapping failed in get_rotation_perm_lists"
+      !write(*,'(4(i2,1x))') transpose(dgp-1)
+      if (any(dgp==0)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
       ! Now we have the (d',g') table for this rotation. Now record the permutation
+      rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/))
+      rperms%nL = nOp
+      !write(*,'(16i3)') rperms%perm(iOp,:)-1
    enddo ! loop over rotations
    ! Now see if this list of rotation permutations is unique. Put it in the master list if so.
+   call add_perms_to_master_list(rperms,RPlist,PRLx,nL)
 enddo ! loop over iH (superlattices)
 
+! Get rid of the empty entries is RPlist
+
 ENDSUBROUTINE get_rotation_perm_lists
+!***************************************************************************************************
+! This routine takes a list of permutations and compares it to a list of other lists of
+! permutations. If it is unique, it is added to the master list.
+SUBROUTINE add_perms_to_masterlist(inList, Master, indx, nL)
+type(RotPermList), intent(in) :: inList, Master(:)
+integer, pointer, intent(out) :: indx(:)
+integer, intent(out) :: nL ! Number of permutation lists in the master list
+
+integer iL, nL
+
+call sort_perms_list(inList)
+nL = size(master)
+unique = .true.
+do iL = 1, nL
+   if (master%nL==0) exit
+
+enddo
+if(unique) then ! put this in the list
+   master(iL) = in
+endif
+ENDSUBROUTINE add_perms_to_masterlist
+
 
 !!***************************************************************************************************
 !! For each HNF, we have a list of the operations (rotations + shifts, if present) that leave the
@@ -904,7 +933,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
    !call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
-   call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,ParentDvecRotPermList,fixOp,RPList,RPLindx,eps)
+   call get_rotation_perm_lists(parLV,rdHNF,L,SNF,ParentDvecRotPermList,fixOp,RPList,RPLindx,eps)
     !call
 enddo ! loop over cell sizes (ivol)
 call cpu_time(tend)
