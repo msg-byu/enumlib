@@ -254,7 +254,7 @@ integer a(d(1)*d(2)*d(3)), b(d(1)*d(2)*d(3)) ! the "odometer"; label-permuted od
 integer multiplier(d(1)*d(2)*d(3)) ! place values for each digit k^(i-1) for the i-th digit
 integer c(0:k-1) ! running sum (count) of the number of each label type 
 integer id, iq ! Counter for labels that are duplicates, for those unique
-integer, allocatable :: tl(:,:) ! temporary storage for output variable l (labelings)
+integer(1), allocatable :: tl(:,:) ! temporary storage for output variable l (labelings)
 integer, pointer :: perms(:,:) ! List of permutations of the k labels
 integer :: np, ip, status ! Loops over permutations, allocate error flag
 
