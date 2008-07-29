@@ -14,7 +14,7 @@ use sorting
 implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
-     & generate_derivative_structures, gen_multilattice_derivatives, &
+     &  gen_multilattice_derivatives, &
      get_dvector_permutations, get_rotation_perms_lists
 CONTAINS
 !***************************************************************************************************
@@ -119,14 +119,13 @@ ENDSUBROUTINE get_dvector_permutations
 ! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
 ! d-vectors (interior points of the multilattice) effected by the rotations. Then sort the HNFs into
 ! blocks that have the same rotation permutations.
-SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,dperms,Op,RPlist,eps)
+SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps)
 real(dp), intent(in) :: A(3,3) ! Lattice vectors of the primary lattice (parent lattice)
 integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
 type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
-type(RotPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
-!integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
+type(RotPermList) :: RPlist(:) ! A list of lists of permutations effected by the Ops
+type(RotPermList), intent(in) :: dperms
 real(dp), intent(in) :: eps ! finite precision tolerance
-type(RotPermList), intent(in) :: dperms 
 type(RotPermList) :: rperms
 integer, pointer :: g(:,:)
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated" table
@@ -137,11 +136,9 @@ logical, allocatable :: skip(:)
 real(dp), allocatable :: rgp(:,:)
 character(2) nstring
 
-nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(dperms%v,2) ! Num superlattices, index, Num d's
+nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2) ! Num superlattices, index, Num d's
 allocate(gp(3,n), dgp(nD,n), skip(n),rgp(3,n),STAT=status)
 if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, skip, rgp" 
-allocate(RPlist(nH),STAT=status)
-if(status/=0) stop "Allocation failed in get_rotation_perm_lists: RPlist" 
 
 forall(iH = 1:nH); RPlist(iH)%nL=0; end forall
 
@@ -154,11 +151,11 @@ if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
 do iH = 1,nH ! loop over each superlattice
    ! unless the SNF is different than the previous (they should be sorted into blocks) don't bother
    ! making the group again. Just use the same one.
+   write(*,'(9i2)') transpose(HNF(:,:,iH))
    if(iH > 1) then; if(.not. all(SNF(:,:,ih)==SNF(:,:,ih-1))) then
       diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
       call make_member_list(diag,g)
    endif; endif
-   !if (all(HNF(:,:,iH)==reshape((/1,1,0,0,2,0,0,0,2/),(/3,3/)))) print *,"########" 
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
    nOp = size(Op(iH)%rot,3);!print*,"nop",nOp
@@ -166,59 +163,55 @@ do iH = 1,nH ! loop over each superlattice
    if (associated(rperms%perm)) deallocate(rperms%perm)
    allocate(rperms%perm(nOp,nD*n))
    do iOp = 1, nOp
-!write(*,'(3(f7.3,1x))') transpose(Op(iH)%rot(:,:,iOp));print*
       dgp = 0
       do iD = 1, nD ! Loop over each row in the (d,g) table
-         !write(*,'("iH:",i2,3x,"iOp:",i2,3x,"iD:",i2)') iH,iOp,iD
-!write(*,'(3(i2,1x))') transpose( SNF(:,:,iH));print*
-!write(*,'(3(f7.3,1x))') transpose( matmul(A,HNF(:,:,iH)));print*
-!write(*,'(4(f7.3,1x))') spread(dperms%v(:,iD,iOp),2,n); print *
-!write(*,'(4(f7.3,1x))') matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))); print*
-!write(*,'(3(f7.3,1x))') transpose(oP(iH)%rot(:,:,iOp));print*
          ! LA^-1(v_i+(RAL^-1)G)
-         rgp = matmul(Tinv,(spread(dperms%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
+         if (iop==nop) then
+            write(*,'("iH:",i2,1x,9i2)') iH, nint(Op(iH)%rot(:,:,iOp))
+            write(*,'("T:",f7.3)') T
+            write(*,'("Trn:",3i2)') transpose(nint(matmul(Tinv,(spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))))
+            write(*,'("Trnw/o:",3i2)') transpose(nint(matmul(Tinv,matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))))
+         endif
+         rgp = matmul(Tinv,(spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
          if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
          gp = nint(rgp)
-         !write(*,'(4i2)') transpose(gp); print *
-         !write(*,'(4i2)') transpose(spread(diag,2,n));print*
+         if (iop==nop) then
+            write(*,'("notmdd:",3i2)') gp
+endif
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
-!write(*,'(4i2)') transpose(gp); print*
-         skip = .false.
+         if (iop==nop) then
+            write(*,'("modded:",3i2)') gp
+         endif
+         ! Now that the permuted group has been found, find the mapping of the elements between the
+         ! orginal group and the permuted group. This is the permutation.
+         skip = .false. ! This is just for efficiency
          do im = 1, n
             do jm = 1, n
                if (skip(jm)) cycle
                if (all(gp(:,jm)==g(:,im))) then
- !                 write(*,'("iOp",i3,1x,"loc:",4i3)')iop,dperms%perm(iOp,iD)
-                  dgp(dperms%perm(iOp,iD),im) = jm+(iD-1)*n
+                  dgp(dperms%perm(RPList(iH)%RotIndx(iOp),iD),im) = jm+(iD-1)*n
                   skip(jm) = .true.
                   exit
                endif
             enddo ! jm
          enddo ! im
-  !       write(*,'(4(i2,1x))') transpose(dgp); print *
       enddo ! loop over d-vectors
-      !write(*,'(4(i2,1x))') transpose(dgp-1)
       if (any(dgp==0)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
       ! Now we have the (d',g') table for this rotation. Now record the permutation
       rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/))
       rperms%nL = nOp
-      !print *, "Unsorted:",nstring
       write(*,'("orig ",'//trim(nstring)//'i3)') rperms%perm(iOp,:)-1
    enddo ! loop over rotations
    ! Sort the permutations and add them to the master list
    call sort_permutations_list(rperms%perm)
-   print *,transpose(rperms%perm)-1
    ! The permutations list is now in "alphabetical" order and contains no duplicates, so allocate
    ! the next list in RPList and store this one. The duplicate list will be identified in a separate
    ! step
    RPlist(iH)%nL = size(rperms%perm,1)
    allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD))
    RPlist(iH)%perm = rperms%perm
-   !print *, shape(rperms%perm), nstring
    print *, "Sorted:";write(*,'('//trim(nstring)//'i3)') transpose(rperms%perm(:,:))-1
-   !call add_perms_to_master_list(rperms,RPlist,PRLx,nL)
 enddo ! loop over iH (superlattices)
-! Get rid of the empty entries is RPlist
 ENDSUBROUTINE get_rotation_perms_lists
 
 !***************************************************************************************************
@@ -358,10 +351,11 @@ END SUBROUTINE get_all_HNFs
 ! F is a list of the *unique* SNFs. SNF_label indicates which of the unique SNFs
 ! corresponds to each HNF. The transformations, SNFs, and labels are ordered on output
 ! into blocks of identical SNFs.
-SUBROUTINE get_SNF(HNF,A,SNF,B,F,SNF_label,fixing_op)
+SUBROUTINE get_SNF(HNF,A,SNF,B,RPList,F,SNF_label,fixing_op)
 integer, pointer :: HNF(:,:,:), SNF_label(:)
 integer, pointer, dimension(:,:,:) :: A, SNF, B, F
-type(opList), pointer :: fixing_op(:) ! List of operations that fix each HNF
+type(opList) :: fixing_op(:) ! List of operations that fix each HNF
+type(RotPermList) :: RPList(:) ! List of rotation permutations for each HNF
 
 integer :: indx(size(HNF,3))
 integer ihnf, nHNF, nfound, ifound, status, ic, jc, i
@@ -403,6 +397,7 @@ A = A(1:3,1:3,indx)
 B = B(1:3,1:3,indx)
 SNF_label = SNF_label(indx) ! Reorder the labels for which SNF each HNF is
 fixing_op = fixing_op(indx)
+RPList = RPList(indx)
 
 ! Fail safe trigger and storage of unique SNFs
 if (ic/=nHNF+1) stop "SNF sort in get_SNF didn't work"
@@ -417,24 +412,27 @@ ENDSUBROUTINE get_SNF
 ! rotationally equivalent (under the rotations of the parent lattice). Also
 ! returns all the unique derivative _lattices_ for this parent. Returns also 
 ! a list of rotations that fix each superlattice. 
-SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,uq_hnf,fixing_op,latts,eps)
+SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,eps)
 integer, pointer :: hnf(:,:,:) ! HNF matrices (input)
 integer :: LatDim ! Is the parent lattice 2D or 3D?
 real(dp), intent(in) :: parent_lattice(3,3) ! parent lattice (input)
 integer, pointer :: uq_hnf(:,:,:) ! list of symmetrically distinct HNFs (output)
 type(opList), pointer :: fixing_op(:) ! List of operations that fix each HNF
 real(dp),intent(in):: eps ! finite precision (input)
-real(dp), pointer :: d(:,:)
+real(dp), pointer :: d(:,:) 
+type(RotPermList), intent(in) :: dperms
+type(RotPermList), pointer :: RPList(:)
 
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
 real(dp), dimension(3,3) :: test_latticei, test_latticej, thisRot, rotLat, origLat
 integer i, Nhnf, iuq, irot, j, nRot, Nq, ic, status, nD
-integer, allocatable :: temp_hnf(:,:,:)
+integer, allocatable :: temp_hnf(:,:,:), tIndex(:)
 real(dp), pointer :: latts(:,:,:)
 logical duplicate
 type(opList), allocatable :: tmpOp(:)
-real(dp), allocatable :: tSGrots(:,:,:)
+real(dp), allocatable :: tSGrots(:,:,:), tv(:,:,:)
 integer, pointer :: aTyp(:)
+
 
 nD = size(d,2)
 allocate(aTyp(nD),STAT=status)
@@ -443,7 +441,6 @@ aTyp = 1
 
 call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
-!print *,"nRot", nRot
 Nhnf = size(hnf,3)
 allocate(temp_hnf(3,3,Nhnf),STAT=status)
 if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp_hnf"
@@ -486,7 +483,7 @@ do i = 2,Nhnf  ! Loop over each matrix in the original list
       iuq = iuq+1
       temp_hnf(:,:,iuq) = hnf(:,:,i);endif
 enddo
-allocate(uq_hnf(3,3,iuq),latts(3,3,iuq),STAT=status)
+allocate(uq_hnf(3,3,iuq),latts(3,3,iuq),RPList(iuq),STAT=status)
 if(status/=0) stop "Failed to allocate uq_hnf/latts in remove_duplicate_lattices: uq_hnf"
 uq_hnf = temp_hnf(:,:,:iuq)
 Nq = iuq
@@ -497,10 +494,12 @@ forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
 ! duplicates. 
 allocate(tmpOp(Nq),fixing_op(Nq),STAT=status)
 if(status/=0) stop "Allocation of tmpOp or fixing_op failed in remove_duplicate_lattices"
+allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
 do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),tmpOp(i)%shift(3,nRot),STAT=status)
 if(status/=0) stop "Allocation failed in remove_duplicat_lattices: tmpOp%rot or shift";enddo
 do iuq = 1, Nq  ! Loop over each unique HNF
    ic = 0
+   tv = 0; tIndex = 0
    do iRot = 1,nRot  ! Loop over each rotation
       thisRot = sgrots(:,:,iRot) ! Store the rotation
       origLat = matmul(parent_lattice,uq_hnf(:,:,iuq))  ! Compute the superlattice
@@ -509,12 +508,18 @@ do iuq = 1, Nq  ! Loop over each unique HNF
          ic = ic + 1
          tmpOp(iuq)%rot(:,:,ic) = thisRot
          tmpOp(iuq)%shift(:,ic) = sgshift(:,iRot)
+         tv(:,:,ic) = dperms%v(:,:,iRot)
+         tIndex(ic) = iRot
       endif
    enddo ! Now we know which rotations fix the lattice and how many there are so store them
    do i=1,ic; allocate(fixing_op(iuq)%rot(3,3,ic),fixing_op(iuq)%shift(3,ic),STAT=status)
-if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo ! Allocate the storage for them
-   fixing_op(iuq)%rot = tmpOp(iuq)%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
+      if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo ! Allocate the storage for them
+   fixing_op(iuq)%rot =   tmpOp(iuq)%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
    fixing_op(iuq)%shift = tmpOp(iuq)%shift(:,1:ic) ! Stuff the shifts into the permanent array
+   allocate(RPList(iuq)%v(3,nD,ic),RPList(iuq)%RotIndx(ic),STAT=status)
+   if (status/=0) stop "Allocation of RPList failed in remove_duplicate_lattices" 
+   RPList(iuq)%v = tv(:,:,1:ic)
+   RPList(iuq)%RotIndx = tIndex(1:ic)
 enddo
 END SUBROUTINE remove_duplicate_lattices
 
@@ -524,7 +529,7 @@ END SUBROUTINE remove_duplicate_lattices
 SUBROUTINE get_all_2D_HNFs(volume,hnf)
 integer, intent(in) :: volume
 integer, pointer:: hnf(:,:,:)
-
+ 
 integer, pointer    :: d(:,:) => null()
 integer             :: i, j    ! Loop counters
 integer             :: N, Nhnf, ihnf ! # of triplets, # of HNF matrices, HNF counter
@@ -574,170 +579,6 @@ if(status/=0) stop "Allocation of diagonals fails in get_HNF_2D_diagonals, modul
 diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
 
-!****************************************************************************************************
-SUBROUTINE generate_derivative_structures(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full)
-integer, intent(in) :: k, nMin, nMax 
-character(10), intent(in) :: title
-real(dp), intent(in) :: parLV(3,3)
-character(1), intent(in) :: pLatTyp
-logical, intent(in) :: full 
-
-integer, pointer, dimension(:,:,:) :: uqSNF => null()
-integer, pointer :: trgroup(:,:)=>null()
-real(dp), pointer :: uqlatts(:,:,:) => null(), d(:,:)=>null()
-character, pointer :: table(:)
-integer i, ihnf, ilab, iuq, ivol, Nq, iVolTot, runTot, LatDim, status, ilr, nHNF, nRedHNF
-integer irg, nrg, nD
-integer, pointer :: HNF(:,:,:) => null(), reducedHNF(:,:,:) => null(), G(:,:) => null()
-integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null()
-integer, pointer, dimension(:,:,:) :: SNF => null(), L => null(), B => null()
-type(opList), pointer :: fixOp(:)
-integer :: ctot, csize ! counters for total number of structures and structures of each size
-integer diag(3), ld(6) ! diagonal elements of SNF, lower diagonal---elements of HNF
-real(dp) eps, tstart, tend, tHNFs, tDupLat, tSNF, tiuq, tML, tGenLab, tRotDup
-integer, pointer :: LabRotTable(:,:,:) => null(), LabRotIndx(:) => null ()
-integer, allocatable :: vs(:), lrvs(:)
-write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
-write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
-          &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
-
-! File for timings info
-open(99,file="timings_enum.out")
-
-! Set up the output file and write the lattice information
-open(14,file="struct_enum.out")
-write(14,'(a10)') title
-do i = 1,3
-   write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
-enddo
-write(14,'(i2,"-nary case")') k
-write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
-if (full) then; write(14,'("Full list of labelings (including incomplete labelings) is used")')
-else; write(14,'("Partial list of labelings (complete labelings only) is used")'); endif
-write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
-write(99,'("index",5x,"HNFs",6x,"DupLats",3x,"SNFs",8x,"RemoveDups")')
-
-! Check for 2D or 3D request
-if (pLatTyp=='s') then; LatDim = 2
-   if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first vector must be 1,0,0'
-   if (.not. equal((/parLV(2,1),parLV(3,1)/),(/0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first component of second and third &
-               & must be zero'
-else if(pLatTyp=='b') then; LatDim = 3
-else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"';endif
-
-! This part generates all the derivative structures and writes the results to the file
-runTot = 0
-ctot = 0
-do ivol = nMin, nMax !max(k,nMin),nMax
-   iVolTot = 0
-   csize = 0
-   call cpu_time(tstart)
-   if (LatDim==3) then !<<< 2D ? or 3D? >>
-      call get_all_HNFs(ivol,HNF)  ! 3D
-   else
-      call get_all_2D_HNFs(ivol,HNF) ! 2D
-   endif
-   call cpu_time(tHNFs)
-   call remove_duplicate_lattices(HNF,LatDim,parLV,d,reducedHNF,fixOp,uqlatts,eps)
-   call cpu_time(tDupLat)
-   call get_SNF(reducedHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
-   call cpu_time(tSNF)
-   write(*,'(20i3)') SNF_labels
-   ! We have a list containing each unique derivative superlattice and
-   ! its corresponding Smith Normal Form. Now make the labelings.
-   Nq = size(uqSNF,3)  ! Number of unique SNFs
-   iHNF = 0
-   do iuq = 1, Nq ! << Loop over all of the unique SNFs >>
-      call cpu_time(tiuq)
-      diag = (/uqSNF(1,1,iuq),uqSNF(2,2,iuq),uqSNF(3,3,iuq)/)
-      call make_member_list(diag,G)  ! Need the image group G for removing lab-rot dups
-      call cpu_time(tML)
-      ! Removes trans-dups,non-prims,label-exchange dups
-      call generate_labelings(k,diag,labelings,table,trgroup,full) 
-      call cpu_time(tGenLab)
-
-      ! Lets create a vector subscript for reducedHNF, L, and fixOp that matches the HNFS
-      ! that all have the same SNF
-      nRedHNF = size(reducedHNF,3)
-      nHNF = count(SNF_labels==iuq)
-      if(allocated(vs)) deallocate(vs)
-      if(allocated(lrvs)) deallocate(lrvs)
-      allocate(vs(nHNF),lrvs(nHNF))
-      vs = pack((/(i,i=1,nRedHNF)/),SNF_labels==iuq)
-      allocate(LabRotIndx(nRedHNF))
-      LabRotIndx = 0
-!      SNFmask = reshape(spread(SNF_labels==iuq,1,9),(/3,3,nRedHNF/))
-!      HNF = reshape(pack(reducedHNF,SNFmask),(/3,3,nHNF/))
-      allocate(LabRotTable(ivol,48,20)) ! Need to find a better way for this...
-!      print *,"nHNFs",nHNF
-!      do i = 1,nHNF
-!         write(*,'(3(3i1,1x),i5)') reducedHNF(:,:,vs(i)), size(fixOp(vs(i))%rot,3)
-!      enddo
-      call make_label_rotation_table(reducedHNF(:,:,vs),L(:,:,vs),parLV,fixOp(vs),&
-                                     G,diag,eps,LabRotTable,LabRotIndx)
-!      print *,iuq,"Exited lr_table maker"
-      ! Third dimension of LabRotTable is the list of 
-!      do i = 1, nHNF
-!         do ihnf = 1, ivol
-!            write(*,'(8i1)') pack(LabRotTable(:,:,:),LabRotTable(:,:,:)/=0)
-!         enddo
-!      enddo
-!      write(*,'("index: ",20i1)') LabRotIndx(1:nHNF)
-
-!enddo
-!enddo
-! ******************** Loop over HNF with same perm group
-      do ilr = 1, maxval(LabRotIndx) ! loop over the number of label rotation subgroups
-         if (associated(tlab)) deallocate(tlab)
-         allocate(tlab(size(labelings,1),size(labelings,2)),STAT=status)
-         if(status/=0) stop "Allocation of tlab failed in module deriv..."
-         tlab = labelings
-!         print *, "ilr, max", ilr, maxval(LabRotIndx)
-         nrg = count(LabRotIndx==ilr)
-!         print *, "nrg",nrg
-         call remove_label_rotation_dups(LabRotTable(:,:,ilr),tlab,table,trgroup,k,diag,eps)
-         call cpu_time(tRotDup)
-         lrvs(1:nHNF) = 0
-!         write(*,'("Before pack:", 20i3)') lrvs
-
-         lrvs = pack((/(i,i=1,nHNF)/), LabRotIndx==ilr)
-!         write(*,'("Pack:       ", 20i3)') pack((/(i,i=1,nHNF)/),LabRotIndx==ilr)
-!         write(*,'("Mask:       ",20l3)') LabRotIndx==ilr
-!         write(*,'("LR indx:    ",20i3)') LabRotIndx
-!         write(*,'("LR vec sub: ", 20i3)') lrvs
-!         write(*,'("vs ",20i3)') vs
-         do irg = 1, nrg
-            iHNF = iHNF + 1
-            ivolTot = ivolTot + size(tlab,1)
-            !print *,"iHNF",iHNF
-            i = vs(lrvs(irg))
-            ld = (/reducedHNF(1,1,i),reducedHNF(2,1,i),reducedHNF(2,2,i),&
-                reducedHNF(3,1,i),reducedHNF(3,2,i),reducedHNF(3,3,i)/)
-            do ilab = 1,size(tlab,1) ! write out the labelings to a file
-               ctot = ctot + 1
-               csize = csize + 1
-               !is fixOp reference correct here? Yeah, I think so.
-               write(14,'(i11,1x,i9,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
-                    ctot, csize,ivol,size(fixOp(i)%rot,3),diag,ld,&
-                    transpose(L(:,:,i)),tlab(ilab,:)
-            enddo
-         enddo
-      enddo ! End of loop over label rotation groups
-   enddo
-   call cpu_time(tend)
-   write(99,'(i2,5x,4(f8.3,2x))') ivol, tHNFs - tstart , tDupLat - tHNFs, tSNF - tDupLat, tend - tGenLab
-
-   
-   runTot = runTot + iVolTot
-   write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
-        size(uqSNF,3),size(reducedHNF,3),1-size(reducedHNF,3)/real(size(HNF,3)),ivolTot, runTot
-enddo
-close(14)
-close(99)
-END SUBROUTINE generate_derivative_structures
-
 !***************************************************************************************************
 ! This routine is should eventually replace "generate_derivative_structures". The difference with
 ! this one is that it applies to superstructures derived from multilattices. This is more general
@@ -753,17 +594,16 @@ character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
 
 integer iD, i, ivol, LatDim, runTot, ctot, ivoltot, csize
-integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), B => null()
+integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
 type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation permutation lists
-type(RotPermList) :: ParentDvecRotPermList ! Just the list for the parent lattice
-integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
+type(RotPermList) :: ParRPList ! Just the list for the parent lattice
+integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
-
 
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
@@ -798,7 +638,7 @@ else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"
 
 ! The permutations of the interior points (d-vectors) under symmetry operations of the parent
 ! multilattice are used later on. Generate them here
-call get_dvector_permutations(parLV,d,ParentDvecRotPermList,eps)
+call get_dvector_permutations(parLV,d,ParRPList,eps)
 ! This part generates all the derivative structures. Results are writen to unit 14.
 runTot = 0
 ctot = 0
@@ -813,17 +653,16 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    endif
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
-   call remove_duplicate_lattices(HNF,LatDim,parLV,d,rdHNF,fixOp,uqlatts,eps)
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,eps)
    ! Superlattices with the same SNF will have the same list of translation permutations of the
-   ! labelings. So they can all be done at once if we find the SNF. rHNF is the reduced list.
-   call get_SNF(rdHNF,L,SNF,B,uqSNF,SNF_labels,fixOp)
+   ! labelings. So they can all be done at once if we find the SNF. rdHNF is the reduced list.
+   call get_SNF(rdHNF,L,SNF,R,RPList,uqSNF,SNF_labels,fixOp)
    ! Each HNF will have a certain number of rotations that leave the superlattice fixed, called
    ! fixOp. These operations will effect a permutation on the (d,g) table. Since many of the HNFs
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
-   !call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
-   call get_rotation_perms_lists(parLV,rdHNF,L,SNF,ParentDvecRotPermList,fixOp,RPList,eps)
+   call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps)
    call organize_rotperm_lists(SNF_labels,RPList,rdRPList,RPLindx)
 enddo ! loop over cell sizes (ivol)
 call cpu_time(tend)
