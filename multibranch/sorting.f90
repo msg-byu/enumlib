@@ -2,7 +2,7 @@ MODULE sorting
 use num_types
 implicit none
 private
-public heapsort, reduce_to_unique_rows
+public heapsort, sort_permutations_list
 
 INTERFACE heapsort
    MODULE PROCEDURE heapsort_records_int, heapsort_records_dp
@@ -10,10 +10,87 @@ END INTERFACE
 CONTAINS
 
 !***************************************************************************************************
-! This routine takes a list of integers sequences (rows) and removes duplicates so that each row is
+! This routine takes a list of integer sequences (rows) and removes duplicates so that each row is
 ! unique. It seems that the check for uniqueness can be done in O(N) time if the list is in
 ! "alphabetical" order. So it's probably most efficient, at least for big lists, to sort it first
 ! (using an efficent sort), and then make the unique list.
+SUBROUTINE sort_permutations_list(key)
+!integer, pointer :: list(:)! indices of the records to be rearranged using the keys (R in Knuth)
+! Not going to use the list, just sort the keys
+integer(1), pointer:: key(:,:)! values sort
+
+integer N, l, r, i, j ! Same as in Knuth
+integer(1) pK(size(key,2)) ! "plain" K (c'mon Knuth, bad notation!)
+integer Ng, tkey(size(key,1),size(key,2)), count ! Sequence length, temp. key, # of unique sequences
+logical duplicate
+
+N = size(key,1)
+Ng = size(key,2) ! Number of elements in each sequence (number of group members)
+
+l = N/2 + 1; r = N; 
+do ! H2: decrease l or r
+   if (l>1) then 
+      l = l - 1; pK = key(l,:)
+   else
+      pK = key(r,:); key(r,:) = key(1,:)
+      r = r - 1
+      if (r==1) then; key(1,:) = pK; exit; endif
+   endif
+   ! H3: prepare for siftup
+   j = l 
+   ! H4: Advance downward
+   do; i = j; j = 2*j
+      if (j<r) then ! H5: Find larger child
+         if (greater_than(key(j+1,:),key(j,:))) j = j + 1
+         if (greater_than(pK,key(j,:))) exit ! Go to step H8
+      else if(j==r) then! H6: Larger than pK?
+         if (greater_than(pK,key(j,:))) exit ! Go to step H8
+      else
+         exit ! Go to step H8
+      endif
+      ! H7: Move it up
+      key(i,:) = key(j,:)
+   enddo
+   ! H8: Store key
+   key(i,:) = pK
+enddo ! Return to step H2
+do i = 1, N-1  ! Double check that sorting really worked...
+   if (greater_than(key(i,:), key(i+1,:))) stop "Sorting routine (sort_permutations_list) failed"
+enddo
+
+! Now reduce the list "key" to a list without duplicates. This is just an O(N) operation since the
+! list is sorted (i.e., the duplicates must be neighbors in the list)
+count = 1
+tkey(1,:) = key(1,:)
+do i = 2, N
+   duplicate = .false.
+   if (all(key(i,:)==key(i-1,:))) then
+      duplicate = .true.; cycle
+   endif
+   if (.not. duplicate) then
+      count = count + 1
+      tkey(count,:) = key(i,:)
+   endif
+enddo
+deallocate(key)
+allocate(key(count,Ng))
+key = tkey(1:count,:)
+
+
+CONTAINS
+FUNCTION greater_than(vecA, vecB)
+integer(1), intent(in):: vecA(:), vecB(:)
+logical :: greater_than
+integer i
+
+greater_than = .false.
+do i = 1, size(vecA)
+   if(vecA(i) > vecB(i)) then; greater_than = .true.
+   elseif(vecB(i) > vecA(i))then; exit ! Early exit if the two vectors aren't equivalent
+   endif
+enddo
+ENDFUNCTION greater_than
+ENDSUBROUTINE sort_permutations_list
 
 
 !****************************************************************************************************
