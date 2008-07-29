@@ -75,8 +75,7 @@ enddo
 deallocate(key)
 allocate(key(count,Ng))
 key = tkey(1:count,:)
-
-
+print *,key
 CONTAINS
 FUNCTION greater_than(vecA, vecB)
 integer(1), intent(in):: vecA(:), vecB(:)

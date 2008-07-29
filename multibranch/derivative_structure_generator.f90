@@ -17,6 +17,59 @@ public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      & generate_derivative_structures, gen_multilattice_derivatives, &
      get_dvector_permutations, get_rotation_perms_lists
 CONTAINS
+!***************************************************************************************************
+! This routine takes a list of permutation lists and identifies those that are idential. The
+! routine assumes that lists associated with different SNFs should be kept separate. The output,
+! RPLindx is an index groups the lists that match. The lists themselves are assumed to be in
+! "alphabetical" order so that they can be quickly compared.
+SUBROUTINE organize_rotperm_lists(SNFindx, RPList,rdRPList,RPLindx)
+integer, intent(in):: SNFindx(:)
+type(RotPermList), intent(in) :: RPList(:)
+type(RotPermList), pointer :: rdRPList(:) ! output
+integer, pointer :: RPLindx(:) ! output
+
+integer iL, jL, nL, status, iSNF, nSNF, cnt, Scnt
+type(RotPermList), allocatable :: tList(:)
+logical unique
+
+nL = size(SNFindx); nSNF = maxval(SNFindx)
+allocate(tList(nL),RPLindx(nL),STAT=status)
+if(status/=0) stop "Allocation failed in organize_rotperm_lists: tList, RPLindx"
+
+Scnt = 0
+do iSNF = 1, nSNF ! Do a separate treatment for each SNF form
+   cnt = 0
+   do iL = 1, count(SNFindx==iSNF)
+      unique = .true.
+      do jL = 1, cnt ! Loop over the number of unique lists for this SNF
+         ! if the lists aren't the same length, then they definitely aren't identical
+         if (size(RPList(iL)%perm,1)/=size(tList(Scnt + jL)%perm,1)) cycle
+         if (all(RPList(iL)%perm==tList(Scnt + jL)%perm)) then
+            unique = .false.
+            exit
+         endif
+      enddo
+      if (unique) then ! store this list in the master list
+         cnt = cnt + 1
+         nL = size(RPList(iL)%perm,1)
+         allocate(tList(cnt + Scnt)%perm(nL,size(RPList(iL)%perm,2)))
+         tList(cnt + Scnt)%nL = nL
+         tList(cnt + Scnt)%perm = RPlist(iL)%perm
+      endif
+      ! Store the label for this unique list in the output index
+      RPLindx(iL) = jL + Scnt ! Not sure this is going to do the right thing...
+   enddo
+   Scnt = Scnt + cnt
+enddo
+! Now copy the reduced list to the output variable
+allocate(rdRPList(Scnt))
+do iL=1,Scnt
+   nL = size(tList(iL)%perm,1)
+   allocate(rdRPList(iL)%perm(nl,size(tList(iL)%perm,2)));
+   rdRPList(iL)%nL = nL
+   rdRPList(iL)%perm = tList(iL)%perm
+enddo
+ENDSUBROUTINE organize_rotperm_lists
 
 !***************************************************************************************************
 SUBROUTINE get_dvector_permutations(pLV,pd,dRPList,eps)
@@ -66,18 +119,18 @@ ENDSUBROUTINE get_dvector_permutations
 ! superlattice fixed. Given this set of fixing operations, make a list of the permutations on the
 ! d-vectors (interior points of the multilattice) effected by the rotations. Then sort the HNFs into
 ! blocks that have the same rotation permutations.
-SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,dperms,Op,RPlist,RPLx,eps)
+SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,dperms,Op,RPlist,eps)
 real(dp), intent(in) :: A(3,3) ! Lattice vectors of the primary lattice (parent lattice)
 integer, intent(in), dimension(:,:,:) :: HNF, L, SNF ! List of HNF matrices, left transforms, and their SNFs
 type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for the parent multilattice
 type(RotPermList), pointer :: RPlist(:) ! Output. A list of lists of permutations effected by the Ops
-integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
+!integer, pointer :: RPLx(:) ! An index indicating which HNF is subject to which list of permutations
 real(dp), intent(in) :: eps ! finite precision tolerance
 type(RotPermList), intent(in) :: dperms 
 type(RotPermList) :: rperms
-integer, pointer :: dgPermList(:,:), g(:,:), dg(:,:,:)
+integer, pointer :: g(:,:)
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated" table
-integer iH, nH, diag(3), iD, nD, iOp, nOp, n, im, jm, status, nL
+integer iH, nH, diag(3), iD, nD, iOp, nOp, n, im, jm, status
 real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
 logical, allocatable :: skip(:)
@@ -87,8 +140,10 @@ character(2) nstring
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(dperms%v,2) ! Num superlattices, index, Num d's
 allocate(gp(3,n), dgp(nD,n), skip(n),rgp(3,n),STAT=status)
 if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, skip, rgp" 
-allocate(RPLx(nH),RPlist(nH))
-forall(iH = 1:nH); RPlist(iH)%nL=0; endforall
+allocate(RPlist(nH),STAT=status)
+if(status/=0) stop "Allocation failed in get_rotation_perm_lists: RPlist" 
+
+forall(iH = 1:nH); RPlist(iH)%nL=0; end forall
 
 ! Make the group member list for the first SNF
 diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
@@ -148,16 +203,19 @@ do iH = 1,nH ! loop over each superlattice
       rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/))
       rperms%nL = nOp
       !print *, "Unsorted:",nstring
-      !write(*,'("orig ",'//trim(nstring)//'i3)') rperms%perm(iOp,:)-1
+      write(*,'("orig ",'//trim(nstring)//'i3)') rperms%perm(iOp,:)-1
    enddo ! loop over rotations
    ! Sort the permutations and add them to the master list
    call sort_permutations_list(rperms%perm)
+   print *,transpose(rperms%perm)-1
    ! The permutations list is now in "alphabetical" order and contains no duplicates, so allocate
    ! the next list in RPList and store this one. The duplicate list will be identified in a separate
    ! step
-   
+   RPlist(iH)%nL = size(rperms%perm,1)
+   allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD))
+   RPlist(iH)%perm = rperms%perm
    !print *, shape(rperms%perm), nstring
-   !print *, "Sorted:";write(*,'('//trim(nstring)//'i3)') transpose(rperms%perm(:,:))-1
+   print *, "Sorted:";write(*,'('//trim(nstring)//'i3)') transpose(rperms%perm(:,:))-1
    !call add_perms_to_master_list(rperms,RPlist,PRLx,nL)
 enddo ! loop over iH (superlattices)
 ! Get rid of the empty entries is RPlist
@@ -701,6 +759,7 @@ integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
 type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
+type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation permutation lists
 type(RotPermList) :: ParentDvecRotPermList ! Just the list for the parent lattice
 integer, pointer ::  RPLindx(:) ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
@@ -764,8 +823,8 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
    ! sort the HNFs into blocks with matching permutation lists.
    !call get_rotation_perm_lists(parLV,d,rdHNF,L,SNF,fixOp,RPList,RPLindx,eps)
-   call get_rotation_perms_lists(parLV,rdHNF,L,SNF,ParentDvecRotPermList,fixOp,RPList,RPLindx,eps)
-    !call
+   call get_rotation_perms_lists(parLV,rdHNF,L,SNF,ParentDvecRotPermList,fixOp,RPList,eps)
+   call organize_rotperm_lists(SNF_labels,RPList,rdRPList,RPLindx)
 enddo ! loop over cell sizes (ivol)
 call cpu_time(tend)
 
