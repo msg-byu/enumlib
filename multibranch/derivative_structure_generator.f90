@@ -15,8 +15,65 @@ implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      &  gen_multilattice_derivatives, &
-     get_dvector_permutations, get_rotation_perms_lists
+     get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups
 CONTAINS
+
+!***************************************************************************************************
+! This function checks that every "product" of two permutations in a list is still in the list. That
+! is that every list forms a group. I'm not sure this is a sufficient condition but it is a
+! necessary one. 
+FUNCTION do_rotperms_form_groups(rpl)
+logical do_rotperms_form_groups
+type(RotPermList) :: rpl(:) ! The reduced (unique) set of rotation permutations lists for a given index
+
+integer nL, iL, iP, jP, nP, kP, ng, itest
+logical exists
+integer, allocatable :: testperm(:)
+
+nL = size(rpl) ! Number of lists
+ng = size(rpl(1)%perm,2) ! Number of elements in each permutations
+allocate(testperm(ng))
+
+lists: do iL = 1, nL ! Check each list in the set
+   nP = size(rpl(iL)%perm,1) ! Number of permutations in this list
+   write(11,'(3x)',advance="no")
+   do iP = 1, nP; write(11,'(i3)',advance="no") iP; enddo; write(11,*) ! Make the column headings
+perms:   do iP = 1, nP
+      write(11,'(i3)',advance="no") iP   ! Write the row heading
+      !do jP = 1, nP; write(11,'(3x)',advance='no');enddo ! skip to the column
+      do jP = 1, nP ! Now loop over all products for the iP'th permutation
+         exists = .false. 
+         ! Is the product of perm_i x perm_j in the set?
+         ! Permute the elements of the iP'th permutation according to the jP'th permutation
+         testperm = rpl(iL)%perm(iP,rpl(iL)%perm(jP,:))
+         do kP = 1, nP
+            if (all(testperm==rpl(iL)%perm(kp,:))) then
+               exists = .true.
+               write(11,'(i3)',advance="no") kP
+               exit
+            endif
+         enddo
+         if (.not. exists) then
+            print *
+            write(11,*) "The set of permutations doesn't form a group"
+            write(*,'(20i2,/)') testperm
+            print *
+            do itest = 1,nP
+               write(*,'(20i2)') rpl(iL)%perm(itest,:)
+            enddo
+            !exit lists
+            exit perms
+         endif
+      enddo
+      write(11,*)
+   enddo perms
+   if (exists)write(11,*) iL,"The permutations have closure"
+   if(.not. exists) write(11,*) iL,"failed"
+enddo lists ! Loop over lists
+if(exists) then; do_rotperms_form_groups = .true.
+else; do_rotperms_form_groups = .false.
+endif
+ENDFUNCTION do_rotperms_form_groups
 !***************************************************************************************************
 ! This routine takes a list of permutation lists and identifies those that are idential. The
 ! routine assumes that lists associated with different SNFs should be kept separate. The output,
@@ -103,6 +160,10 @@ if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 
 do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permuted for each
    rd = matmul(rot(:,:,iOp),pd)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
+!   do iD = 1,3
+!      write(*,'(i2,": ",3i2)') iOp,nint(rot(iD,:,iOp))
+!   enddo
+!   write(*,'("S:",3i3,/)') nint(shift(:,iOp))
    tRD = rd
    do iD = 1, nD
       call bring_into_cell(rd(:,iD),inv_pLV,pLV,eps)
@@ -151,37 +212,23 @@ if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
 do iH = 1,nH ! loop over each superlattice
    ! unless the SNF is different than the previous (they should be sorted into blocks) don't bother
    ! making the group again. Just use the same one.
-   write(*,'(9i2)') transpose(HNF(:,:,iH))
    if(iH > 1) then; if(.not. all(SNF(:,:,ih)==SNF(:,:,ih-1))) then
       diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
       call make_member_list(diag,g)
    endif; endif
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
-   nOp = size(Op(iH)%rot,3);!print*,"nop",nOp
-   write(nstring,'(i2)') n*nD
+   nOp = size(Op(iH)%rot,3);
    if (associated(rperms%perm)) deallocate(rperms%perm)
    allocate(rperms%perm(nOp,nD*n))
    do iOp = 1, nOp
       dgp = 0
       do iD = 1, nD ! Loop over each row in the (d,g) table
          ! LA^-1(v_i+(RAL^-1)G)
-         if (iop==nop) then
-            write(*,'("iH:",i2,1x,9i2)') iH, nint(Op(iH)%rot(:,:,iOp))
-            write(*,'("T:",f7.3)') T
-            write(*,'("Trn:",3i2)') transpose(nint(matmul(Tinv,(spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))))
-            write(*,'("Trnw/o:",3i2)') transpose(nint(matmul(Tinv,matmul(matmul(Op(iH)%rot(:,:,iOp),T),g))))
-         endif
          rgp = matmul(Tinv,(spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
          if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
          gp = nint(rgp)
-         if (iop==nop) then
-            write(*,'("notmdd:",3i2)') gp
-endif
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
-         if (iop==nop) then
-            write(*,'("modded:",3i2)') gp
-         endif
          ! Now that the permuted group has been found, find the mapping of the elements between the
          ! orginal group and the permuted group. This is the permutation.
          skip = .false. ! This is just for efficiency
@@ -200,17 +247,15 @@ endif
       ! Now we have the (d',g') table for this rotation. Now record the permutation
       rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/))
       rperms%nL = nOp
-      write(*,'("orig ",'//trim(nstring)//'i3)') rperms%perm(iOp,:)-1
    enddo ! loop over rotations
    ! Sort the permutations and add them to the master list
    call sort_permutations_list(rperms%perm)
    ! The permutations list is now in "alphabetical" order and contains no duplicates, so allocate
-   ! the next list in RPList and store this one. The duplicate list will be identified in a separate
-   ! step
+   ! the next list in RPList and store this one. The duplicate lists, if any, will be identified in
+   ! a separate step
    RPlist(iH)%nL = size(rperms%perm,1)
    allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD))
    RPlist(iH)%perm = rperms%perm
-   print *, "Sorted:";write(*,'('//trim(nstring)//'i3)') transpose(rperms%perm(:,:))-1
 enddo ! loop over iH (superlattices)
 ENDSUBROUTINE get_rotation_perms_lists
 
@@ -225,25 +270,17 @@ logical found(size(RP))
 
 RP = 0; found = .false.
 nD = size(rd,2) ! # of d-vectors
-!write(*,'("Rot",20(3i2,/),/)') nint(rd)
-!write(*,'("Org",20(3i2,/),/)') nint(d)
 do iD = 1, nD
    do jD = 1, nD
       if(found(jD)) cycle
-      !write(*,'(3f7.3,1x,3f7.3,2x,l1)')rd(:,iD),d(:,jD),equal(rd(:,iD),d(:,jD),eps)
       if(equal(rd(:,iD),d(:,jD),eps)) then
          RP(iD)=jD
          found(jD) = .true.
          exit
       endif
    enddo
-   !print *
 enddo
-!write(*,'("perm: ",4i2)') RP-1
-
 if(any(RP==0)) then; print *, "d-vector didn't permute in map_dvector_permutation";stop;endif
-
-
 ENDSUBROUTINE map_dvector_permutation
 
 !***************************************************************************************************
@@ -261,9 +298,6 @@ integer id, Linv(3,3)
 real(dp) Li(3,3)
 logical err
 
-!write(*,'(3(3i3,/),/)') transpose(H)
-!write(*,'(3(3i3,/),/)') transpose(L)
-
 call make_member_list((/S(1,1),S(2,2),S(3,3)/),g)
 call matrix_inverse(real(L,dp),Li,err)
 if(.not. equal(Li,nint(Li),eps)) stop "Transform didn't work in expand d-vectors"
@@ -271,7 +305,6 @@ Linv = nint(Li)
 
 d(:,1:n) = matmul(LV,matmul(Linv,g)) ! Get the set of superlattice d-vectors that are at the origin of
                                      ! each parent cell in the superlattice 
-
 do id = 0, size(pd,2)-1 
       d(:,id*n+1:id*n+n) = d(1:3,1:n) + spread(pd(1:3,id+1),2,n) 
 enddo ! loop over group elements
@@ -664,6 +697,15 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! sort the HNFs into blocks with matching permutation lists.
    call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps)
    call organize_rotperm_lists(SNF_labels,RPList,rdRPList,RPLindx)
+   write(*,'(20i2)') RPLindx
+   write(*,'(20i2)') transpose(rdHNF(:,:,3))
+   !write(*,'(20i2)') nint(transpose(fixOp(3)%rot(:,:,4)))
+   !write(*,'(20i2)') nint((fixOp(3)%shift(:,4)))
+   !
+   !write(*,'(20i2)') nint(transpose(fixOp(3)%rot(:,:,6)))
+   !write(*,'(20i2)') nint((fixOp(3)%shift(:,6)))
+
+   if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
 enddo ! loop over cell sizes (ivol)
 call cpu_time(tend)
 
