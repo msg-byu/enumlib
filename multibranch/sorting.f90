@@ -17,10 +17,10 @@ CONTAINS
 SUBROUTINE sort_permutations_list(key)
 !integer, pointer :: list(:)! indices of the records to be rearranged using the keys (R in Knuth)
 ! Not going to use the list, just sort the keys
-integer(1), pointer:: key(:,:)! values sort
+integer, pointer:: key(:,:)! values sort
 
 integer N, l, r, i, j ! Same as in Knuth
-integer(1) pK(size(key,2)) ! "plain" K (c'mon Knuth, bad notation!)
+integer pK(size(key,2)) ! "plain" K (c'mon Knuth, bad notation!)
 integer Ng, tkey(size(key,1),size(key,2)), count ! Sequence length, temp. key, # of unique sequences
 logical duplicate
 
@@ -78,7 +78,7 @@ key = tkey(1:count,:)
 
 CONTAINS
 FUNCTION greater_than(vecA, vecB)
-integer(1), intent(in):: vecA(:), vecB(:)
+integer, intent(in):: vecA(:), vecB(:)
 logical :: greater_than
 integer i
 
