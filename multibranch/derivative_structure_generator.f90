@@ -60,12 +60,13 @@ perms:   do iP = 1, nP
             
             write(11,'(/,"The set of permutations doesn''t form a group")')
             write(11,'("failed at ",2i3)')  jP, iP
-            write(11,'(20i2,/)') testperm
-            write(*,'(20i2,/)') testperm
+            write(11,'("testperm ",20i2,/)') testperm
+            write(11,'("permlist ",8i2)') transpose(rpl(iL)%perm)
+            !write(*,'(20i2,/)') testperm
             print *
-            do itest = 1,nP
-               write(*,'(20i2)') rpl(iL)%perm(itest,:)
-            enddo
+            !do itest = 1,nP
+            !   write(*,'(20i2)') rpl(iL)%perm(itest,:)
+            !enddo
             do_rotperms_form_groups = .false.
             !exit lists
             exit perms
@@ -196,8 +197,8 @@ real(dp), intent(in) :: eps ! finite precision tolerance
 type(RotPermList) :: rperms
 integer, pointer :: g(:,:)
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated"  table
-integer, allocatable :: tg(:,:), perm(:) ! translated group, translation permutation of the group members
-integer iH, nH, diag(3), iD, nD, iOp, nOp, n, ig, status, im, jm
+integer, allocatable :: tg(:,:), perm(:), ident(:,:) ! translated group, translation permutation of the group members
+integer iH, nH, diag(3), iD, nD, iOp, nOp, n, ig, it, status, im, jm
 real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
 real(dp), allocatable :: rgp(:,:)
@@ -206,9 +207,9 @@ logical, allocatable :: skip(:)
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2) ! Num superlattices, index, Num d's
 allocate(gp(3,n), dgp(nD,n), rgp(3,n),skip(n),STAT=status)
 if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
-allocate(tg(3,n),perm(n),STAT=status)
-if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm" 
-
+allocate(tg(3,n),perm(n),ident(nD,n),STAT=status)
+if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident" 
+ident = transpose(reshape((/(ig,ig=1,n*nD)/),(/n,nD/)))
 forall(iH = 1:nH); RPlist(iH)%nL=0; end forall
 
 ! Make the group member list for the first SNF
@@ -227,8 +228,10 @@ do iH = 1,nH ! loop over each superlattice
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
    nOp = size(Op(iH)%rot,3);
+   write(*,'(3i2)') transpose(HNF(:,:,iH))
    if (associated(rperms%perm)) deallocate(rperms%perm)
-   allocate(rperms%perm(nOp+n,nD*n))
+   allocate(rperms%perm(nOp*n+n+nOp,nD*n),STAT=status)
+   if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
    do iOp = 1, nOp
       dgp = 0
       do iD = 1, nD ! Loop over each row in the (d,g) table
@@ -275,20 +278,40 @@ do iH = 1,nH ! loop over each superlattice
       tg = g(:,:)+spread(g(:,ig),2,n)
       tg = modulo(tg,spread(diag,2,n)) ! mod by the SNF entries
       call find_permutation_of_group(g,tg,perm)
-print *,shape(spread(perm,2,nD))
-print *,shape(spread(perm,1,nD))
-      rperms%perm(nOp+ig,:) = reshape(spread(perm,2,nD),(/nD*n/))
+!print *,shape(spread(perm,2,nD))
+!print *,shape(spread(perm,1,nD))
+      rperms%perm(nOp+ig,:) = reshape(transpose(ident(:,perm)),(/n*nD/))
+   ! Now we need to compose the N+t permutations with r permutations (rotations composed with
+   ! translations) to get a list that should be group
+ 
    enddo
+   do iOp = 1,nOp ! Loop over rotation perms (N+t type)
+      do it = 1,n ! Loop overe translation perms (r type)
+         ! Form the permutation effected by composing the iOp-th one with the it-th one
+         rperms%perm(nOp+n+(iOp-1)*n+it,:) = rperms%perm(iOp,(rperms%perm(nOp+it,:)))
+         write(*,'("const",30i2)') rperms%perm(nOp+n+iOp+it-1,:)
+      enddo
+   enddo
+
    print *,"total list"
-   do ig = 1,nOp+n
-      write(*,'(30i3)') rperms%perm(ig,:)
+   do ig = 1,nOp+n+nOp*n
+      write(*,'("tot",i5,1x,30i3)') ig,rperms%perm(ig,:)
    enddo
-   stop
+!   stop
    ! Sort the permutations and add them to the master list
    call sort_permutations_list(rperms%perm)
    ! The permutations list is now in "alphabetical" order and contains no duplicates, so allocate
    ! the next list in RPList and store this one. The duplicate lists, if any, will be identified in
    ! a separate step
+      print *,"sorted list"
+   do ig = 1,size(rperms%perm,1)
+      write(*,'(30i3)') rperms%perm(ig,:)
+   enddo
+   print *,"Number of ops",nOp
+   print *," n",n
+   print *,'iH',iH
+   !if (iH==3) stop
+!stop
    RPlist(iH)%nL = size(rperms%perm,1)
    allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD))
    RPlist(iH)%perm = rperms%perm
@@ -768,49 +791,50 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! sort the HNFs into blocks with matching permutation lists.
    call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps)
    call organize_rotperm_lists(SNF_labels,RPList,rdRPList,RPLindx)
-   write(*,'("RPLindx ",30i3)') RPLindx
-   print *,rplindx
-   write(*,'(20i2)') transpose(rdHNF(:,:,3))
-   itest = 3
-   sLV = matmul(parLV,HNF(:,:,itest))
-   call matrix_inverse(sLV,sLVi,err)
-   if (err) stop "matrix inverse failed"
-   !do iD = 1, 3
-   allocate(fulld(3,nD*ivol),rd(3,nD*ivol),rp(16,nd*ivol))
-  
-  call expand_dvectors(ivol,parLV,sLV,sLVi,HNF(:,:,itest),SNF(:,:,itest),L(:,:,itest),d,fulld,eps)
-   ! write out the dvectors
- do jd = 1, nD*iVol
-    write(*,'(3i3)') nint(fulld(:,jd))
- enddo;print *
-   do iD = 1, size(fixOp(itest)%rot,3) ! loop over rotations
-      ! rotate fulld
-      rd = matmul(fixOp(itest)%rot(:,:,iD),fulld)+spread(fixOp(itest)%shift(:,iD),2,nD)
-  
-      write(*,'("Rot no.: ",i3)') iD
-      do jd = 1, size(fulld,2)
-         call bring_into_cell(rd(:,jd),sLVi,sLV,eps)
-      enddo
-      if (iD ==13) then
-         write(*,'(3i3)') nint(transpose(fixOp(itest)%rot(:,:,iD))),nint(fixOp(itest)%shift(:,iD)) 
-         
-    do jd = 1, nD*iVol
-       write(*,'(3i3)') nint(rd(:,jd))
-    enddo; print *
-endif
+
+!   write(*,'("RPLindx ",30i3)') RPLindx
+!   print *,rplindx
+!   write(*,'(20i2)') transpose(rdHNF(:,:,3))
+!   itest = 3
+!   sLV = matmul(parLV,HNF(:,:,itest))
+!   call matrix_inverse(sLV,sLVi,err)
+!   if (err) stop "matrix inverse failed"
+!   !do iD = 1, 3
+!   allocate(fulld(3,nD*ivol),rd(3,nD*ivol),rp(16,nd*ivol))
+!  
+!  call expand_dvectors(ivol,parLV,sLV,sLVi,HNF(:,:,itest),SNF(:,:,itest),L(:,:,itest),d,fulld,eps)
+!   ! write out the dvectors
+! do jd = 1, nD*iVol
+!    write(*,'(3i3)') nint(fulld(:,jd))
+! enddo;print *
+!   do iD = 1, size(fixOp(itest)%rot,3) ! loop over rotations
+!      ! rotate fulld
+!      rd = matmul(fixOp(itest)%rot(:,:,iD),fulld)+spread(fixOp(itest)%shift(:,iD),2,nD)
+!  
+!      write(*,'("Rot no.: ",i3)') iD
+!      do jd = 1, size(fulld,2)
+!         call bring_into_cell(rd(:,jd),sLVi,sLV,eps)
+!      enddo
+!      if (iD ==13) then
+!         write(*,'(3i3)') nint(transpose(fixOp(itest)%rot(:,:,iD))),nint(fixOp(itest)%shift(:,iD)) 
+!         
+!    do jd = 1, nD*iVol
+!       write(*,'(3i3)') nint(rd(:,jd))
+!    enddo; print *
+!endif
 
       ! find mapping
-      call map_dvector_permutation(rd,fulld,rp(iD,:),eps)
-  
-      write(*,'(20i2)') rp(iD,:)
-   enddo
-   call sort_permutations_list(rp); print *
-   write(*,'(8i2)') transpose(rp(:,:))
-   allocate(testlist(1))
-   allocate(testlist(1)%perm(8,8))
-   testlist(1)%perm = rp
-   print *, do_rotperms_form_groups(testlist)
-   stop "end of test"
+!      call map_dvector_permutation(rd,fulld,rp(iD,:),eps)
+!  
+!      write(*,'(20i2)') rp(iD,:)
+!   enddo
+!   call sort_permutations_list(rp); print *
+!   write(*,'("master ",8i2)') transpose(rp(:,:))
+!   allocate(testlist(1))
+!   allocate(testlist(1)%perm(8,8))
+!   testlist(1)%perm = rp
+!   print *, do_rotperms_form_groups(testlist)
+!   stop "end of test"
    !write(*,'(20i2)') nint(transpose(fixOp(3)%rot(:,:,4)))
    !write(*,'(20i2)') nint((fixOp(3)%shift(:,4)))
    !
