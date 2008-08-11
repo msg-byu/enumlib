@@ -5,8 +5,8 @@ use vector_matrix_utilities
 implicit none
 private
 public read_input
-
 CONTAINS
+
 !***************************************************************************************************
 subroutine read_input(title,LatDim,pLV,nD,d,k,Nmin,Nmax,eps,full)
 character(80) :: title, pLatTyp, fullpart

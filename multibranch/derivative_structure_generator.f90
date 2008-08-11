@@ -20,10 +20,7 @@ CONTAINS
 
 !***************************************************************************************************
 ! This function checks that every "product" of two permutations in a list is still in the list. That
-! is that every list forms a group. I'm not sure this is a sufficient condition but it is a
-! necessary one. (Better to check not for closure only (as here) but to check that for each member
-  ! of the group A there is the inverse of another element, B^-1, whose composition AB^-1 leads to a
-  ! third element C that is a member of the supposed group.)
+! is that every list forms a group. For finite groups, this is a sufficient condition.
 FUNCTION do_rotperms_form_groups(rpl)
 logical do_rotperms_form_groups
 type(RotPermList) :: rpl(:) ! The reduced (unique) set of rotation permutations lists for a given index
@@ -74,7 +71,7 @@ perms:   do iP = 1, nP
       enddo
       write(11,*)
    enddo perms
-   if (exists)write(11,*) iL,"The permutations have closure"
+   if (exists)write(11,*) iL,"The permutations form a group"
    if(.not. exists) write(11,*) iL,"failed"
 enddo lists ! Loop over lists
 !if(exists) then; do_rotperms_form_groups = .true.
@@ -82,9 +79,9 @@ enddo lists ! Loop over lists
 !endif
 ENDFUNCTION do_rotperms_form_groups
 !***************************************************************************************************
-! This routine takes a list of permutation lists and identifies those that are idential. The
-! routine assumes that lists associated with different SNFs should be kept separate. The output,
-! RPLindx is an index groups the lists that match. The lists themselves are assumed to be in
+! This routine takes a list of permutation lists and identifies those that are idential. The routine
+! assumes that lists associated with different SNFs should be kept separate. The output, RPLindx is
+! an index that groups the lists that match. The lists themselves are assumed to be in
 ! "alphabetical" order so that they can be quickly compared.
 SUBROUTINE organize_rotperm_lists(SNFindx, RPList,rdRPList,RPLindx)
 integer, intent(in):: SNFindx(:)
@@ -194,7 +191,7 @@ type(OpList), intent(in) :: Op(:) ! A list of symmetry ops (rots and shifts) for
 type(RotPermList) :: RPlist(:) ! A list of lists of permutations effected by the Ops
 type(RotPermList), intent(in) :: dperms
 real(dp), intent(in) :: eps ! finite precision tolerance
-type(RotPermList) :: rperms
+type(RotPermList) :: rperms, tperms
 integer, pointer :: g(:,:)
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated"  table
 integer, allocatable :: tg(:,:), perm(:), ident(:,:) ! translated group, translation permutation of the group members
@@ -204,13 +201,15 @@ logical err
 real(dp), allocatable :: rgp(:,:)
 logical, allocatable :: skip(:)
 
-nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2) ! Num superlattices, index, Num d's
+! Number of HNFs (superlattices); Index of the superlattices; Number of d-vectors in d set
+nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2) 
 allocate(gp(3,n), dgp(nD,n), rgp(3,n),skip(n),STAT=status)
 if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
 allocate(tg(3,n),perm(n),ident(nD,n),STAT=status)
-if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident" 
+if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident"
+allocate(tperms%perm(n,n*nD)) 
 ident = transpose(reshape((/(ig,ig=1,n*nD)/),(/n,nD/)))
-forall(iH = 1:nH); RPlist(iH)%nL=0; end forall
+forall(iH = 1:nH); RPlist(iH)%nL=0; end forall ! initialize the number in each list
 
 ! Make the group member list for the first SNF
 diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
@@ -225,42 +224,42 @@ do iH = 1,nH ! loop over each superlattice
       diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
       call make_member_list(diag,g)
    endif; endif
+   ! Make the transform matrices for taking the g's and rotating them
    Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
    if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
+
    nOp = size(Op(iH)%rot,3);
-   write(*,'(3i2)') transpose(HNF(:,:,iH))
    if (associated(rperms%perm)) deallocate(rperms%perm)
-   allocate(rperms%perm(nOp*n+n+nOp,nD*n),STAT=status)
+   allocate(rperms%perm(nOp,nD*n),STAT=status)
    if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
-   do iOp = 1, nOp
-      dgp = 0
+   
+   do iOp = 1, nOp ! For each rotation, find the permutation 
+      dgp = 0 ! Initialize the (d,g) table
       do iD = 1, nD ! Loop over each row in the (d,g) table
          ! LA^-1(v_i+(RAL^-1)G)
          rgp = matmul(Tinv,(spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
          if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
-         gp = nint(rgp)
+         gp = nint(rgp) ! Move the rotated group into an integer array
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
-         ! Now that the permuted group has been found, find the mapping of the elements between the
+         ! Now that the rotated group is known, find the mapping of the elements between the
          ! orginal group and the permuted group. This is the permutation.
-         
-!         call find_permutation_of_group(g,gp,dgp(dperms%perm(RPList(iH)%RotIndx(iOp),iD),:))
-!         dgp(dperms%perm(RPList(iH)%RotIndx(iOp),iD),:) = dperms%perm(RPList(iH)%RotIndx(iOp),iD)+(iD-1)*n
+
          skip = .false. ! This is just for efficiency
          do im = 1, n
             do jm = 1, n
-               if (skip(jm)) cycle
-               if (all(gp(:,jm)==g(:,im))) then
+               if (skip(jm)) cycle ! Skip elements whose mapping is already known
+               if (all(gp(:,jm)==g(:,im))) then ! these elements map to each other
                   dgp(dperms%perm(RPList(iH)%RotIndx(iOp),iD),im) = jm+(iD-1)*n
                   skip(jm) = .true.
                   exit
                endif
             enddo ! jm
          enddo ! im
-      enddo ! loop over d-vectors
+      enddo ! loop over d-vectors (each row in the table)
       if (any(dgp==0)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
 
       ! Now we have the (d',g') table for this rotation. Now record the permutation
-      rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/)) ! "fast index" is iD, then g
+      rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/)) ! store permutation in the "long form"
       rperms%nL = nOp
    enddo ! loop over rotations 
 
@@ -268,53 +267,32 @@ do iH = 1,nH ! loop over each superlattice
    ! point group), we need to compose them with the permutations effected by lattice translations,
    ! (parent) lattice translations contained inside the supercell (N+t+r, in Rod's
    ! nomenclature). Only when we have these two lists, and compose them, do we have a guarantee that
-   ! the resulting list is actually a group.
+   ! the resulting list is actually a group. For efficiency, we reduce the N+t list (remove
+   ! duplicates). Rod claims that the compositions (with the translations) will not have duplicates.
+   call sort_permutations_list(rperms%perm)
+   ! The rotations permutations list is now in "alphabetical" order and contains no duplicates
 
    ! To get the permutations effected by the r's, we don't need the r's. We can merely take the
    ! member list, the group, and add each element of the group to the group itself and see what
    ! permutation happens. (This part is somewhat redundant with make_translation_group in
    ! labeling_related module.)
    do ig = 1,n ! The number of r's inside the superlattice (the translation perms) is the same as the index n
-      tg = g(:,:)+spread(g(:,ig),2,n)
-      tg = modulo(tg,spread(diag,2,n)) ! mod by the SNF entries
+      tg = g(:,:)+spread(g(:,ig),2,n) ! Add the element to the group
+      tg = modulo(tg,spread(diag,2,n)) ! mod by the SNF entries to bring it back to the "primitive" representation
       call find_permutation_of_group(g,tg,perm)
-!print *,shape(spread(perm,2,nD))
-!print *,shape(spread(perm,1,nD))
-      rperms%perm(nOp+ig,:) = reshape(transpose(ident(:,perm)),(/n*nD/))
-   ! Now we need to compose the N+t permutations with r permutations (rotations composed with
-   ! translations) to get a list that should be group
- 
+      tperms%perm(ig,:) = reshape(transpose(ident(:,perm)),(/n*nD/)) 
    enddo
-   do iOp = 1,nOp ! Loop over rotation perms (N+t type)
+
+   RPlist(iH)%nL = size(rperms%perm,1)*n
+   allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
+   do iOp = 1,size(rperms%perm,1) ! Loop over unique rotation perms (N+t type)
       do it = 1,n ! Loop overe translation perms (r type)
          ! Form the permutation effected by composing the iOp-th one with the it-th one
-         rperms%perm(nOp+n+(iOp-1)*n+it,:) = rperms%perm(iOp,(rperms%perm(nOp+it,:)))
-         write(*,'("const",30i2)') rperms%perm(nOp+n+iOp+it-1,:)
+         RPlist(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
       enddo
    enddo
 
-   print *,"total list"
-   do ig = 1,nOp+n+nOp*n
-      write(*,'("tot",i5,1x,30i3)') ig,rperms%perm(ig,:)
-   enddo
-!   stop
-   ! Sort the permutations and add them to the master list
-   call sort_permutations_list(rperms%perm)
-   ! The permutations list is now in "alphabetical" order and contains no duplicates, so allocate
-   ! the next list in RPList and store this one. The duplicate lists, if any, will be identified in
-   ! a separate step
-      print *,"sorted list"
-   do ig = 1,size(rperms%perm,1)
-      write(*,'(30i3)') rperms%perm(ig,:)
-   enddo
-   print *,"Number of ops",nOp
-   print *," n",n
-   print *,'iH',iH
-   !if (iH==3) stop
-!stop
-   RPlist(iH)%nL = size(rperms%perm,1)
-   allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD))
-   RPlist(iH)%perm = rperms%perm
+
 enddo ! loop over iH (superlattices)
 ENDSUBROUTINE get_rotation_perms_lists
 
@@ -698,7 +676,7 @@ diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
 
 !***************************************************************************************************
-! This routine is should eventually replace "generate_derivative_structures". The difference with
+! This routine should eventually replace "generate_derivative_structures". The difference with
 ! this one is that it applies to superstructures derived from multilattices. This is more general
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
 ! implemented here has been slightly reorder from the original routine and that discussed in the
@@ -711,7 +689,7 @@ real(dp), pointer :: d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
 
-integer iD, i, ivol, LatDim, runTot, ctot, ivoltot, csize
+integer iD, i, ivol, LatDim, Scnt, Tcnt, iHNF, iBlock
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -722,16 +700,7 @@ type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation
 type(RotPermList) :: ParRPList ! Just the list for the parent lattice
 integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
-
-!debug variables
-real(dp), dimension(3,3) :: sLV, sLVi ! superlattice and inverse
-real(dp), dimension(:,:), pointer :: fulld=>null(),rd=>null() !dset, rotated
-integer, pointer :: rp(:,:)=>null() ! rotation perm
-integer itest, jd
-logical err
-type(rotpermlist), pointer :: testlist(:)
-!end debug variables
-
+character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
@@ -739,6 +708,8 @@ write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
 write(14,'(a10)') title
+if (pLatTyp=='s') write(14,'(a4)') "surf"
+if (pLatTyp=='b') write(14,'(a4)') "bulk"
 do i = 1,3
    write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
 enddo
@@ -748,8 +719,9 @@ do iD = 1,nD
 enddo
 write(14,'(i2,"-nary case")') k
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
-if (full) then; write(14,'("Full list of labelings (including incomplete labelings) is used")')
-else; write(14,'("Partial list of labelings (complete labelings only) is used")'); endif
+write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
+if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
+else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
@@ -767,11 +739,8 @@ else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"
 ! multilattice are used later on. Generate them here
 call get_dvector_permutations(parLV,d,ParRPList,eps)
 ! This part generates all the derivative structures. Results are writen to unit 14.
-runTot = 0
-ctot = 0
+Tcnt = 0 ! Keep track of the total number of structures generated
 do ivol = nMin, nMax !max(k,nMin),nMax
-   iVolTot = 0
-   csize = 0
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
       call get_all_HNFs(ivol,HNF)  ! 3D
@@ -788,60 +757,20 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! fixOp. These operations will effect a permutation on the (d,g) table. Since many of the HNFs
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
    ! labelings for all such HNFs just once. So we need to generate the list for each HNF and then
-   ! sort the HNFs into blocks with matching permutation lists.
+   ! sort the HNFs into blocks with matching permutation lists. And we'll go ahead and include the
+   ! translation permutations as well so that each list in rdRPList contains all possible
+   ! permutations that identify duplicate labelings.
    call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps)
    call organize_rotperm_lists(SNF_labels,RPList,rdRPList,RPLindx)
-
-!   write(*,'("RPLindx ",30i3)') RPLindx
-!   print *,rplindx
-!   write(*,'(20i2)') transpose(rdHNF(:,:,3))
-!   itest = 3
-!   sLV = matmul(parLV,HNF(:,:,itest))
-!   call matrix_inverse(sLV,sLVi,err)
-!   if (err) stop "matrix inverse failed"
-!   !do iD = 1, 3
-!   allocate(fulld(3,nD*ivol),rd(3,nD*ivol),rp(16,nd*ivol))
-!  
-!  call expand_dvectors(ivol,parLV,sLV,sLVi,HNF(:,:,itest),SNF(:,:,itest),L(:,:,itest),d,fulld,eps)
-!   ! write out the dvectors
-! do jd = 1, nD*iVol
-!    write(*,'(3i3)') nint(fulld(:,jd))
-! enddo;print *
-!   do iD = 1, size(fixOp(itest)%rot,3) ! loop over rotations
-!      ! rotate fulld
-!      rd = matmul(fixOp(itest)%rot(:,:,iD),fulld)+spread(fixOp(itest)%shift(:,iD),2,nD)
-!  
-!      write(*,'("Rot no.: ",i3)') iD
-!      do jd = 1, size(fulld,2)
-!         call bring_into_cell(rd(:,jd),sLVi,sLV,eps)
-!      enddo
-!      if (iD ==13) then
-!         write(*,'(3i3)') nint(transpose(fixOp(itest)%rot(:,:,iD))),nint(fixOp(itest)%shift(:,iD)) 
-!         
-!    do jd = 1, nD*iVol
-!       write(*,'(3i3)') nint(rd(:,jd))
-!    enddo; print *
-!endif
-
-      ! find mapping
-!      call map_dvector_permutation(rd,fulld,rp(iD,:),eps)
-!  
-!      write(*,'(20i2)') rp(iD,:)
-!   enddo
-!   call sort_permutations_list(rp); print *
-!   write(*,'("master ",8i2)') transpose(rp(:,:))
-!   allocate(testlist(1))
-!   allocate(testlist(1)%perm(8,8))
-!   testlist(1)%perm = rp
-!   print *, do_rotperms_form_groups(testlist)
-!   stop "end of test"
-   !write(*,'(20i2)') nint(transpose(fixOp(3)%rot(:,:,4)))
-   !write(*,'(20i2)') nint((fixOp(3)%shift(:,4)))
-   !
-   !write(*,'(20i2)') nint(transpose(fixOp(3)%rot(:,:,6)))
-   !write(*,'(20i2)') nint((fixOp(3)%shift(:,6)))
-
+   !write(*,'(20i2)') RPLindx
    if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
+   Scnt = 0 ! Keep track of the number of structures at this size
+   do iBlock = 1, maxval(RPLindx)
+      call generate_unique_labelings(k,ivol*nD,rdRPList(iBlock)%perm,full,lm)
+      !write(*,'(256a1)') lm(1:150)
+      ! Now that we have the labeling marker, we can write the output.
+      call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,RPLindx,lm)
+   enddo! iBlock
 enddo ! loop over cell sizes (ivol)
 call cpu_time(tend)
 
