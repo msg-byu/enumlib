@@ -31,38 +31,35 @@ character, intent(in) :: lm(:)
 integer nHNF ! Number of HNFs in the list that match the current block index, HNFi
 integer, allocatable :: vsH(:), vsL(:) ! Vector subscript for matching the HNF index to the HNF list
 integer nl ! Number of unique labelings
-integer digit
-integer iHNF, il, i, iP,  ! counters
-integer, allocatable :: labeling(:,:) ! base-k, n-digit number representing the labeling
+integer quot ! quotient for converting base-10 index to base-k labeling
+integer iHNF, jHNF, il, i, iP, ilab  ! counters
+integer :: labeling(n*nD) ! base-k, n-digit number representing the labeling
 integer(li) :: labIndx ! base-10 form of the labeling
 integer status ! Allocation exit flag
 
 if (any(lm=='')) stop "Labeling index has unmarked entries"
 nl = count(lm=='U'); nHNF = count(permIndx==HNFi)
 allocate(vsH(nHNF),vsL(nl),STAT=status); if (status/=0) stop "Allocation failed in write_labelings: vsH, vsL"
-allocate(labeling(nl,n*nD),STAT=status); if (status/=0) stop "Allocation failed in write_labelings: labeling"
 
-vsH = pack((/(i,i=1,nHNF)/), HNFi==permIndx); vsL = pack((/(i,i=1,nl)/), lm=='U')
-do il = 1, nl ! generate the labelings for each entry on the list that is unique
-   labIndx = vsL(il)
-   do iP = 1, n*nD ! Loop over each place in the labeling row
-      digit = labIndx/(k**(n*nD-iP)) ! What is the digit for this place?
-      labeling(il,iP) = digit
-      labIndx = labIndx - digit*k**(n*nD-iP)
+vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); vsL = pack((/(i,i=1,size(lm))/), lm=='U')
+
+do il = 1, nl ! Loop over the unique labelings
+   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
+   do ilab = 1, n*nD ! Loop over each place (digit) in the labeling
+      quot = labIndx/k ! divide the index by k to get the quotient
+      labeling(n*nD-ilab+1) = labIndx - quot*k ! store the remainder (base-k digit of current place)
+      labIndx = quot ! reduce current index to just the quotient and keep going
    enddo
-enddo
-
-do iHNF = 1, nHNF
-   do il = 1, nl
+   do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
+      Tcnt = Tcnt + 1; Scnt = Scnt + 1
+      jHNF = vsH(iHNF) ! Index of matching HNFs
       write(14,'(i11,1x,i9,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
-           Tcnt, Scnt,n,size(fixOp(iHNF)%rot,3),SNFlist(1,1,iHNF),SNFlist(2,2,iHNF),SNFlist(3,3,iHNF),&
-           HNFlist(1,1,iHNF),HNFlist(2,1,iHNF),HNFlist(2,2,iHNF),HNFlist(3,1,iHNF),HNFlist(3,2,iHNF),&
-           HNFlist(3,3,iHNF),transpose(L(:,:,i)),labeling(il,:)
-   enddo ! loop over labelings
-enddo ! loop over HNFs
-
+           Tcnt, Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
+           HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
+           HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),labeling   
+   enddo ! loop over HNFs
+enddo ! loop over labelings
 ENDSUBROUTINE write_labelings
-
 
 !***************************************************************************************************
 ! This routine takes in a list of HNFs and a list of rotations (orthogonal transformations) and
@@ -289,7 +286,7 @@ SUBROUTINE generate_unique_labelings(k,n,perm,full,lab)
 integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
 character, pointer :: lab(:) ! Array to store markers for every raw labeling
-! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive
+! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
 ! Need to pass lab out to write out the labelings
 logical, intent(in) :: full ! specify whether the full labelings list should be used or not
 
@@ -336,24 +333,29 @@ do; ic = ic + 1
    ! and mark its duplicates as 'D'
    if (lab(idx)=='') then
       lab(idx) = 'U'
-      do q = 1,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
+      ! Is the first permutation in the list guaranteed to be the identity? We need to skip the identity
+      do q = 2,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
          idx = sum(a(perm(q,:))*multiplier)+1
-         if (idx==ic) lab(idx)='N' ! This will happen if the coloring is superperiodic
-                                   ! (i.e., non-primitive superstructure)
+         if (idx==ic .and. q <= n) lab(idx)='N' ! This will happen if the coloring is superperiodic
+         ! (i.e., non-primitive superstructure). The q<=n condition makes sure we are considering a
+         ! "translation" permutation and not a rotation permutation (they're ordered in the list)
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
       enddo
       if (.not. full) then ! loop over the label-exchange duplicates and mark them off.
          do q = 1,nPerm ! Loop over all possible permutations. (should this loop start at 1? I think so...)
-            do ip = 2,np ! Loop over all permutations of the labels (stored in 'labPerms')
+            do ip = 2,np ! Loop over all permutations of the labels (stored in 'labPerms'). Start at
+               ! 2 since we want to skip the identity.
                forall(ia=1:k) ! Convert the k-nary labeling to one with the labels permuted
                   where(a==ia-1); b(:) = labPerms(ia,ip);endwhere ! b is the permuted labeling
                end forall
                idx = sum(b(perm(q,:))*multiplier)+1
-               if  (lab(idx)=='') lab(idx) = 'I'
+               if  (lab(idx)=='') lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
+               ! not otherwise marked
             enddo
          enddo
       endif ! end block to remove label exchange duplicates
    endif
+
    ! Advance the base-k, n-digit counter and keep track of the # of each digit (0...k-1)
    j = n ! Reset the digit index (start all the way to the right again)
    do ! Check to see if we need to roll over any digits, start at the right

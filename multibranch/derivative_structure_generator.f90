@@ -79,52 +79,49 @@ enddo lists ! Loop over lists
 !endif
 ENDFUNCTION do_rotperms_form_groups
 !***************************************************************************************************
-! This routine takes a list of permutation lists and identifies those that are idential. The routine
-! assumes that lists associated with different SNFs should be kept separate. The output, RPLindx is
-! an index that groups the lists that match. The lists themselves are assumed to be in
-! "alphabetical" order so that they can be quickly compared.
-SUBROUTINE organize_rotperm_lists(SNFindx, RPList,rdRPList,RPLindx)
-integer, intent(in):: SNFindx(:)
+! This routine takes a list of permutation lists and identifies those that are idential. The output,
+! RPLindx, is an index that groups the lists that match. The lists themselves are assumed to be in
+! "alphabetical" order so that they can be quickly compared. I don't think it's necessary to
+! explicitly treat lists corresponding to different SNFs separately---if the permutations lists
+! happen to be identical (is this possible?) then the labelings list will also be, so it's not
+! necessary to create a separate list or index for them.
+SUBROUTINE organize_rotperm_lists(RPList,rdRPList,RPLindx)
 type(RotPermList), intent(in) :: RPList(:)
 type(RotPermList), pointer :: rdRPList(:) ! output
 integer, pointer :: RPLindx(:) ! output
 
-integer iL, jL, nL, status, iSNF, nSNF, cnt, Scnt
+integer iL, jL, nL, status,  cnt, nP
 type(RotPermList), allocatable :: tList(:)
 logical unique
 
-nL = size(SNFindx); nSNF = maxval(SNFindx)
+nL = size(RPlist) ! Number of lists (including duplicates)
 allocate(tList(nL),RPLindx(nL),STAT=status)
-if(status/=0) stop "Allocation failed in organize_rotperm_lists: tList, RPLindx"
+if(status/=0) stop "Allocation failed in organize_rotperm_lists: tList, RPLindx,"
 
-Scnt = 0
-do iSNF = 1, nSNF ! Do a separate treatment for each SNF form
-   cnt = 0
-   do iL = 1, count(SNFindx==iSNF)
-      unique = .true.
-      do jL = 1, cnt ! Loop over the number of unique lists for this SNF
-         ! if the lists aren't the same length, then they definitely aren't identical
-         if (size(RPList(iL)%perm,1)/=size(tList(Scnt + jL)%perm,1)) cycle
-         if (all(RPList(iL)%perm==tList(Scnt + jL)%perm)) then
-            unique = .false.
-            exit
-         endif
-      enddo
-      if (unique) then ! store this list in the master list
-         cnt = cnt + 1
-         nL = size(RPList(iL)%perm,1)
-         allocate(tList(cnt + Scnt)%perm(nL,size(RPList(iL)%perm,2)))
-         tList(cnt + Scnt)%nL = nL
-         tList(cnt + Scnt)%perm = RPlist(iL)%perm
+cnt = 0
+do iL = 1, nL ! Loop over each loop in the list
+   unique = .true.
+   do jL = 1, cnt ! Loop over the number of unique lists found so far
+      ! if the two lists aren't the same length, then they definitely aren't identical
+      if (size(RPList(iL)%perm,1)/=size(tList(jL)%perm,1)) cycle
+      if (all(RPList(iL)%perm==tList(jL)%perm)) then ! they're identical. Tag it and go to next
+         unique = .false.
+         exit
       endif
-      ! Store the label for this unique list in the output index
-      RPLindx(iL) = jL + Scnt ! Not sure this is going to do the right thing...
    enddo
-   Scnt = Scnt + cnt
+   if (unique) then ! store this list in the master list
+      cnt = cnt + 1 ! number of unique lists found so far
+      nP = size(RPList(iL)%perm,1) ! Number of perms in this list
+      allocate(tList(cnt)%perm(nP,size(RPList(iL)%perm,2)))
+      tList(cnt)%nL = nP ! store number and perms in a temporary
+      tList(cnt)%perm = RPlist(iL)%perm ! array
+   endif
+   ! Store the label for this unique list in the output index
+   RPLindx(iL) = jL 
 enddo
 ! Now copy the reduced list to the output variable
-allocate(rdRPList(Scnt))
-do iL=1,Scnt
+allocate(rdRPList(cnt))
+do iL=1,cnt
    nL = size(tList(iL)%perm,1)
    allocate(rdRPList(iL)%perm(nl,size(tList(iL)%perm,2)));
    rdRPList(iL)%nL = nL
@@ -285,14 +282,12 @@ do iH = 1,nH ! loop over each superlattice
 
    RPlist(iH)%nL = size(rperms%perm,1)*n
    allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
-   do iOp = 1,size(rperms%perm,1) ! Loop over unique rotation perms (N+t type)
-      do it = 1,n ! Loop overe translation perms (r type)
+   do it = 1,n ! Loop over translation perms (r type)
+      do iOp = 1,size(rperms%perm,1) ! Loop over unique rotation perms (N+t type)
          ! Form the permutation effected by composing the iOp-th one with the it-th one
          RPlist(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
       enddo
    enddo
-
-
 enddo ! loop over iH (superlattices)
 ENDSUBROUTINE get_rotation_perms_lists
 
@@ -693,7 +688,8 @@ integer iD, i, ivol, LatDim, Scnt, Tcnt, iHNF, iBlock
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
 integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
-real(dp) tstart, tend
+real(dp) tstart, tend, removetime, organizetime, writetime,hnftime,snftime, permtime,genlabels&
+     &,blockstart,endwrite, groupcheck
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
 type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation permutation lists
@@ -747,12 +743,15 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    else
       call get_all_2D_HNFs(ivol,HNF) ! 2D
    endif
+   !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
    call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,eps)
+   !call cpu_time(Removetime)
    ! Superlattices with the same SNF will have the same list of translation permutations of the
    ! labelings. So they can all be done at once if we find the SNF. rdHNF is the reduced list.
    call get_SNF(rdHNF,L,SNF,R,RPList,uqSNF,SNF_labels,fixOp)
+   !call cpu_time(SNFtime)
    ! Each HNF will have a certain number of rotations that leave the superlattice fixed, called
    ! fixOp. These operations will effect a permutation on the (d,g) table. Since many of the HNFs
    ! will have an identical list of rotation permutations, it'll be efficient to reduce the
@@ -761,18 +760,30 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! translation permutations as well so that each list in rdRPList contains all possible
    ! permutations that identify duplicate labelings.
    call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps)
-   call organize_rotperm_lists(SNF_labels,RPList,rdRPList,RPLindx)
-   !write(*,'(20i2)') RPLindx
-   if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
+   !call cpu_time(permtime)
+   call organize_rotperm_lists(RPList,rdRPList,RPLindx)
+   !call cpu_time(organizetime)
+   !if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
+   !call cpu_time(groupcheck)
    Scnt = 0 ! Keep track of the number of structures at this size
    do iBlock = 1, maxval(RPLindx)
+      !call cpu_time(blockstart)
       call generate_unique_labelings(k,ivol*nD,rdRPList(iBlock)%perm,full,lm)
+      !call cpu_time(genlabels)
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
       call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,RPLindx,lm)
+      !call cpu_time(endwrite)
+      write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
+   !call cpu_time(writetime)
+   call cpu_time(tend)
+   write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
+        size(uqSNF,3),size(rdHNF,3),1-size(rdHNF,3)/real(size(HNF,3)),Scnt, Tcnt
+   !write(12,'(i3,1x,8(f9.4,1x))') ivol,HNFtime-tstart, removetime-HNFtime, SNFtime-removetime,permtime-SNFtime&
+   !     &,organizetime-permtime,groupcheck-organizetime,writetime-groupcheck,tend-tstart
 enddo ! loop over cell sizes (ivol)
-call cpu_time(tend)
+close(14)
 
 ENDSUBROUTINE gen_multilattice_derivatives
 END MODULE derivative_structure_generator
