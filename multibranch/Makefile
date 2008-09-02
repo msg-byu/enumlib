@@ -63,6 +63,12 @@ compare.x: compare.o
 2Dplot.x: make2Dplot.o splot.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
 
+makestr.x: makeStr.o
+	${F90} ${LDFLAGS} -o $@ makeStr.o ${LIBS}
+
+makestructin.x: makeStrIn.o
+	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS}
+
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
 .f90.o : 

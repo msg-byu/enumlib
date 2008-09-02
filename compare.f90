@@ -1,3 +1,7 @@
+!***************************************************************************************************
+! This program reads two structure enumeration files and compares them to see if they contain the
+! same structures. The program is not yet completely robust---the program can't yet check carefully
+! that two structures are equivalent by rotation.
 PROGRAM compare
 use num_types
 use numerical_utilities, only: equal
@@ -28,6 +32,7 @@ do i = 1,3 ! Read in the lattice vectors
    read(10,*) A1(:,i)
    read(11,*) A2(:,i)
 enddo
+! This check could be more robust. Check for non-identical yet equivalent cases
 if(.not. equal(A1,A2,eps)) stop "Lattice vectors for the two files are incompatible"
 read(10,'(i2)') k1
 read(11,'(i2)') k2
@@ -67,7 +72,7 @@ do ! Loop over each structure in file1
       if (nAt1/=nAt2) exit
       if (pg1/=pg2) cycle
       if (any(SNF1/=SNF2)) cycle
-      if (any(HNF1/=HNF2)) cycle ! same must be true for L's. No need to check
+      if (any(HNF1/=HNF2)) cycle ! L's aren't unique. Don't check those.
       if (lab1/=lab2) then ! Need to check for rotation equivalence
          c1 = 0; c2 = 0
          do i = 1,len(lab1)

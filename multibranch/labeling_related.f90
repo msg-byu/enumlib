@@ -275,8 +275,8 @@ ENDSUBROUTINE remove_label_rotation_dups
 
 !****************************************************************************************************
 ! This routine takes in the permutations effected by both translation and by rotations that fix the
-! superlattice and generates all labelings that are unique. It also super-periodic labelings
-! (non-primitive superstructures). If the "full" variables is false, it also removes
+! superlattice and generates all labelings that are unique. It also removes super-periodic labelings
+! (non-primitive superstructures). If the "full" variable is false, it also removes
 ! "label-permutation" duplicates---labelings that are not unique when the labels themselves (not
 ! their positions) are permuted (e.g., 00111 <--> 11000).  The basic idea of the routine is to run
 ! like an "odometer", generating all numbers (base k) from 0 to k^n - 1, and  then use rotation and
@@ -321,7 +321,9 @@ call get_permutations((/(i,i=0,k-1)/),labPerms)
 ic = 0; c = 0; c(0) = n ! Loop counter for fail safe; initialize digit counter
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
+   if (all(a==(/0,1,0,1/))) write(*,'("a: ",4i1,1x,i3)') a, ic
    idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
+   write(*,'(40a1)') lab
    if (idx/=ic) stop "index bug!"
    if (any(c==0)) then ! Check to see if there are missing digits
       id = id + 1; ! Keep track of the number of incomplete labelings
@@ -335,10 +337,12 @@ do; ic = ic + 1
       lab(idx) = 'U'
       ! Is the first permutation in the list guaranteed to be the identity? We need to skip the identity
       do q = 2,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
+         if (all(a==(/0,1,0,1/))) write(*,'("perm: ",4i1,1x,4i1)') perm(q,:), a(perm(q,:))
          idx = sum(a(perm(q,:))*multiplier)+1
-         if (idx==ic .and. q <= n) lab(idx)='N' ! This will happen if the coloring is superperiodic
-         ! (i.e., non-primitive superstructure). The q<=n condition makes sure we are considering a
-         ! "translation" permutation and not a rotation permutation (they're ordered in the list)
+         if (idx==ic .and. q < n) lab(idx)='N' ! This will happen if the coloring is superperiodic
+         ! (i.e., non-primitive superstructure). The q<n condition makes sure we are considering a
+         ! "translation" permutation and not a rotation permutation (they're ordered in the
+         ! list...and there are n-1 since we left out the identity)
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
       enddo
       if (.not. full) then ! loop over the label-exchange duplicates and mark them off.

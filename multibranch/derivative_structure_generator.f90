@@ -725,8 +725,8 @@ write(14,'(8x,"#tot",5x,"#size",1x,"nAt",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left tr
 if (pLatTyp=='s') then; LatDim = 2
    if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first vector must be 1,0,0'
-   if (.not. equal((/parLV(2,1),parLV(3,1)/),(/0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first component of second and third &
+   if (.not. equal((/parLV(1,2),parLV(1,3)/),(/0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first component of second and third vectors &
                & must be zero'
 else if(pLatTyp=='b') then; LatDim = 3
 else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"';endif
