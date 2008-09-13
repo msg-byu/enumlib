@@ -768,7 +768,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    Scnt = 0 ! Keep track of the number of structures at this size
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
-      call generate_unique_labelings(k,ivol*nD,rdRPList(iBlock)%perm,full,lm)
+      call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm)
       !call cpu_time(genlabels)
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.

@@ -282,8 +282,10 @@ ENDSUBROUTINE remove_label_rotation_dups
 ! like an "odometer", generating all numbers (base k) from 0 to k^n - 1, and  then use rotation and
 ! translation permutations to eliminate labelings that represent equivalent superstructures.
 
-SUBROUTINE generate_unique_labelings(k,n,perm,full,lab)
+SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab)
 integer, intent(in) :: k ! Number of colors/labels
+integer, intent(in) :: n ! Index of the superlattice
+integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
 integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
 character, pointer :: lab(:) ! Array to store markers for every raw labeling
 ! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
@@ -294,21 +296,21 @@ integer cnt ! Number of unique labelings (double check on the generator)
 integer j ! Index variable (place index) for the k-ary counter
 integer ic, i, q, ia ! loop counters, index variables
 integer nexp ! number of raw labelings that the k-ary counter should generate
-integer n ! number of labels in each labeling (i.e., determinant size)
+integer nl ! number of labels in each labeling (i.e., determinant size*d-set size)
 integer(li) idx ! the base 10 equivalent of the current base k labeling
-integer a(n), b(n) ! the "odometer"; label-permuted odometer
-integer multiplier(n) ! place values for each digit k^(i-1) for the i-th digit
+integer a(n*nD), b(n*nD) ! the "odometer"; label-permuted odometer
+integer multiplier(n*nD) ! place values for each digit k^(i-1) for the i-th digit
 integer c(0:k-1) ! running sum (count) of the number of each label type 
 integer id, iq ! Counter for labels that are duplicates, for those unique
 integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
 integer :: np, ip, nPerm, status ! Loops over label exchang permutations, number of labeling permutatations, allocate error flag
 
+nl = n*nD
 if (associated(lab)) deallocate(lab)
-allocate(lab(k**n),STAT=status)
+allocate(lab(k**nl),STAT=status)
 if(status/=0) stop "Failed to allocate memory for 'lab' in generate_unique_labelings"
-
-nexp = k**n  ! Number of digits in k-ary counter; upper limit of k-ary counter
-a = 0; multiplier = k**(/(i,i=n-1,0,-1)/) ! The counter; multiplier to convert to base 10
+nexp = k**nl  ! Number of digits in k-ary counter; upper limit of k-ary counter
+a = 0; multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert to base 10
 lab = ''; iq = 0  ! Index for labelings; number of unique labelings
 if (k>12) stop "Too many labels in 'generate_unique_labelings'"
 nPerm = size(perm,1)
@@ -318,31 +320,28 @@ call get_permutations((/(i,i=0,k-1)/),labPerms)
 !call count_full_colorings(k,d,cnt,full) ! Use the Polya polynomial to count the labelings
 !call make_translation_group(d,trgrp) ! Find equivalent translations (permutations of labelings)
 
-ic = 0; c = 0; c(0) = n ! Loop counter for fail safe; initialize digit counter
+ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
-   if (all(a==(/0,1,0,1/))) write(*,'("a: ",4i1,1x,i3)') a, ic
    idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
-   write(*,'(40a1)') lab
    if (idx/=ic) stop "index bug!"
    if (any(c==0)) then ! Check to see if there are missing digits
       id = id + 1; ! Keep track of the number of incomplete labelings
-      if (lab(idx)=='' .and. .not. full) then ! If it isn't marked and we want a partial list, mark it as "error"
+      if (lab(idx)=='' .and. .not. full) then ! If it isn't marked and we want a partial list, mark it as "incomplete"
          lab(idx) = 'I';    ! Could mark its brothers too...
       endif
    endif
-   ! If this label hasn't been marked yet, mark it as found 'U'
+   ! If this label hasn't been marked yet, mark it as unique, 'U'
    ! and mark its duplicates as 'D'
    if (lab(idx)=='') then
       lab(idx) = 'U'
       ! Is the first permutation in the list guaranteed to be the identity? We need to skip the identity
       do q = 2,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
-         if (all(a==(/0,1,0,1/))) write(*,'("perm: ",4i1,1x,4i1)') perm(q,:), a(perm(q,:))
          idx = sum(a(perm(q,:))*multiplier)+1
-         if (idx==ic .and. q < n) lab(idx)='N' ! This will happen if the coloring is superperiodic
-         ! (i.e., non-primitive superstructure). The q<n condition makes sure we are considering a
+         if (idx==ic .and. q <= n) lab(idx)='N' ! This will happen if the coloring is superperiodic
+         ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
          ! "translation" permutation and not a rotation permutation (they're ordered in the
-         ! list...and there are n-1 since we left out the identity)
+         ! list...and there are n. The first is the identity so skip that one.)
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
       enddo
       if (.not. full) then ! loop over the label-exchange duplicates and mark them off.
@@ -360,8 +359,8 @@ do; ic = ic + 1
       endif ! end block to remove label exchange duplicates
    endif
 
-   ! Advance the base-k, n-digit counter and keep track of the # of each digit (0...k-1)
-   j = n ! Reset the digit index (start all the way to the right again)
+   ! Advance the base-k, n*nD-digit counter and keep track of the # of each digit (0...k-1)
+   j = nl ! Reset the digit index (start all the way to the right again)
    do ! Check to see if we need to roll over any digits, start at the right
       if (a(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
       a(j) = 0  ! Rolling over so set to zero
@@ -374,7 +373,7 @@ do; ic = ic + 1
    a(j) = a(j) + 1 ! Update the next digit (add one to it)
    c(a(j)) = c(a(j)) + 1 ! Add 1 to the number of digits of the j+1-th kind
    c(a(j)-1) = c(a(j)-1) - 1     ! subtract 1 from the number of digits of the j-th kind
-   if (sum(c) /= n .and. .not. full) stop 'counting bug'
+   if (sum(c) /= nl .and. .not. full) stop 'counting bug'
 enddo
 if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
 ! Store the results
