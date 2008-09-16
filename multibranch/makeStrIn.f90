@@ -8,7 +8,7 @@ implicit none
 character(80) fname, title, labeling, strname
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, status
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
-real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), Binv(3,3)
+real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), Binv(3,3), sLVorig(3,3)
 real(dp), allocatable :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
 logical err
@@ -46,9 +46,10 @@ do ! loop until end of file
    HNF = 0
    HNF(1,1) = a; HNF(2,1) = b; HNF(2,2) = c
    HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
-   ! Compute the superlattice vectors 
-   sLV = matmul(p,HNF)
-   call matrix_inverse(sLV,Binv,err); if (err) stop" inverse failed"
+   sLVorig = matmul(p,HNF)
+   call matrix_inverse(real(HNF,dp),Sinv)
+   ! Make "nice" superlattice vectors (maximally orthogonal, Minkowski reduced)
+   call reduce_to_shortest_basis(sLVorig,sLV,eps)
 
    ! Find the coordinates of the basis atoms
    if(allocated(aBas)) deallocate(aBas)

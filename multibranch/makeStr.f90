@@ -8,7 +8,7 @@ implicit none
 character(80) fname, title, labeling, strname
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
-real(dp) :: p(3,3), sLV(3,3), Sinv(3,3)
+real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps
 real(dp), allocatable :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
 !character(40) dummy 
@@ -31,9 +31,11 @@ do i = 1,nD; read(11,*) dvec(:,i); enddo
 
 ! Read in the number of labels, i.e., binary, ternary, etc.
 read(11,'(i2)') k
+read(11,*)
+read(11,*) eps
 
 ! Skip to the specified structure number
-do iline = 1, strN+3
+do iline = 1, strN+1
    read(11,*)! dummy; print *,dummy
 enddo
 ! Read in the info for the given structure
@@ -46,7 +48,10 @@ HNF = 0
 HNF(1,1) = a; HNF(2,1) = b; HNF(2,2) = c
 HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
 ! Compute the superlattice vectors 
-sLV = matmul(p,HNF)
+sLVorig = matmul(p,HNF)
+call matrix_inverse(real(HNF,dp),Sinv)
+! Make "nice" superlattice vectors (maximally orthogonal, Minkowski reduced)
+call reduce_to_shortest_basis(sLVorig,sLV,eps)
 
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,nAt))
@@ -55,12 +60,10 @@ do z1 = 0, a-1
    do z2 = (b*z1)/a, c+(b*z1)/a - 1
       do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
          ic = ic + 1; if (ic > nAt) stop "Problem in basis atoms..."
-         call matrix_inverse(real(HNF,dp),Sinv)
          aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))
       enddo
    enddo
 enddo
-print *, ic
 if (ic /= nAt) stop "Not enough basis atoms..."
 
 write(strname,'("vasp.",i4.4)') strN
