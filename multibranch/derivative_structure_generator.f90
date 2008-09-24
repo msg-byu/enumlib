@@ -25,7 +25,7 @@ FUNCTION do_rotperms_form_groups(rpl)
 logical do_rotperms_form_groups
 type(RotPermList) :: rpl(:) ! The reduced (unique) set of rotation permutations lists for a given index
 
-integer nL, iL, iP, jP, nP, kP, ng, itest
+integer nL, iL, iP, jP, nP, kP, ng
 logical exists
 integer, allocatable :: testperm(:)
 
@@ -684,12 +684,12 @@ real(dp), pointer :: d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
 
-integer iD, i, ivol, LatDim, Scnt, Tcnt, iHNF, iBlock
+integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
-integer, pointer :: labelings(:,:) =>null(), SNF_labels(:) =>null(), tlab(:,:)=>null(), uqSNF(:,:,:) => null()
+integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
-real(dp) tstart, tend, removetime, organizetime, writetime,hnftime,snftime, permtime,genlabels&
-     &,blockstart,endwrite, groupcheck
+real(dp) tstart, tend!, removetime, organizetime, writetime,hnftime,snftime, permtime
+real(dp) genlabels,blockstart,endwrite
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
 type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation permutation lists
