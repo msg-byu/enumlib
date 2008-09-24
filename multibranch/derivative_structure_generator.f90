@@ -763,6 +763,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    !call cpu_time(permtime)
    call organize_rotperm_lists(RPList,rdRPList,RPLindx)
    !call cpu_time(organizetime)
+   ! This next if statement makes the run-time horrible (N^3 scaling) if enabled.
    !if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
    !call cpu_time(groupcheck)
    Scnt = 0 ! Keep track of the number of structures at this size
