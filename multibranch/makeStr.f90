@@ -56,15 +56,17 @@ call reduce_to_shortest_basis(sLVorig,sLV,eps)
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,nAt))
 ic = 0
+do iD = 1,nD
 do z1 = 0, a-1
    do z2 = (b*z1)/a, c+(b*z1)/a - 1
       do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
          ic = ic + 1; if (ic > nAt) stop "Problem in basis atoms..."
-         aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))
+         aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))+matmul(Sinv,dvec(:,iD))
       enddo
    enddo
 enddo
-if (ic /= nAt) stop "Not enough basis atoms..."
+enddo
+if (ic /= nAt*nD) stop "Not enough basis atoms..."
 
 write(strname,'("vasp.",i4.4)') strN
 open(12,file=strname)

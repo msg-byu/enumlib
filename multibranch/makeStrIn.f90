@@ -5,13 +5,14 @@ PROGRAM makeStrIn
 use num_types
 use vector_matrix_utilities
 implicit none
-character(80) fname, title, labeling, strname
-integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, status
+character(80) fname, title, labeling
+integer ioerr,  z1, z2, z3, ic, i, ilab, pgOps, nD, status
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
 real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), Binv(3,3), sLVorig(3,3)
+real(dp) :: eps
 real(dp), allocatable :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
-logical err
+
 !character(40) dummy 
 read(*,*) fname
 open(11,file=fname,status='old',iostat=ioerr)
@@ -33,7 +34,9 @@ do i = 1,nD; read(11,*) dvec(:,i); enddo
 
 ! Read in the number of labels, i.e., binary, ternary, etc.
 read(11,'(i2)') k
-do i = 1,4; read(11,*); enddo ! skip 4 lines to get to the beginning of the structure list
+read(11,*) ! Skip one line
+read(11,*) eps
+do i = 1,2; read(11,*); enddo ! skip 4 lines to get to the beginning of the structure list
 
 open(12,file="structures.in") ! The output goes in this file (despite the "in" name)
 do ! loop until end of file
@@ -48,6 +51,7 @@ do ! loop until end of file
    HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
    sLVorig = matmul(p,HNF)
    call matrix_inverse(real(HNF,dp),Sinv)
+   call matrix_inverse(p,Binv)
    ! Make "nice" superlattice vectors (maximally orthogonal, Minkowski reduced)
    call reduce_to_shortest_basis(sLVorig,sLV,eps)
 
