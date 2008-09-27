@@ -9,7 +9,7 @@ import string
 import sys
 
 system('clear') # Clear the screen and start fresh
-rs=system('make')  # need the exit status here...
+rs=system('make multienum.x')  # need the exit status here...
 if rs!=0: sys.exit("\n\nCompilation Failed\n")
 
 tests=glob.glob('tests/struct_enum.in.*')
@@ -24,7 +24,7 @@ for itest in tests:
     print string.rstrip(f.readline()) # Print corresponding line from "testlist"
 
     copyfile('tests/struct_enum.in.'+Nt,'struct_enum.in')
-    system('./enum.x')
+    system('./multienum.x')
     # Check for difference between this run and saved output 
     rs=system('diff -q  struct_enum.out tests/struct_enum.out.'+Nt)
     

@@ -2,28 +2,29 @@
 # multiple platforms/compilers. Branch according to an environmental
 # variable F90. I wish someone would show me a better way of doing this.
 #
+LBDR = ../../celib
+FOUND = false
 ifeq (${F90},ifc)  # Intel compiler
-  LBDR = ../celib
-  FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn -heap-arrays -I${LBDR}
+  FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},ifort)  # Intel compiler
+#  F90 =  /opt/intel/fc/10.0.016/bin/ifort
   F90 = ifort
-  LBDR = ../celib
-  FFLAGS =  -g -debug -error-limit 7 -traceback -check bounds -warn -e95 -heap-arrays -I${LBDR}
+  FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -e95 -I${LBDR} 
+#-prof-use -prof-dir .
   FOUND = true
 endif
 ifeq (${F90},xlf90) # IBM compiler
-  LBDR = ../celib
   FFLAGS = -g -C -qsuffix=f=f90  -I${LBDR}
   FOUND = true
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
-  LBDR = ../celib
-  FFLAGS = -g -Rb -Rc -z2 -et -nodefaultmod -p ${LBDR} 
-#  FFLAGS = -O3 -nodefaultmod -p ../guslib/ #-ea
+#  FFLAGS =  -profile -p ${LBDR} 
+  FFLAGS = -g -Rb -Rc  -nodefaultmod -p ${LBDR} #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
+# -O3 optimization
 # -ea stop after one error 
   FOUND = true
 endif
@@ -36,15 +37,16 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
-SRC = enumeration_types.f90 labeling_related.f90 derivative_structure_generator.f90 \
+SRC = sorting.f90 enumeration_types.f90 labeling_related.f90 derivative_structure_generator.f90 \
 	io_utils.f90 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
          ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
 
-# The blank line undefines all suffix rules. The second redefines only those for fortran.
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
+
+
 
 libenum.a: ${OBJS}
 	ar ru $@ $?
@@ -52,7 +54,7 @@ libenum.a: ${OBJS}
 
 all: libenum.a enum.x compare.x
 
-enum.x: ${OBJS} driver.o
+multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
 compare.x: compare.o
@@ -61,14 +63,20 @@ compare.x: compare.o
 2Dplot.x: make2Dplot.o splot.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
 
+makestr.x: makeStr.o
+	${F90} ${LDFLAGS} -o $@ makeStr.o ${LIBS}
+
+makestructin.x: makeStrIn.o
+	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS}
+
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
-
 .f90.o : 
 	${F90} ${FFLAGS} -c $<
-
 .f.o : 
 	${F90} -c $<
+
+
 
 CLEAN  = *.o *.mod *.a
 clean : 

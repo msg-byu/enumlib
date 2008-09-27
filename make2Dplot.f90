@@ -4,31 +4,41 @@ PROGRAM make2Dplot
 use num_types
 use vector_matrix_utilities
 implicit none
-character(80) fname, title, labeling
-integer ioerr,  i,j,  is,js
+character(80) fname, title, labeling, dummy
+integer ioerr,  i,j,  is,js, iD, nD
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f,  fullL(3,3), pgOps,&
      & label, L(2,2), temp(2), Nspots, rows, cols, indx
 real(sp) :: p(3,3),  scale
 real(sp) :: xorig, yorig, parLat(2,2),point(2),yoff,xoff
- 
+real(dp), allocatable :: dvec(:,:)
+
+print *,"Input file name (struct_enum.out format)"
 read(*,*) fname
 open(11,file=fname,status='old',iostat=ioerr)
 if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);endif
 ! Read in the title from the struct_enum.out file
 read(11,'(a80)') title; title = trim(title)
-
+read(11,*) dummy ! Read in surf/bulk
+ 
 ! Read in the parent lattice vectors
 do i = 1,3; read(11,*) p(:,i); enddo
 parLat = p(2:3,2:3)
 
+! Read in the basis vectors for the d-set
+read(11,*) nD
+allocate(dvec(3,nD))
+do i = 1,nD
+   read(11,*) dvec(:,i)
+enddo
+
 ! Read in the number of labels, i.e., binary, ternary, etc.
 read(11,'(i2)') k
-read(11,*) ! Skip the line with the header labels
+do i = 1,4;read(11,*);enddo ! Skip 4 lines
 
 scale = .16
-Nspots = 10
-rows = 16
-cols = 10
+Nspots = 8
+rows = 24
+cols = 14
 call init(scale,-10.0,-2.0)
 call init_colors
 
@@ -52,25 +62,27 @@ outer: do js = 1,rows
       indx = diag(2)*diag(3)
       do i = 0,Nspots-2
          do j = 0,Nspots-2
-            point = i*parLat(:,1)+j*parLat(:,2)+(/xoff,yoff/)
+            do iD = 1, nD
+            point = i*parLat(:,1)+j*parLat(:,2)+(/xoff,yoff/)+dvec(2:3,iD)
             temp = modulo(matmul(L,((/i,j-1/))),&
                  ((/diag(2),diag(3)/)))
             !if (temp(1) < 0) temp(1) = temp(1) + diag(2)
             !if (temp(2) < 0) temp(2) = temp(2) + diag(3)
             if (any(temp<0)) stop "less than zero"
-            label = (temp(2)+temp(1)*diag(3))+1  
+            label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
             if (labeling(label:label)=='1') then
                 call color('black')
-                call bullet(point(1),point(2),.45)
+                call bullet(point(1),point(2),.25)
             else if (labeling(label:label)=='2') then
                   call color('blue')
                   call bullet(point(1),point(2),.35)
             else
                if (diag(2)==1) then; call color('red');
                   else; call color('green'); endif
-                  call bullet(point(1),point(2),.35)
+                  call bullet(point(1),point(2),.25)
                endif
                !print *, point, labeling(label:label)
+            enddo
             enddo
          enddo
 
