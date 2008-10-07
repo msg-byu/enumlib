@@ -55,13 +55,13 @@ call matrix_inverse(real(HNF,dp),Sinv)
 call reduce_to_shortest_basis(sLVorig,sLV,eps)
 
 ! Find the coordinates of the basis atoms
-allocate(aBas(3,nAt))
+allocate(aBas(3,nAt*nD))
 ic = 0
 do i = 1,nD
 do z1 = 0, a-1
    do z2 = (b*z1)/a, c+(b*z1)/a - 1
       do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
-         ic = ic + 1; if (ic > nAt) stop "Problem in basis atoms..."
+         ic = ic + 1; if (ic > nAt*nD) stop "Problem in basis atoms..."
          aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))+matmul(Sinv,dvec(:,i))
       enddo
    enddo
@@ -86,7 +86,7 @@ enddo
 write(12,*) ! Start next line
 write(12,'("D")')
 do ilab = 0,k-1
-   do i = 1, nAt
+   do i = 1, nAt*nD
       if (labeling(i:i)==achar(ilab+48)) write(12,'(3f12.8)') aBas(:,i)
    enddo
 enddo
