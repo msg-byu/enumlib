@@ -8,7 +8,7 @@ implicit none
 character(80) fname, title, labeling, strname
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
-real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps
+real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3)
 real(dp), allocatable :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
 !character(40) dummy 
@@ -50,9 +50,11 @@ HNF(1,1) = a; HNF(2,1) = b; HNF(2,2) = c
 HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
 ! Compute the superlattice vectors 
 sLVorig = matmul(p,HNF)
-call matrix_inverse(real(HNF,dp),Sinv)
+!call matrix_inverse(real(HNF,dp),Sinv)
 ! Make "nice" superlattice vectors (maximally orthogonal, Minkowski reduced)
 call reduce_to_shortest_basis(sLVorig,sLV,eps)
+call matrix_inverse(sLV,Sinv)
+
 
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,nAt*nD))
@@ -63,6 +65,12 @@ do z1 = 0, a-1
       do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
          ic = ic + 1; if (ic > nAt*nD) stop "Problem in basis atoms..."
          aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))+matmul(Sinv,dvec(:,i))
+         v = aBas(:,ic)
+         do while(any(v >= 1.0_dp - eps) .or. any(v < 0.0_dp - eps)) 
+            v = merge(v, v - 1.0_dp, v <  1.0_dp - eps) 
+            v = merge(v, v + 1.0_dp, v >= 0.0_dp - eps)
+         enddo
+         aBas(:,ic) = v
       enddo
    enddo
 enddo
