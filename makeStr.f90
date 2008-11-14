@@ -14,6 +14,9 @@ character(1) bulksurf
 !character(40) dummy 
 read(*,*) fname, strN
 !fname = "out.fcc.binary.17"; strN=14
+
+call read_nth_line_from_enumlist()
+
 open(11,file=fname,status='old',iostat=ioerr)
 if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);endif
 ! Read in the title from the struct_enum.out file

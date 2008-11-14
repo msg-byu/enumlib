@@ -771,6 +771,11 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       !call cpu_time(blockstart)
       call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm)
       !call cpu_time(genlabels)
+      !print *, "block",iBlock
+      !print *, shape(rdRPList(iBlock)%perm), "shape"
+      !do i = 1,size(rdRPList(iBlock)%perm,1)
+      !   write(*,'(8i1)') rdRPList(iBlock)%perm(i,:)
+      !enddo
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
       call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,RPLindx,lm)

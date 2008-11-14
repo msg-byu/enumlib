@@ -24,9 +24,20 @@ endtype LabelRotationList
 type derivCryst 
    integer :: diag(3)   ! diagonal elements of the SNF
    real(dp):: pLat(3,3) ! Parent lattice
-   integer, pointer :: HNF(:,:)! Hermite Normal Forms for each SNF
+   integer, pointer :: HNF(:,:,:)! Hermite Normal Forms for each SNF
    integer, pointer :: L(:,:,:)  ! Left SNF transformation
-   integer, pointer :: label(:,:)! list of configurations
+   integer, pointer :: labeling(:,:)! list of configurations
 endtype derivCryst
 
+type derivStruct
+   integer :: diag(3)   ! diagonal elements of the SNF
+   real(dp):: pLat(3,3) ! Parent lattice
+   real(dp), pointer :: dVec(:,:) ! a 3xn list of the parent basis vectors
+   integer :: nD ! Number of dVectors
+   integer :: HNF(3,3)! Hermite Normal Forms for each SNF
+   integer :: L(3,3)  ! Left SNF transformation
+   integer n ! index, number of parent cells in the super 
+   integer, pointer :: labeling(:)! list of labels
+   integer, pointer :: conc(:) ! Number of atoms of each type in labeling
+endtype derivStruct
 ENDMODULE
