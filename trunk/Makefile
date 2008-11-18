@@ -49,8 +49,8 @@ LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
 
 
 libenum.a: ${OBJS}
-	ar ru $@ $?
-	ranlib  $@
+	ar ru ../$@ $?
+	ranlib  ../$@
 
 all: libenum.a enum.x compare.x
 
