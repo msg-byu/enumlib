@@ -2,7 +2,7 @@
 # multiple platforms/compilers. Branch according to an environmental
 # variable F90. I wish someone would show me a better way of doing this.
 #
-LBDR = ../celib
+LBDR = ../../celib
 FOUND = false
 ifeq (${F90},ifc)  # Intel compiler
   FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}

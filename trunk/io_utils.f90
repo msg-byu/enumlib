@@ -4,57 +4,8 @@ use numerical_utilities
 use vector_matrix_utilities
 implicit none
 private
-public read_input, read_nth_struct_from_enumlist
+public read_input
 CONTAINS
-
-!***************************************************************************************************
-SUBROUTINE read_nth_struct_from_enumlist(fname,title,bulksurf,k,p,HNF,labeling,eps)
-character(*), intent(in) :: fname ! File to seach (assumes same format as struct_enum.out)
-character(*), intent(out):: title, bulksurf, labeling
-real(dp), intent(out) :: p(3,3), eps
-real(dp), pointer :: dvec(:,:)
-integer, intent(out) :: k, HNF(3,3)
-
-integer :: nD, iline, strN, sizeN, nAt, pgOps, diag(3), a, b, c, d, e, f, L(3,3), ioerr, i
-real(dp):: Binv(3,3)
-
-open(11,file=fname,status='old',iostat=ioerr)
-if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);endif
-! Read in the title from the struct_enum.out file
-read(11,'(a80)') title; title = trim(title)
-
-! Read in surf/bulk mode marker
-read(11,'(a1)') bulksurf
-
-! Read in the parent lattice vectors
-do i = 1,3; read(11,*) p(:,i); enddo
-call matrix_inverse(p,Binv)
-
-! Read in the number of d-vectors, then read each one in
-read(11,*) nD
-allocate(dvec(3,nD))
-do i = 1,nD; read(11,*) dvec(:,i); enddo
-
-! Read in the number of labels, i.e., binary, ternary, etc.
-read(11,'(i2)') k
-read(11,*)
-read(11,*) eps
-
-! Skip to the specified structure number
-do iline = 1, strN+1
-   read(11,*)! dummy; print *,dummy
-enddo
-! Read in the info for the given structure
-read(11,*) strN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
-close(11)
-!print *, strN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f,L,labeling
-
-! Define the full HNF matrix
-HNF = 0
-HNF(1,1) = a; HNF(2,1) = b; HNF(2,2) = c
-HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
-
-ENDSUBROUTINE read_nth_line_from_enumlist
 
 !***************************************************************************************************
 subroutine read_input(title,LatDim,pLV,nD,d,k,Nmin,Nmax,eps,full)
