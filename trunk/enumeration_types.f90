@@ -21,6 +21,7 @@ type LabelRotationList ! A list of indices corresponding to label rotations
    integer, pointer :: lr(:)
 endtype LabelRotationList
 
+! Not used yet. Not clear that it is useful.
 type derivCryst 
    integer :: diag(3)   ! diagonal elements of the SNF
    real(dp):: pLat(3,3) ! Parent lattice

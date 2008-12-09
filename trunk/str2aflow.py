@@ -17,11 +17,12 @@ systype = re.sub(' ','',systype) # Strip trailing blanks
 g=open('struct_enum.aflow.'+systype,'w')
 
 # Skip the next 11 lines of the struct_enum.out file
-skip = range(11)
+skip = range(12)
 for i in skip:
     s = f.readline()
     g.write(s)
 for s in f:
+    #print s;
     m = r1.match(s)
     g.write(re.sub(r1,'['+tag+systype+']'+m.group(1)+tag+systype+m.group(2)+' ???',s))
 f.close
