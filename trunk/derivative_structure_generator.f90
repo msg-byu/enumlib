@@ -704,8 +704,10 @@ write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
 write(14,'(a10)') title
-if (pLatTyp=='s') write(14,'(a4)') "surf"
-if (pLatTyp=='b') write(14,'(a4)') "bulk"
+if (pLatTyp=='S') then; write(14,'(a4)') "surf"
+elseif (pLatTyp=='B') then; write(14,'(a4)') "bulk"
+else; stop '"pLatTyp" not defined in gen_multilattice_derivs in enumlib'; endif
+
 do i = 1,3
    write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
 enddo

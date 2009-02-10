@@ -20,7 +20,7 @@ if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);endi
 ! Read in the title from the struct_enum.out file
 read(11,'(a80)') title; title = trim(title)
 
-! Reand in surf/bulk mode marker
+! Read in surf/bulk mode marker
 read(11,'(a1)') bulksurf
 
 ! Read in the parent lattice vectors
@@ -40,6 +40,7 @@ read(11,*) eps
 do i = 1,2; read(11,*); enddo ! skip 4 lines to get to the beginning of the structure list
 
 open(12,file="structures.in") ! The output goes in this file (despite the "in" name)
+write(12,'("peratom")')
 do ! loop until end of file
    ! Read in the info for the given structure
    read(11,*,iostat=status) strN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
@@ -102,6 +103,6 @@ do ! loop until end of file
          endif
       enddo
    enddo
-   write(12,'("0.00 # Energy",/,"#")')
+   write(12,'("0.00 0.00# Energy",/,"#")')
 enddo
 END PROGRAM makeStrIn
