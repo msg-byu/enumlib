@@ -103,6 +103,6 @@ do ! loop until end of file
          endif
       enddo
    enddo
-   write(12,'("0.00 0.00# Energy",/,"#")')
+   write(12,'("0.00 0.00 #Energy and energy factor ",/,"#")')
 enddo
 END PROGRAM makeStrIn
