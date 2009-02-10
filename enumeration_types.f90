@@ -21,6 +21,12 @@ type LabelRotationList ! A list of indices corresponding to label rotations
    integer, pointer :: lr(:)
 endtype LabelRotationList
 
+type cryst ! a structure with a "real-space" definition
+   real(dp) :: LV(3,3)
+   real(dp), pointer :: bas(:,:) ! 3xn array of atom positions
+   integer, pointer :: aTyp(:) ! array of n integers indicating the atom type of each atomic basis
+endtype cryst
+
 ! Not used yet. Not clear that it is useful.
 type derivCryst 
    integer :: diag(3)   ! diagonal elements of the SNF
