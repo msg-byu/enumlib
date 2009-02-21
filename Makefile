@@ -12,13 +12,26 @@ ifeq (${F90},ifc)  # Intel compiler
   FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
   FOUND = true
 endif
+
 ifeq (${F90},ifort)  # Intel compiler
+  ifeq (${DEBUG},false)
+     FFLAGS =  -O3 -xW -I${LBDR} 
+     FOUND = true
+  endif
+  ifeq (${DEBUG},true)
 #  F90 =  /opt/intel/fc/10.0.016/bin/ifort
-  F90 = ifort
-  FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -e95 -I${LBDR} 
+     FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -e95 -I${LBDR} 
 #-prof-use -prof-dir .
-  FOUND = true
+     FOUND = true
+  endif
+  ifeq (${DEBUG},)
+     FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -e95 -I${LBDR}  
+     FOUND = true
+  endif
+
 endif
+
+
 ifeq (${F90},xlf90) # IBM compiler
   FFLAGS = -g -C -qsuffix=f=f90  -I${LBDR}
   FOUND = true
