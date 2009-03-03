@@ -704,9 +704,10 @@ write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
 write(14,'(a10)') title
-if (pLatTyp=='S') then; write(14,'(a4)') "surf"
-elseif (pLatTyp=='B') then; write(14,'(a4)') "bulk"
-else; stop '"pLatTyp" not defined in gen_multilattice_derivs in enumlib'; endif
+if (pLatTyp=='S'.or.pLatTyp=="s") then; write(14,'(a4)') "surf"
+elseif (pLatTyp=='B'.or.pLatTyp=="b") then; write(14,'(a4)') "bulk"
+else; print *,"pLatTyp:",pLatTyp
+stop '"pLatTyp" not defined in gen_multilattice_derivs in enumlib'; endif
 
 do i = 1,3
    write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
@@ -721,7 +722,7 @@ write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
-write(14,'(8x,"#tot",5x,"#size",1x,"idx",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+write(14,'("start",3x,"#tot",5x,"#size",1x,"idx",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
@@ -782,7 +783,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       ! Now that we have the labeling marker, we can write the output.
       call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,RPLindx,lm)
       !call cpu_time(endwrite)
-      write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
+      !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
    !call cpu_time(writetime)
    call cpu_time(tend)
