@@ -684,7 +684,7 @@ real(dp), pointer :: d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
 
-integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock
+integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
 integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -722,7 +722,7 @@ write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
-write(14,'("start",3x,"#tot",5x,"#size",1x,"idx",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+write(14,'("start",3x,"#tot",6x,"HNF",4x,"#size",1x,"idx",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
@@ -737,8 +737,9 @@ else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"
 ! The permutations of the interior points (d-vectors) under symmetry operations of the parent
 ! multilattice are used later on. Generate them here
 call get_dvector_permutations(parLV,d,ParRPList,eps)
-! This part generates all the derivative structures. Results are writen to unit 14.
+! This part generates all the derivative structures. Results are written to unit 14.
 Tcnt = 0 ! Keep track of the total number of structures generated
+HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax !max(k,nMin),nMax
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
@@ -781,7 +782,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       !enddo
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
-      call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,RPLindx,lm)
+      call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm)
       !call cpu_time(endwrite)
       !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
