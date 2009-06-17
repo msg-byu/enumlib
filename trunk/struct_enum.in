@@ -1,11 +1,12 @@
-fcc 
+fcc       
 bulk
-.5 .5 0
-.5 0  .5
-0 .5 .5
-1
-0 0 0
-2
-2 12
-.0001
-full
+1 0 0
+0 1 0
+0 0 1
+1 # Number of points in the multilattice
+ 0.0000000      0.0000000      0.0000000        # d01 d-vector
+ 2 -nary case
+   1   4 # Starting and ending cell sizes for search
+0.10000000E-03 # Epsilon (finite precision parameter)
+full list of labelings
+

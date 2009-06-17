@@ -83,6 +83,9 @@ compare.x: compare.o
 makestr.x: makeStr.o
 	${F90} ${LDFLAGS} -o $@ makeStr.o ${LIBS}
 
+makeperovstr.x: makePerovStr.o
+	${F90} ${LDFLAGS} -o $@ makePerovStr.o ${LIBS}
+
 makestructin.x: makeStrIn.o
 	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS}
 

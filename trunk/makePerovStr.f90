@@ -8,12 +8,20 @@ implicit none
 character(80) fname, title, labeling, strname, strNstring
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, hnfN, iFace
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
-real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3), Binv(3,3), sLVinv(3,3)
+real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3), Binv(3,3), sLVinv(3,3), face(3,3)
 real(dp), allocatable :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
 character(40) dummy 
+character(2) label(4)
 
-if(iargc()/=2) stop "makestr.x requires two arguments: &
+face(:,1) = (/0.5_dp,0.5_dp,0._dp /)
+face(:,2) = (/0.5_dp,0._dp ,0.5_dp/)
+face(:,3) = (/0._dp ,0.5_dp,0.5_dp/)
+label(1) = "A"
+label(2) = "A'"
+label(3) = "B"
+label(4) = "Ox"
+if(iargc()/=2) stop "makeperovstr.x requires two arguments: &
                & the filename to read from and the number of the structure"
 call getarg(1,dummy)
 read(dummy,*) fname
@@ -97,9 +105,12 @@ do i = 0, k-1
    enddo
    write(12,'(i3,1x)',advance='no') ic
 enddo
+! Write out the "unalloyed non oxygen atoms" and the oxygens
+write(12,'(3(i3,1x))',advance='no') nAt*nD, nAt*nD*3
 write(12,*) ! Start next line
 write(12,'("D")')
-do ilab = 0,k-1
+
+do ilab = 0,k-1 ! Write out the "alloy" atoms 
    do i = 1, nAt*nD
       if (labeling(i:i)==achar(ilab+48)) then 
          v = matmul(sLVinv,matmul(sLVorig,aBas(:,i)))
@@ -107,9 +118,31 @@ do ilab = 0,k-1
             v = merge(v, v - 1.0_dp, v <  1.0_dp - eps) 
             v = merge(v, v + 1.0_dp, v >= 0.0_dp - eps)
          enddo
-         write(12,'(3f12.8)') v
+         write(12,'(3f12.8,1x,a2)') v,label(ilab+1)
          !write(*,'(3f12.8)') aBas(:,i)
       endif
    enddo
 enddo
+
+do i = 1, nAt*nD ! Write out the B atoms
+   v = matmul(sLVinv,matmul(sLVorig,aBas(:,i))+(/.5_dp,.5_dp,.5_dp/))
+   do while(any(v >= 1.0_dp - eps) .or. any(v < 0.0_dp - eps)) 
+      v = merge(v, v - 1.0_dp, v <  1.0_dp - eps) 
+      v = merge(v, v + 1.0_dp, v >= 0.0_dp - eps)
+   enddo
+   write(12,'(3f12.8,1x,a2)') v, label(3)
+enddo
+
+do i = 1, nAt*nD ! Write out the oxygen atoms
+   do iFace = 1,3
+      v = matmul(sLVinv,matmul(sLVorig,aBas(:,i))+face(:,iFace))
+      do while(any(v >= 1.0_dp - eps) .or. any(v < 0.0_dp - eps)) 
+         v = merge(v, v - 1.0_dp, v <  1.0_dp - eps) 
+         v = merge(v, v + 1.0_dp, v >= 0.0_dp - eps)
+      enddo
+      write(12,'(3f12.8,1x,a2)') v, label(4)
+   enddo
+enddo
+
+
 END PROGRAM makeStr
