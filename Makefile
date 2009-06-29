@@ -101,7 +101,6 @@ makestructin.x: makeStrIn.o
 CLEAN  = *.o *.mod *.a
 clean : 
 	rm -f ${CLEAN}
-	make
 clobber : 
 	rm -f  ${CLEAN}  *~ \#*
 	make

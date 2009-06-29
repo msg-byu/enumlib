@@ -36,12 +36,24 @@ integer iHNF, jHNF, il, i, iP, ilab  ! counters
 integer :: labeling(n*nD) ! base-k, n-digit number representing the labeling
 integer(li) :: labIndx ! base-10 form of the labeling
 integer status ! Allocation exit flag
+integer ivsL
 
 if (any(lm=='')) stop "Labeling index has unmarked entries"
 nl = count(lm=='U'); nHNF = count(permIndx==HNFi)
 allocate(vsH(nHNF),vsL(nl),STAT=status); if (status/=0) stop "Allocation failed in write_labelings: vsH, vsL"
 
-vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); vsL = pack((/(i,i=1,size(lm))/), lm=='U')
+! Packing...
+vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); 
+
+! The pack operation, although really neat and fast, runs more often than not into a segfault problem
+! here. TK could not come up with a reasonable answer, but as sure as fire, the ifort is once again to blame.
+! If you compile without any optimisation, it's ok, turning on optimisation, it fails. Thus, TK resorts
+! to a "0815" do-loop-solution.
+! TK: removed: vsL = pack((/(i,i=1,size(lm))/), lm=='U')
+! TK: inserted:
+ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; enddo
+
+! end of packing.
 
 do il = 1, nl ! Loop over the unique labelings
    labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
