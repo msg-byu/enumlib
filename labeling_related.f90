@@ -65,7 +65,7 @@ do il = 1, nl ! Loop over the unique labelings
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
       Tcnt = Tcnt + 1; Scnt = Scnt + 1
       jHNF = vsH(iHNF) ! Index of matching HNFs
-      write(14,'(i11,1x,i9,1x,i6,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
+      write(14,'(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
            Tcnt, Hcnt+iHNF,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
            HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
            HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),labeling   
