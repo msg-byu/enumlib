@@ -18,7 +18,7 @@ CONTAINS
 ! in the output file. Re-expanding the base-10 index to base-k when it was already done once in the
 ! generate_unique_labelings routine is not efficient CPU-wise but save lots of memory since the
 ! labelings are never stored in memory except as a base-10 number.
-SUBROUTINE write_labelings(k,n,nD,HNFi,HNFlist,SNFlist,L,fixOp,Tcnt,Scnt,Hcnt,permIndx,lm)
+SUBROUTINE write_labelings(k,n,nD,HNFi,HNFlist,SNFlist,L,fixOp,Tcnt,Scnt,Hcnt,permIndx,lm,number_ElementN,number_Range)
 integer, intent(in) :: k ! number of colors/labels
 integer, intent(in) :: n, nD ! index (size of supercell), size of d-set
 integer, intent(in) :: HNFi ! Index in the permIndx corresponding to the current block of HNFs
@@ -27,6 +27,8 @@ type(opList), intent(in) :: fixOp(:)
 integer, intent(inout) :: Tcnt, Scnt, Hcnt ! counters for total number of labelings and number of this size and HNF running total 
 integer, intent(in) :: permIndx(:)
 character, intent(in) :: lm(:)
+integer, intent(in) :: number_ElementN
+integer, intent(in) :: number_Range(2)
 
 integer nHNF ! Number of HNFs in the list that match the current block index, HNFi
 integer, allocatable :: vsH(:), vsL(:) ! Vector subscript for matching the HNF index to the HNF list
@@ -63,15 +65,34 @@ do il = 1, nl ! Loop over the unique labelings
       labIndx = quot ! reduce current index to just the quotient and keep going
    enddo
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
-      Tcnt = Tcnt + 1; Scnt = Scnt + 1
       jHNF = vsH(iHNF) ! Index of matching HNFs
-      write(14,'(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
-           Tcnt, Hcnt+iHNF,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
-           HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
-           HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),labeling   
+      if (check_labeling_numbers(labeling,number_ElementN,number_Range)) then
+        Tcnt = Tcnt + 1; Scnt = Scnt + 1
+        write(14,'(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
+             Tcnt, Hcnt+iHNF,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
+             HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
+             HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),labeling   
+      endif
    enddo ! loop over HNFs
 enddo ! loop over labelings
 Hcnt = Hcnt + nHNF
+
+contains
+
+logical function check_labeling_numbers(labeling,el,range)
+integer, intent(in) :: labeling(:)
+integer, intent(in) :: el
+integer, intent(in) :: range(2)
+integer             :: c
+
+c = count(labeling==el-1)
+if (c>=range(1) .and. c<= range(2)) then
+  check_labeling_numbers = .true.
+else
+  check_labeling_numbers = .false.
+endif
+end function check_labeling_numbers
+
 ENDSUBROUTINE write_labelings
 
 !***************************************************************************************************

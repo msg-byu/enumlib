@@ -676,13 +676,20 @@ END SUBROUTINE get_HNF_2D_diagonals
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
 ! implemented here has been slightly reorder from the original routine and that discussed in the
 ! first paper.
-SUBROUTINE gen_multilattice_derivatives(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full)
+SUBROUTINE gen_multilattice_derivatives(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full, conc_check,conc_ElementN, conc_Range)
 integer, intent(in) :: k, nMin, nMax, nD 
 character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3), eps
 real(dp), pointer :: d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
+logical, intent(in)            :: conc_check
+integer , optional             :: conc_ElementN
+real(dp), optional             :: conc_Range(2)
+integer                        :: cElementN
+real(dp)                       :: cRange(2)
+integer                        :: icRange(2)
+
 
 integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
@@ -697,7 +704,25 @@ type(RotPermList) :: ParRPList ! Just the list for the parent lattice
 integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
+
+if (.not. conc_check) then
+  cElementN = 1
+  cRange    = (/0._dp,1._dp/)
+else
+  cElementN = conc_ElementN
+  cRange    = conc_Range
+endif
+
+write(*,'(A)') "---------------------------------------------------------------------------------------------"
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
+
+if (conc_check) then
+  write(*,'(A)') "Including only structures of which the concentration of"
+  write(*,'(A,I5)') "   element             ", cElementN
+  write(*,'(A)') "is in the"
+  write(*,'(A,2(F5.3,1x))') "   concentration range ", cRange
+endif
+
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
 
@@ -719,9 +744,17 @@ enddo
 write(14,'(i2,"-nary case")') k
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
 write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
+write(14,'(A)') "Concentration check:"
+write(14,'(L5)') conc_check
+if (conc_check) then
+  write(14,'(A,1x,I5,1x,A,I5,A)') "* Check concentration of element : ", cElementN, "(denoted by ", cElementN-1,")"
+  write(14,'(A,1x,2(F5.3,1x))')   "* Allowed concentration range    : ", cRange(:)
+endif
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
+
+
 write(14,'("start",3x,"#tot",6x,"HNF",4x,"#size",1x,"idx",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
@@ -741,6 +774,9 @@ call get_dvector_permutations(parLV,d,ParRPList,eps)
 Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax !max(k,nMin),nMax
+
+   icRange = ivol*nD*cRange
+
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
       call get_all_HNFs(ivol,HNF)  ! 3D
@@ -782,7 +818,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       !enddo
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
-      call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm)
+      call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,cElementN,icRange)
       !call cpu_time(endwrite)
       !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
@@ -794,6 +830,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    !     &,organizetime-permtime,groupcheck-organizetime,writetime-groupcheck,tend-tstart
 enddo ! loop over cell sizes (ivol)
 close(14)
+write(*,'(A)') "---------------------------------------------------------------------------------------------"
 
 ENDSUBROUTINE gen_multilattice_derivatives
 END MODULE derivative_structure_generator
