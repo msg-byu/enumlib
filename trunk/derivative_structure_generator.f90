@@ -718,9 +718,9 @@ write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin,
 
 if (conc_check) then
   write(*,'(A)') "Including only structures of which the concentration of"
-  write(*,'(A,I5)') "   element             ", cElementN
+  write(*,'(A,I6)') "   element             ", cElementN
   write(*,'(A)') "is in the"
-  write(*,'(A,2(F5.3,1x))') "   concentration range ", cRange
+  write(*,'(A,2(F6.3,1x))') "   concentration range ", cRange
 endif
 
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
@@ -747,8 +747,8 @@ write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
 write(14,'(A)') "Concentration check:"
 write(14,'(L5)') conc_check
 if (conc_check) then
-  write(14,'(A,1x,I5,1x,A,I5,A)') "* Check concentration of element : ", cElementN, "(denoted by ", cElementN-1,")"
-  write(14,'(A,1x,2(F5.3,1x))')   "* Allowed concentration range    : ", cRange(:)
+  write(14,'(A,1x,I6,1x,A,I6,A)') "* Check concentration of element : ", cElementN, "(denoted by ", cElementN-1,")"
+  write(14,'(A,1x,2(F6.3,1x))')   "* Allowed concentration range    : ", cRange(:)
 endif
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
