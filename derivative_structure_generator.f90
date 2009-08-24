@@ -539,21 +539,8 @@ temp_hnf = hnf
 
 ! For the 2D case, eliminate the "3D" operations.
 if (LatDim==2) then
-   allocate(tSGrots(3,3,nRot),STAT=status)
-   if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: tSGrots"
-   irot = 0
-   do i = 1, nRot
-      if (equal(sgrots(2:3,1,i),0._dp,eps) .and. equal(sgrots(1,2:3,i),0._dp,eps) .and.&
-           & equal(sgrots(1,1,i),1._dp,eps)) then ! this operation is "2D"
-         irot = irot + 1
-         tSGrots(:,:,irot) = sgrots(:,:,i)
-      endif
-   enddo
-   nRot = irot
-   deallocate(sgrots)
-   allocate(sgrots(3,3,nRot),STAT=status)
-if(status/=0) stop "Allocation of sgrots failed in remove_duplicate_lattices, module deriv..."
-   sgrots=tSGrots(:,:,1:nRot)
+   call rm_3d_operations(parent_lattice,sgrots,eps)
+   nRot = size(sgrots,3)
 endif
 
 ! For each HNF in the list, see if it is a derivative lattice of a preceding
