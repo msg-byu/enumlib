@@ -4,7 +4,7 @@ implicit none
 private
 public derivCryst, opList, LabelRotationList, RotPermList
 
-type RotPermList
+type RotPermList ! List of permutations that are equivalent 
    integer, pointer :: perm(:,:) ! First index is the permutation number
    integer, pointer :: RotIndx(:) ! Which rotations in the list fix the superlattice
    integer nL ! Number of permutations in the list (perm is nL x nAtoms)

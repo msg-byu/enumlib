@@ -15,11 +15,21 @@ real(dp) :: parLV(3,3)
 
 character(80) title
 logical fullLab
-
+integer, pointer :: labels(:,:)
+integer, pointer :: digits(:)
 call read_input(title,LatDim,parLV,nD,d,k,nMin,nMax,eps,fullLab) ! Read in parent lattice vectors, etc.
 if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
 ! With test case 006 there is a problem with the original code. label rotation fails...
 ! call generate_derivative_structures(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
+
+!allocate(labels(3,4),digits(4))
+!labels(:,1) = (/3,1,0/)
+!labels(:,2) = (/0,2,0/)
+!labels(:,3) = (/1,4,0/)
+!labels(:,4) = (/0,1,2/)
+!digits =(/2,2,2,3/)
+!
+!call mixed_radix_counter(labels,digits)
 
 call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,conc_check=.false.)
 
