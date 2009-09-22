@@ -9,7 +9,7 @@ import string
 import sys
 
 system('clear') # Clear the screen and start fresh
-rs=system('make multienum.x')  # need the exit status here...
+rs=system('make')  # need the exit status here...
 if rs!=0: sys.exit("\n\nCompilation Failed\n")
 
 tests=glob.glob('tests/struct_enum.in.*')

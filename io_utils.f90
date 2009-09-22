@@ -14,7 +14,9 @@ integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
 logical full, err
-integer iD
+integer iD, i
+character(100) line
+integer, pointer :: label(:,:), digit(:)
 
 open(10,file='struct_enum.in',status='old')
 call co_ca(10,err)
@@ -28,14 +30,49 @@ read(10,*) pLV(:,2)
 call co_ca(10,err)
 read(10,*) pLV(:,3)
 call co_ca(10,err)
-read(10,*)  nD
-allocate(d(3,nD))
-do iD = 1, nD
-   call co_ca(10,err)
-   read(10,*) d(:,iD)
-enddo
-call co_ca(10,err)
 read(10,*) k
+call co_ca(10,err)
+read(10,*)  nD
+allocate(d(3,nD),label(k,nD),digit(nD))
+label = 0
+! This next part is a bit messy but it makes the input file easy to set up 
+! (no need for formatted reads from the file)
+do iD = 1, nD ! loop over all the d-vectors
+   call co_ca(10,err)
+   read(10,'(a100)') line
+   line = adjustl(line)
+   do i = 1,3 ! Loop over x,y,z coordinates of d-vector
+      read(line,*) d(i,iD)
+      line = adjustl(line(index(line," "):)) ! Throw away the number we just read in
+   enddo
+
+! Now read in the labels for this d-vector
+   ! Make sure that there is at least one comment marker in the line
+   line(100:100) = "#"
+   ! Throw away the comment and append a "/" at the end of the remaining string
+   line = trim(line(1:index(line,"#")-1))//"/"
+!   print *,"starting string",line
+   do i = 1, k ! Loop over the number of (possible) labels, exit when there are no more /'s
+      if (index(line,"/")==0) &
+        stop "The labels for each d-vectors should be formated as #/#/#... where 0<=#<k"
+      read(line,*) label(i,iD)
+      ! Sanity check on the input for the label (perhaps not sufficient but catches some errors)
+      if (label(i,iD) > k-1 .or. label(i,iD) < 0) then
+         write(*,'("Incorrect number for a label, ''",i2,"'', on d-vector #",i2)') label(i,iD), iD
+         stop
+      endif
+      line = adjustl(line(index(line,"/")+1:)) ! remove the label that we just read in
+      if(line=="") exit ! No more labels so go to the next d-vector
+   enddo
+   digit(iD) = i ! Store the number of labels that were specified for each d-vector
+enddo
+
+!do iD = 1,nD
+!   write(*,'(10i2)') label(:,iD)
+!enddo
+!write(*,'("digits: ",10i2)') digit
+!stop
+
 call co_ca(10,err)
 read(10,*) Nmin, Nmax
 call co_ca(10,err)

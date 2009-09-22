@@ -15,8 +15,57 @@ implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      &  gen_multilattice_derivatives, &
-     get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups
+     get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups, mixed_radix_counter
 CONTAINS
+
+!***************************************************************************************************
+! Just a test routine for expanding the code to treat different label sets on different sites
+! This is just a counter of mixed radix form.
+!
+SUBROUTINE mixed_radix_counter(labels,digits)
+integer labels(:,:) ! second index is the digit #, first is the label #
+integer digits(:) ! List of the upper bound of each digit
+integer a(size(digits)), counter(size(digits)) ! The odometer
+integer i,ic,j,n, k
+integer nUq ! number of unique numbers possible in this mixed radix system
+
+
+n = size(digits) ! Number of sites
+counter = 1
+
+! Find the total number of numbers that the mixed radix system can represent
+nUq = product(digits)
+
+
+print *," Number of mixed-radix numbers",nUq
+
+a = labels(1,:)
+
+write(*,'("Starting value: ",10i2)') a
+print *," Number of digits",n
+
+counter(n) = 0; ic = 0
+do; ic = ic + 1
+   if(ic > nUq + 1) stop "Fail safe triggered. Wrong number of iterations in mixed-radix counterem"
+   j = n ! Reset the digit index; start with j = the last place in the number
+   do 
+      !print *, "inner loop"
+      if (counter(j) /= digits(j)) exit ! The digit isn't ready to roll over, so exit and advance it
+      counter(j) = 1     ! Roll back j-th digit to the beginning
+      j = j - 1          ! Move to the next (on the left) digit
+      if (j < 1) exit    ! Leftmost digit updated, we've finished all the numbers
+   enddo
+   if (j < 1) exit  ! We're done counting, exit
+   counter(j) = counter(j) + 1
+   forall(i=1:n); a(i) = labels(counter(i),i);endforall
+   write(*,'(i6,":",2x,10i2)',advance="no") ic,counter
+   write(*,'(3x,10i2)') a
+enddo
+
+
+
+END SUBROUTINE mixed_radix_counter
+
 
 !***************************************************************************************************
 ! This function checks that every "product" of two permutations in a list is still in the list. That
@@ -227,6 +276,7 @@ do iH = 1,nH ! loop over each superlattice
 
    nOp = size(Op(iH)%rot,3);
    if (associated(rperms%perm)) deallocate(rperms%perm)
+   !print *,nop,nd,n;stop
    allocate(rperms%perm(nOp,nD*n),STAT=status)
    if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
    
@@ -488,7 +538,7 @@ A = A(1:3,1:3,indx)
 B = B(1:3,1:3,indx)
 SNF_label = SNF_label(indx) ! Reorder the labels for which SNF each HNF is
 fixing_op = fixing_op(indx)
-RPList = RPList(indx)
+RPList = RPList(indx) ! Reorders the permutations lists
 
 ! Fail safe trigger and storage of unique SNFs
 if (ic/=nHNF+1) stop "SNF sort in get_SNF didn't work"
@@ -742,7 +792,7 @@ else; write(14,'("partial list of labelings (complete labelings only) is used")'
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 
 
-write(14,'("start",3x,"#tot",6x,"HNF",4x,"#size",1x,"idx",2x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+write(14,'("start",3x,"#tot",6x,"HNF",5x,"#size",1x,"idx",3x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2

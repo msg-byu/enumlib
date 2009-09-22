@@ -1,12 +1,11 @@
-fcc       
-bulk
-1 0 0
-0 1 0
-0 0 1
-1 # Number of points in the multilattice
- 0.0000000      0.0000000      0.0000000        # d01 d-vector
- 2 -nary case
-   1   4 # Starting and ending cell sizes for search
-0.10000000E-03 # Epsilon (finite precision parameter)
-full list of labelings
-
+2D square 
+surf       # Surface case (instead of bulk)
+1. 0. 0.   # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used)
+0. 1. 0.   # Second lattice vector
+0. 0. 1.   # Third lattice vector
+1          # One lattice point/unit cell
+ 0 0 0     # That lattice point is at the origin
+2          # binary case
+8 8        # Enumerate 8-atom cells only
+.0001      # Finite precision parameter
+part       # Only generate a partial listing (e.g. consider AAAB==BBBA)
