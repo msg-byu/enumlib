@@ -73,14 +73,14 @@ outer: do js = 1,rows
             !print *, label, labeling
             if (labeling(label:label)=='1') then
                 call color('black')
-                call bullet(point(1),point(2),.45)
+                call bullet(point(1),point(2),.30)
             else if (labeling(label:label)=='2') then
-                  call color('blue')
-                  call bullet(point(1),point(2),.35)
+                  call color('yellow')
+                  call bullet(point(1),point(2),.30)
             else
                if (diag(2)==1) then; call color('red');
                   else; call color('green'); endif
-                  call bullet(point(1),point(2),.45)
+                  call bullet(point(1),point(2),.30)
                endif
                !print *, point, labeling(label:label)
             enddo

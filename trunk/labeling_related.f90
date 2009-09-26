@@ -354,13 +354,17 @@ if (associated(lab)) deallocate(lab)
 allocate(lab(nexp),STAT=status)
 if(status/=0) stop "Failed to allocate memory for 'lab' in generate_unique_labelings"
 
-digit = (/(parDigit(mod(i,nD)+1),i=0,nl-1)/) ! Repeat the digit ordinals across all places in the labeling
-digit = (/(parDigit,i=1,n)/)
+! Initialize the counter and ordinal arrays for the mixed-radix counter
+digit = (/((parDigit(j),i=1,n),j=1,nD)/) ! Repeat the digit ordinals across all places in the labeling
 digCnt = 1 ! Initialize each place to the first label ("lowest" digit)
-forall(j=1:k);label(j,:) = (/(parLabel(j,:),i=1,n)/); endforall
+forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
 forall(j=0:k-1); c(j) = count(label(1,:)==j); endforall
 write(*,'("count",20i2)') c
-
+do j = 1,k
+   write(*,'("initialize label:",1x,20i2)') label(j,:)
+enddo
+!!print *,"nl",nl,"nD",nD,"n",n
+!!print *,shape(label)
 !!!write(*,'("nl",20i2)') nl
 !!!write(*,'("nD",20i2)') nD
 !!!write(*,'("mod",20i2)') (mod(i,nD)+1,i=0,nl-1)
@@ -376,7 +380,7 @@ a = 0; multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert 
 multiplier = 0; multiplier(nl)=1
 a = label(1,:); write(*,'("labeling",20i2)') a
 do i = nl-1,1,-1
-   multiplier(i) = product(digit(i+1:nl))
+   multiplier(i) = digit(i+1)*multiplier(i+1)
 enddo
 write(*,'("Multiplier: ",10(1x,i6))') multiplier
 !!>
@@ -462,23 +466,23 @@ do; ic = ic + 1
    !!a(j) = a(j) + 1 ! Update the next digit (add one to it)
    digCnt(j) = digCnt(j) + 1
    a(j) = label(digCnt(j),j)
+   write(*,'("labeling",20i2)') a
+   
    c(a(j)) = c(a(j)) + 1     ! Add 1 to the number of digits of the j+1-th kind
    !!! This doesn't work because the labels aren't necessarily in numerical order
    !!!c(a(j)-1) = c(a(j)-1) - 1 ! subtract 1 from the number of digits of the j-th kind
    c(label(digCnt(j)-1,j)) = c(label(digCnt(j)-1,j)) - 1 ! subtract 1 from the number of digits of the j-th kind
    write(*,'("iteration:",i3)') ic
-   write(*,'("labeling",20i2)') a
    write(*,'("count",20i2)') c
    write(*,'("digCnt",20i2)') digCnt
    write(*,'("j",1x,i1)') j
    if (sum(c) /= nl .and. .not. full) stop 'counting bug'
    !if (ic > 5) stop "early exit for debugging"
 enddo
-write(*,'(i3,1x,a1)') (i,lab(i),i=1,nexp)
-print *,size(lab)
+!!!write(*,'(i3,1x,a1)') (i,lab(i),i=1,nexp)
+!!!print *,size(lab)
 if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
 if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
-! Store the results
 END SUBROUTINE generate_unique_labelings
 
 !****************************************************************************************************

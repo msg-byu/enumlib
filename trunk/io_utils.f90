@@ -67,7 +67,11 @@ do iD = 1, nD ! loop over all the d-vectors
    enddo
    digit(iD) = i ! Store the number of labels that were specified for each d-vector
 enddo
-
+if(all(digit<k)) then
+   write(*,'("digit: ",1x,80i2)') digit
+   write(*,'(/"Number of labels in input file is insufficient for a ",i1,"-nary case")')k
+   stop
+endif
 !do iD = 1,nD
 !   write(*,'(10i2)') label(:,iD)
 !enddo
