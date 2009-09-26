@@ -25,31 +25,24 @@ CONTAINS
 SUBROUTINE mixed_radix_counter(labels,digits)
 integer labels(:,:) ! second index is the digit #, first is the label #
 integer digits(:) ! List of the upper bound of each digit
-integer a(size(digits)), counter(size(digits)) ! The odometer
+integer a(size(digits)), counter(size(digits)) ! The odometer; ordinal counter for each digit
 integer i,ic,j,n, k
 integer nUq ! number of unique numbers possible in this mixed radix system
-
 
 n = size(digits) ! Number of sites
 counter = 1
 
 ! Find the total number of numbers that the mixed radix system can represent
-nUq = product(digits)
-
-
-print *," Number of mixed-radix numbers",nUq
+nUq = product(digits) !;print *," Number of mixed-radix numbers",nUq
 
 a = labels(1,:)
-
 write(*,'("Starting value: ",10i2)') a
 print *," Number of digits",n
-
 counter(n) = 0; ic = 0
 do; ic = ic + 1
    if(ic > nUq + 1) stop "Fail safe triggered. Wrong number of iterations in mixed-radix counterem"
    j = n ! Reset the digit index; start with j = the last place in the number
-   do 
-      !print *, "inner loop"
+   do !;print *, "inner loop"
       if (counter(j) /= digits(j)) exit ! The digit isn't ready to roll over, so exit and advance it
       counter(j) = 1     ! Roll back j-th digit to the beginning
       j = j - 1          ! Move to the next (on the left) digit
@@ -61,11 +54,7 @@ do; ic = ic + 1
    write(*,'(i6,":",2x,10i2)',advance="no") ic,counter
    write(*,'(3x,10i2)') a
 enddo
-
-
-
 END SUBROUTINE mixed_radix_counter
-
 
 !***************************************************************************************************
 ! This function checks that every "product" of two permutations in a list is still in the list. That
@@ -713,13 +702,16 @@ END SUBROUTINE get_HNF_2D_diagonals
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
 ! implemented here has been slightly reorder from the original routine and that discussed in the
 ! first paper.
-SUBROUTINE gen_multilattice_derivatives(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full, conc_check,conc_ElementN, conc_Range)
+SUBROUTINE gen_multilattice_derivatives(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full,&
+    & label,digit,conc_check,conc_ElementN, conc_Range)
 integer, intent(in) :: k, nMin, nMax, nD 
 character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3), eps
 real(dp), pointer :: d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
+integer, intent(in) :: label(:,:) ! A list of the labels (index 1) allowed on each site (index 2)
+integer, intent(in) :: digit(:)   ! A list of the *number* of labels on each site 
 logical, intent(in)            :: conc_check
 integer , optional             :: conc_ElementN
 real(dp), optional             :: conc_Range(2)
@@ -846,7 +838,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    Scnt = 0 ! Keep track of the number of structures at this size
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
-      call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm)
+      call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
       !call cpu_time(genlabels)
       !print *, "block",iBlock
       !print *, shape(rdRPList(iBlock)%perm), "shape"

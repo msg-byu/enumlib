@@ -316,7 +316,7 @@ ENDSUBROUTINE remove_label_rotation_dups
 ! like an "odometer", generating all numbers (base k) from 0 to k^n - 1, and  then use rotation and
 ! translation permutations to eliminate labelings that represent equivalent superstructures.
 
-SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab)
+SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab,parLabel,parDigit)
 integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
@@ -325,6 +325,8 @@ character, pointer :: lab(:) ! Array to store markers for every raw labeling
 ! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
 ! Need to pass lab out to write out the labelings
 logical, intent(in) :: full ! specify whether the full labelings list should be used or not
+integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
+integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 
 integer cnt ! Number of unique labelings (double check on the generator)
 integer j ! Index variable (place index) for the k-ary counter
@@ -333,24 +335,59 @@ integer nexp ! number of raw labelings that the k-ary counter should generate
 integer nl ! number of labels in each labeling (i.e., determinant size*d-set size)
 integer(li) idx ! the base 10 equivalent of the current base k labeling
 integer a(n*nD), b(n*nD) ! the "odometer"; label-permuted odometer
-integer multiplier(n*nD) ! place values for each digit k^(i-1) for the i-th digit
+integer digCnt(n*nD) ! Ordinal counter for each place in the labeling (a mixed-radix number)
+integer digit(n*nD) ! Each entry is the number of labels in each place
+integer label(k,n*nD) ! Same as parLabel but repeated n times
+integer multiplier(n*nD) ! place values for each digit. k^(i-1) for the i-th digit for "normal"
+!  base-k numbers. More complicated for mixed radix case.
 integer c(0:k-1) ! running sum (count) of the number of each label type 
 integer id, iq ! Counter for labels that are duplicates, for those unique
 integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
 integer :: np, ip, nPerm, status ! Loops over label exchang permutations, number of labeling permutatations, allocate error flag
 
 nl = n*nD
-if (associated(lab)) deallocate(lab)
-allocate(lab(k**nl),STAT=status)
-if(status/=0) stop "Failed to allocate memory for 'lab' in generate_unique_labelings"
 nexp = k**nl  ! Number of digits in k-ary counter; upper limit of k-ary counter
+
+!!< Set up the number of expected labelings
+nexp = product(parDigit)**n  ! should be the same as k**nl when all labels are on all sites
+if (associated(lab)) deallocate(lab)
+allocate(lab(nexp),STAT=status)
+if(status/=0) stop "Failed to allocate memory for 'lab' in generate_unique_labelings"
+
+digit = (/(parDigit(mod(i,nD)+1),i=0,nl-1)/) ! Repeat the digit ordinals across all places in the labeling
+digit = (/(parDigit,i=1,n)/)
+digCnt = 1 ! Initialize each place to the first label ("lowest" digit)
+forall(j=1:k);label(j,:) = (/(parLabel(j,:),i=1,n)/); endforall
+forall(j=0:k-1); c(j) = count(label(1,:)==j); endforall
+write(*,'("count",20i2)') c
+
+!!!write(*,'("nl",20i2)') nl
+!!!write(*,'("nD",20i2)') nD
+!!!write(*,'("mod",20i2)') (mod(i,nD)+1,i=0,nl-1)
+!!!
+write(*,'("digit",20i2)') digit
+!!!write(*,'("digCnt",20i2)') digCnt
+!!!stop
+!!>
+
 a = 0; multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert to base 10
+
+!!< Set up a new multiplier
+multiplier = 0; multiplier(nl)=1
+a = label(1,:); write(*,'("labeling",20i2)') a
+do i = nl-1,1,-1
+   multiplier(i) = product(digit(i+1:nl))
+enddo
+write(*,'("Multiplier: ",10(1x,i6))') multiplier
+!!>
+
 lab = ''; iq = 0  ! Index for labelings; number of unique labelings
 if (k>12) stop "Too many labels in 'generate_unique_labelings'"
 nPerm = size(perm,1)
 
 np = factorial(k) ! Number of permutations of labels (not labelings)
-call get_permutations((/(i,i=0,k-1)/),labPerms)
+
+call get_permutations((/(i,i=0,k-1)/),labPerms) 
 !call count_full_colorings(k,d,cnt,full) ! Use the Polya polynomial to count the labelings
 !call make_translation_group(d,trgrp) ! Find equivalent translations (permutations of labelings)
 
@@ -358,7 +395,8 @@ ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
    idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
-   if (idx/=ic) stop "index bug!"
+   write(*,'(/"index: ",i6)') idx
+   !if (idx/=ic) stop "index bug!" !! This check isn't useful for mixed-radix labeling
    if (any(c==0)) then ! Check to see if there are missing digits
       id = id + 1; ! Keep track of the number of incomplete labelings
       if (lab(idx)=='' .and. .not. full) then ! If it isn't marked and we want a partial list, mark it as "incomplete"
@@ -376,6 +414,13 @@ do; ic = ic + 1
          ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
          ! "translation" permutation and not a rotation permutation (they're ordered in the
          ! list...and there are n. The first is the identity so skip that one.)
+         if (idx > nexp) then
+            print *, "Index of permuted labeling is outside the range"
+            write(*,'("original labeling ",20i1)') a
+            write(*,'("permuted labeling ",20i1)') a(perm(q,:))
+            write(*,'("perm ",i2,":",4i2)') (i,perm(i,:),i=1,nPerm)
+            stop
+         endif
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
       enddo
       if (.not. full) then ! loop over the label-exchange duplicates and mark them off.
@@ -393,23 +438,46 @@ do; ic = ic + 1
       endif ! end block to remove label exchange duplicates
    endif
 
-   ! Advance the base-k, n*nD-digit counter and keep track of the # of each digit (0...k-1)
+! "c" counts the number of labels of each kind across the entire labeling. Need this for "partial"
+! lists that have label-exchange duplicates removed.
+! "digCnt" is the ordinal counter of each digit (i.e., place) in the mixed-radix number (labeling)
+   ! Advance the base-k, n*nD-digit counter and keep track of the # of each digit
    j = nl ! Reset the digit index (start all the way to the right again)
    do ! Check to see if we need to roll over any digits, start at the right
-      if (a(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
-      a(j) = 0  ! Rolling over so set to zero
-      c(k-1) = c(k-1) - 1  ! Update the digit count; just lost a digit of type k-1 (largest possible)
-      c(0) = c(0) + 1  ! So we pick up another zero in the current place ([k-1]->0)
+      !!if (a(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
+      if (digCnt(j) /= digit(j)) exit ! This digit not ready to roll over, exit the loop and advance digit
+      !!a(j) = 0  ! Rolling over so set to zero
+      a(j) = label(1,j) ! Reset the j-th place to the first digit
+      digCnt(j) = 1 ! Reset the ordinal digit count for the j-th place to one
+      !!c(k-1) = c(k-1) - 1  ! Update the digit count; just lost a digit of type k-1 (largest possible)
+      ! label(digit(j),j) returns the highest number (last symbol) in the j-th place
+      c(label(digit(j),j)) = c(label(digit(j),j)) -1 ! Reduce the count of digits of that type
+      !!!c(a(j)) = c(a(j)) - 1 ! Reduce the count of digits of that type
+      !!c(0) = c(0) + 1 ! So we pick up another zero in the current place ([k-1]->0)
+      c(label(1,j)) = c(label(1,j)) + 1  ! So we pick up another "zero" in the current place 
       j = j - 1;       ! Look at the next (going leftways) digit
       if (j < 1) exit  ! If we updated the leftmost digit then we're done
    enddo
-   if (j < 1) exit ! We're done counting, exit
-   a(j) = a(j) + 1 ! Update the next digit (add one to it)
-   c(a(j)) = c(a(j)) + 1 ! Add 1 to the number of digits of the j+1-th kind
-   c(a(j)-1) = c(a(j)-1) - 1     ! subtract 1 from the number of digits of the j-th kind
+   if (j < 1) exit ! We're done counting (hit all possible numbers), exit
+   !!a(j) = a(j) + 1 ! Update the next digit (add one to it)
+   digCnt(j) = digCnt(j) + 1
+   a(j) = label(digCnt(j),j)
+   c(a(j)) = c(a(j)) + 1     ! Add 1 to the number of digits of the j+1-th kind
+   !!! This doesn't work because the labels aren't necessarily in numerical order
+   !!!c(a(j)-1) = c(a(j)-1) - 1 ! subtract 1 from the number of digits of the j-th kind
+   c(label(digCnt(j)-1,j)) = c(label(digCnt(j)-1,j)) - 1 ! subtract 1 from the number of digits of the j-th kind
+   write(*,'("iteration:",i3)') ic
+   write(*,'("labeling",20i2)') a
+   write(*,'("count",20i2)') c
+   write(*,'("digCnt",20i2)') digCnt
+   write(*,'("j",1x,i1)') j
    if (sum(c) /= nl .and. .not. full) stop 'counting bug'
+   !if (ic > 5) stop "early exit for debugging"
 enddo
+write(*,'(i3,1x,a1)') (i,lab(i),i=1,nexp)
+print *,size(lab)
 if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
+if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
 ! Store the results
 END SUBROUTINE generate_unique_labelings
 

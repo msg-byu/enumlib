@@ -8,15 +8,16 @@ public read_input
 CONTAINS
 
 !***************************************************************************************************
-subroutine read_input(title,LatDim,pLV,nD,d,k,Nmin,Nmax,eps,full)
+subroutine read_input(title,LatDim,pLV,nD,d,k,Nmin,Nmax,eps,full,label,digit)
 character(80) :: title, pLatTyp, fullpart
 integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
+integer, pointer :: label(:,:), digit(:)
+
 logical full, err
 integer iD, i
 character(100) line
-integer, pointer :: label(:,:), digit(:)
 
 open(10,file='struct_enum.in',status='old')
 call co_ca(10,err)
@@ -34,15 +35,15 @@ read(10,*) k
 call co_ca(10,err)
 read(10,*)  nD
 allocate(d(3,nD),label(k,nD),digit(nD))
-label = 0
+label = -1
 ! This next part is a bit messy but it makes the input file easy to set up 
 ! (no need for formatted reads from the file)
 do iD = 1, nD ! loop over all the d-vectors
    call co_ca(10,err)
    read(10,'(a100)') line
-   line = adjustl(line)
+   line = adjustl(line) ! Remove preceding blanks
    do i = 1,3 ! Loop over x,y,z coordinates of d-vector
-      read(line,*) d(i,iD)
+      read(line,*) d(i,iD) ! Get a coordinate of the d-vector 
       line = adjustl(line(index(line," "):)) ! Throw away the number we just read in
    enddo
 
