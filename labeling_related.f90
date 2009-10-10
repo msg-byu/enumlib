@@ -7,8 +7,8 @@ use rational_mathematics, only: gcd
 use combinatorics
 implicit none
 private
-public  remove_label_rotation_dups, get_permutations, count_full_colorings, &
-       generate_labelings, make_member_list, make_label_rotation_table, generate_unique_labelings, &
+public   get_permutations, count_full_colorings, &
+        make_member_list, make_label_rotation_table, generate_unique_labelings, &
        write_labelings
 CONTAINS
 !***************************************************************************************************
@@ -34,7 +34,7 @@ integer nHNF ! Number of HNFs in the list that match the current block index, HN
 integer, allocatable :: vsH(:), vsL(:) ! Vector subscript for matching the HNF index to the HNF list
 integer nl ! Number of unique labelings
 integer quot ! quotient for converting base-10 index to base-k labeling
-integer iHNF, jHNF, il, i, iP, ilab  ! counters
+integer iHNF, jHNF, il, i, ilab  ! counters
 integer :: labeling(n*nD) ! base-k, n-digit number representing the labeling
 integer(li) :: labIndx ! base-10 form of the labeling
 integer status ! Allocation exit flag
@@ -225,88 +225,95 @@ do i = 1, nL
 enddo
 if (rowmatch) lists_match = .true.
 ENDFUNCTION lists_match
-!***************************************************************************************************
-! This routine takes a list of label permutations and a list of labelings and reduces the labelings
-! list by removing those that are duplicate under the label rotation.
-SUBROUTINE remove_label_rotation_dups(lr,lab,labTabin,trgrp,k,d,eps)
-integer, intent(in) :: lr(:,:) ! Label rotations (permutations) and temp storage
-integer, pointer :: lab(:,:) ! labelings that are unique except for label-rotation permutations
-character, intent(in) :: labTabin(:) ! Complete table of labeling "flags", F, N, D, E, etc. 
-integer, pointer :: trgrp(:,:) ! translation group, permutations that lead to equivalent labelings
-integer, intent(in):: k ! Number of colors in the labelings
-integer, intent(in):: d(3) ! Diagonal elements of the SNF
-real(dp), intent(in) :: eps ! Finite precision tolerance
-
-character :: labTab(size(labTabin))
-integer i, j, n, ip, np, il, nl, ic, nUql, itr, nlr(1), ilr, ia, status
-integer(li) :: idx ! base-10 version of the labeling (normally a base-k, n-digit number)
-integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
-integer trivPerm(size(lab,2)), kc(size(lab,2))
-integer, pointer :: perm(:,:) => null()
-
-np = factorial(k)
-call get_permutations((/(i,i=0,k-1)/),perm) ! Since we enter this loop so often (for same k) perhaps
-! this should be an input
-
-nlr = count(lr/=0,2)
-n = size(lab,2)
-trivPerm = (/(i,i=1,n)/)
-nl = size(lab,1)
-multiplier = k**(/(i,i=n-1,0,-1)/)
-
-labTab = labTabin ! Make a copy of the flags table (so that we can cross off duplicates)
-! Now that we have a list of label permutations, use them to shrink the input list of labelings
-do ilr = 1, nlr(1) ! There's one permutation for each rotation that fixes the lattice
-   if (all(lr(:,ilr)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
-   do il = 1, nl ! loop over each labeling in the list
-      b = lab(il,:)  ! Get the il-th labeling (we don't want to remove this one, just label-rotated copies of itself)
-      do itr = 1,size(trgrp,1) ! Loop over all possible translations of this permutation
-         c = b(lr(:,ilr)) ! Permute the labels according to the permutation of this rotation
-         c = c(trgrp(itr,:)) ! Permute the labeling according to each translation
-         ctemp = c
-         do ip = 1,np ! Loop over all permutations (exchanges) of the labels (stored in 'perms')
-            do ia=1,k ! Convert the k-ary labeling to one with the labels permuted
-               where(ctemp==ia-1); c(:) = perm(ia,ip);endwhere ! b is the permuted labeling
-            end do
-            if (all(b==c)) cycle ! This permutation didn't change the labeling         
-            idx = sum(c*multiplier)+1 ! Find the index for this permutation in the table
-            if (labTab(idx)=='F' ) then ! This structure is a label rotation duplicate
-               idx = sum(b*multiplier)+1
-               labTab(idx) = 'R'
-            endif
-         enddo
-      enddo
-   enddo
-enddo
-! Now replace the input list of labelings with the new list that has shrunk by the number of label-rot dups
-! Probably easiest to do this by using the k-nary counter again and just making a list of k-nary n-digit 
-! numbers that aren't marked off in the label table.
-nUql = count(labTab=='F')
-if(associated(lab)) deallocate(lab)
-allocate(lab(nUql,n),STAT=status)
-if(status/=0) stop "Allocation of lab failed in remove_label_rotation_dups"
-
-kc = 0; ic = 0
-do ! Loop over all values of a k-nary, n-digit counter
-   idx = sum(kc*multiplier)+1
-   if (labTab(idx)=='F') then
-      ic = ic + 1   ! Count the number of labelings found so far
-      lab(ic,:) = kc ! Store this labeling
-   endif
-   j = n
-   do ! Check to see if we need to roll over any digits, start at the right
-      if (kc(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
-      kc(j) = 0  ! Rolling over so set to zero
-      j = j - 1;       ! Look at the next (going leftways) digit
-      if (j < 1) exit  ! If we updated the leftmost digit then we're done
-   enddo
-   if (j < 1) exit ! We're done counting, exit
-   kc(j) = kc(j) + 1 ! Update the next digit (add one to it)
-enddo
-if (ic/=nUql) stop "relabeling error"
-
-ENDSUBROUTINE remove_label_rotation_dups
-
+!!!!***************************************************************************************************
+!!!! This routine takes a list of label permutations and a list of labelings and reduces the labelings
+!!!! list by removing those that are duplicate under the label rotation.
+!!!SUBROUTINE remove_label_rotation_dups(lr,lab,labTabin,trgrp,k,d,eps)
+!!!integer, intent(in) :: lr(:,:) ! Label rotations (permutations) and temp storage
+!!!integer, pointer :: lab(:,:) ! labelings that are unique except for label-rotation permutations
+!!!character, intent(in) :: labTabin(:) ! Complete table of labeling "flags", F, N, D, E, etc. 
+!!!integer, pointer :: trgrp(:,:) ! translation group, permutations that lead to equivalent labelings
+!!!integer, intent(in):: k ! Number of colors in the labelings
+!!!integer, intent(in):: d(3) ! Diagonal elements of the SNF
+!!!real(dp), intent(in) :: eps ! Finite precision tolerance
+!!!
+!!!character :: labTab(size(labTabin))
+!!!integer i, j, n, ip, np, il, nl, ic, nUql, itr, nlr(1), ilr, status
+!!!integer jl
+!!!integer(li) :: idx ! base-10 version of the labeling (normally a base-k, n-digit number)
+!!!integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
+!!!integer ct(size(lab,2)) ! Temp storage for checking label exchange
+!!!integer trivPerm(size(lab,2)), kc(size(lab,2))
+!!!integer, pointer :: perm(:,:) => null()
+!!!
+!!!np = factorial(k)
+!!!call get_permutations((/(i,i=0,k-1)/),perm) ! Since we enter this loop so often (for same k) perhaps
+!!!! this should be an input
+!!!
+!!!nlr = count(lr/=0,2)
+!!!n = size(lab,2)
+!!!trivPerm = (/(i,i=1,n)/)
+!!!nl = size(lab,1)
+!!!multiplier = k**(/(i,i=n-1,0,-1)/)
+!!!
+!!!labTab = labTabin ! Make a copy of the flags table (so that we can cross off duplicates)
+!!!! Now that we have a list of label permutations, use them to shrink the input list of labelings
+!!!do ilr = 1, nlr(1) ! There's one permutation for each rotation that fixes the lattice
+!!!   if (all(lr(:,ilr)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
+!!!   do il = 1, nl ! loop over each labeling in the list
+!!!      b = lab(il,:)  ! Get the il-th labeling (we don't want to remove this one, just label-rotated copies of itself)
+!!!      do itr = 1,size(trgrp,1) ! Loop over all possible translations of this permutation
+!!!         c = b(lr(:,ilr)) ! Permute the labels according to the permutation of this rotation
+!!!         c = c(trgrp(itr,:)) ! Permute the labeling according to each translation
+!!!         ctemp = c
+!!!         do ip = 1, np ! Loop over all permutations (exchanges) of the labels (stored in 'perms')
+!!!            do jl = 1, nl ! For each digit in the labeling, permute the label (label exchange)
+!!!               ct(jl) = perm(b(jl)+1,ip)
+!!!            enddo
+!!!            !! Old way of permuting the labels (caused compiler warnings or errors) above is better anyway
+!!!            !!do ia=1,k ! Convert the k-ary labeling to one with the labels permuted
+!!!            !!   where(ctemp==ia-1); c(:) = perm(ia,ip);endwhere ! b is the permuted labeling
+!!!            !!end do
+!!!            !!if (any(c/=ct)) stop "label exchange didn't work in remove_label_rotation_dups"
+!!!            if (all(b==c)) cycle ! This permutation didn't change the labeling         
+!!!            idx = sum(c*multiplier)+1 ! Find the index for this permutation in the table
+!!!            if (labTab(idx)=='F' ) then ! This structure is a label rotation duplicate
+!!!               idx = sum(b*multiplier)+1
+!!!               labTab(idx) = 'R'
+!!!            endif
+!!!         enddo
+!!!      enddo
+!!!   enddo
+!!!enddo
+!!!! Now replace the input list of labelings with the new list that has shrunk by the number of label-rot dups
+!!!! Probably easiest to do this by using the k-nary counter again and just making a list of k-nary n-digit 
+!!!! numbers that aren't marked off in the label table.
+!!!nUql = count(labTab=='F')
+!!!if(associated(lab)) deallocate(lab)
+!!!allocate(lab(nUql,n),STAT=status)
+!!!if(status/=0) stop "Allocation of lab failed in remove_label_rotation_dups"
+!!!
+!!!kc = 0; ic = 0
+!!!do ! Loop over all values of a k-nary, n-digit counter
+!!!   idx = sum(kc*multiplier)+1
+!!!   if (labTab(idx)=='F') then
+!!!      ic = ic + 1   ! Count the number of labelings found so far
+!!!      lab(ic,:) = kc ! Store this labeling
+!!!   endif
+!!!   j = n
+!!!   do ! Check to see if we need to roll over any digits, start at the right
+!!!      if (kc(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
+!!!      kc(j) = 0  ! Rolling over so set to zero
+!!!      j = j - 1;       ! Look at the next (going leftways) digit
+!!!      if (j < 1) exit  ! If we updated the leftmost digit then we're done
+!!!   enddo
+!!!   if (j < 1) exit ! We're done counting, exit
+!!!   kc(j) = kc(j) + 1 ! Update the next digit (add one to it)
+!!!enddo
+!!!if (ic/=nUql) stop "relabeling error"
+!!!
+!!!ENDSUBROUTINE remove_label_rotation_dups
+!!!
 !****************************************************************************************************
 ! This routine takes in the permutations effected by both translation and by rotations that fix the
 ! superlattice and generates all labelings that are unique. It also removes super-periodic labelings
@@ -328,13 +335,13 @@ logical, intent(in) :: full ! specify whether the full labelings list should be 
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 
-integer cnt ! Number of unique labelings (double check on the generator)
 integer j ! Index variable (place index) for the k-ary counter
-integer ic, i, q, ia ! loop counters, index variables
+integer ic, i, q ! loop counters, index variables
 integer nexp ! number of raw labelings that the k-ary counter should generate
 integer nl ! number of labels in each labeling (i.e., determinant size*d-set size)
 integer(li) idx ! the base 10 equivalent of the current base k labeling
 integer a(n*nD), b(n*nD) ! the "odometer"; label-permuted odometer
+integer il ! loop counter over each digit in a labeling
 integer digCnt(n*nD) ! Ordinal counter for each place in the labeling (a mixed-radix number)
 integer digit(n*nD) ! Each entry is the number of labels in each place
 integer label(k,n*nD) ! Same as parLabel but repeated n times
@@ -431,9 +438,13 @@ do; ic = ic + 1
          do q = 1,nPerm ! Loop over all possible permutations. (should this loop start at 1? I think so...)
             do ip = 2,np ! Loop over all permutations of the labels (stored in 'labPerms'). Start at
                ! 2 since we want to skip the identity.
-               forall(ia=1:k) ! Convert the k-nary labeling to one with the labels permuted
-                  where(a==ia-1); b(:) = labPerms(ia,ip);endwhere ! b is the permuted labeling
-               end forall
+               do il = 1, nl ! For each digit in the labeling, permute the label (label exchange)
+                  b(il) = labPerms(a(il)+1,ip)
+               enddo
+               !!forall(ia=1:k) ! Convert the k-nary labeling to one with the labels permuted
+               !!   where(a==ia-1); b(:) = labPerms(ia,ip);endwhere ! b is the permuted labeling
+               !!end forall
+               !!if (any(b/=ct)) stop "label exchange duplicate checker is not working..."
                idx = sum(b(perm(q,:))*multiplier)+1
                if  (lab(idx)=='') lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
                ! not otherwise marked
@@ -485,118 +496,6 @@ if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
 if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
 END SUBROUTINE generate_unique_labelings
 
-!****************************************************************************************************
-! This routine takes in the size of the three cyclic groups (i.e., the diagonal elements of the
-! Smith normal form (SNF) and generates all labelings that are unique. That is, it eliminates
-! "translation" duplicates as well as superperiodic duplicates (non-primitive
-! superstructures). It now also removes "label-permutation" duplicates---labelings that are not
-! unique when the labels themselves (not their positions) are permuted (e.g., 00111 <-->
-! 11000).  The basic idea of the routine is to run like an "odometer", generating all numbers
-! (base k) from 0 to k^n - 1. Then use the translations (permutations of the group) to
-! eliminate translation duplicates and superperiodic cases.  ** We must also eliminate cases
-! where the superlattice is fixed by a parent lattice symmetry but the labels are
-! permuted. These cases are also duplicates.  But this is best done outside of and after this
-! subroutine because those duplicates are unique to the HNF. **
-
-SUBROUTINE generate_labelings(k,d,l,lab,trgrp,full)
-integer, intent(in) :: k,d(3) ! Number of colors/labels, SNF diagonal elements
-integer, pointer :: l(:,:) ! labelings
-character, pointer :: lab(:) ! Array to store markers for every raw labeling
-! E=>missing digits, F=>unique, D=>translation duplicate, N=>non-primitive, R=>label-rotation dup
-! Need to pass lab out so that it can be used to remove label-rotation duplicates later
-integer, pointer :: trgrp(:,:) ! array for storing the translation group. Need to pass this out
-! later too for when the label-rotation duplicates are removed.
-logical, intent(in) :: full ! specify whether the full labelings list should be used or not
-
-integer cnt ! Number of unique labelings (double check on the generator)
-integer j ! Index variable (place index) for the k-ary counter
-integer ic, i, q, ia ! loop counters, index variables
-integer nexp ! number of raw labelings that the k-ary counter should generate
-integer n ! number of labels in each labeling (i.e., determinant size)
-integer(li) idx ! the base 10 equivalent of the current base k labeling
-integer a(d(1)*d(2)*d(3)), b(d(1)*d(2)*d(3)) ! the "odometer"; label-permuted odometer
-integer multiplier(d(1)*d(2)*d(3)) ! place values for each digit k^(i-1) for the i-th digit
-integer c(0:k-1) ! running sum (count) of the number of each label type 
-integer id, iq ! Counter for labels that are duplicates, for those unique
-integer, allocatable :: tl(:,:) ! temporary storage for output variable l (labelings)
-integer, pointer :: perms(:,:) ! List of permutations of the k labels
-integer :: np, ip, status ! Loops over permutations, allocate error flag
-
-if (associated(lab)) deallocate(lab)
-allocate(lab(k**(d(1)*d(2)*d(3))),STAT=status)
-if(status/=0) stop "Failed to allocate memory for 'lab' in generate_labelings"
-
-n = product(d); nexp = k**n  ! Number of digits in k-ary counter; upper limit of k-ary counter
-a = 0; multiplier = k**(/(i,i=n-1,0,-1)/) ! The counter; multiplier to convert to base 10
-lab = ''; iq = 0  ! Index for labelings; number of unique labelings
-if (k>12) stop "Too many labels in 'generate_labelings'"
-
-np = factorial(k) ! Number of permutations of labels (not labelings)
-call get_permutations((/(i,i=0,k-1)/),perms)
-call count_full_colorings(k,d,cnt,full) ! Use the Polya polynomial to count the labelings
-call make_translation_group(d,trgrp) ! Find equivalent translations (permutations of labelings)
-allocate(tl(cnt,n),STAT=status)   ! Temp storage for labelings
-if(status/=0) stop "Failed to allocate memory for tl in generate_labelings"
-
-ic = 0; c = 0; c(0) = n ! Loop counter for fail safe; initialize digit counter
-do; ic = ic + 1
-   if (ic > nexp) exit ! Fail safe
-   idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
-   if (idx/=ic) stop "index bug!"
-   if (any(c==0)) then ! Check to see if there are missing digits
-      id = id + 1; ! Keep track of the number of incomplete labelings
-      if (lab(idx)=='' .and. .not. full) then ! If it isn't marked and we want a partial list, mark it as "error"
-         lab(idx) = 'E';    ! Could mark its brothers too...
-      endif
-   endif
-   ! If this label hasn't been marked yet, mark it as found 'F'
-   ! and mark its duplicates as 'D'
-   if (lab(idx)=='') then
-      lab(idx) = 'F'
-      do q = 2,n ! Mark translation duplicates and eliminate superperiodic (non-primitive) colorings
-         idx = sum(a(trgrp(q,:))*multiplier)+1
-         if (idx==ic) lab(idx)='N' ! This will happen if the coloring is superperiodic
-                                   ! (i.e., non-primitive superstructure)
-         if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a translation duplicate
-      enddo
-      do q = 1,n ! Loop over translates; Mark label-permutation duplicates ("symmetric" concentrations)  
-         do ip = 2,np ! Loop over all permutations of the labels (stored in 'perms')
-            forall(ia=1:k) ! Convert the k-nary labeling to one with the labels permuted
-               where(a==ia-1); b(:) = perms(ia,ip);endwhere ! b is the permuted labeling
-            end forall
-            idx = sum(b(trgrp(q,:))*multiplier)+1
-            if  (lab(idx)=='') lab(idx) = 'N'
-         enddo
-      enddo
-      ! Store the unique labelings
-      if (lab(ic)=='F') then ! this one isn't superperiodic (it is primitive) and it is unique
-         iq = iq + 1
-         tl(iq,:) = a
-      endif
-   endif
-   ! Advance the counter and keep track of the # of numbers
-   j = n ! Reset the digit index (start all the way to the right again)
-   do ! Check to see if we need to roll over any digits, start at the right
-      if (a(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
-      a(j) = 0  ! Rolling over so set to zero
-      c(k-1) = c(k-1) - 1  ! Update the digit count; just lost a digit of type k-1 (largest possible)
-      c(0) = c(0) + 1  ! So we pick up another zero in the current place ([k-1]->0)
-      j = j - 1;       ! Look at the next (going leftways) digit
-      if (j < 1) exit  ! If we updated the leftmost digit then we're done
-   enddo
-   if (j < 1) exit ! We're done counting, exit
-   a(j) = a(j) + 1 ! Update the next digit (add one to it)
-   c(a(j)) = c(a(j)) + 1 ! Add 1 to the number of digits of the j+1-th kind
-   c(a(j)-1) = c(a(j)-1) - 1     ! subtract 1 from the number of digits of the j-th kind
-   if (sum(c) /= n .and. .not. full) stop 'counting bug'
-enddo
-if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
-! Store the results
-if(associated(l)) deallocate(l)
-allocate(l(iq,n),STAT=status)
-if(status/=0) stop "Allocation of 'l' failed in generate_labelings"
-l = tl(1:iq,:)
-END SUBROUTINE generate_labelings
  
 !**************************************************************************************************
 ! Takes the length of three cyclic group and constructs the member list so that

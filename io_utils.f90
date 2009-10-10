@@ -66,6 +66,7 @@ do iD = 1, nD ! loop over all the d-vectors
       if(line=="") exit ! No more labels so go to the next d-vector
    enddo
    digit(iD) = i ! Store the number of labels that were specified for each d-vector
+! Should also check that no labels were repeated.
 enddo
 if(all(digit<k)) then
    write(*,'("digit: ",1x,80i2)') digit

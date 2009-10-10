@@ -1,12 +1,12 @@
-2D square 
-surf       # Surface case (instead of bulk)
-1. 0. 0.   # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used)
-0. 1. 0.   # Second lattice vector
-0. 0. 1.   # Third lattice vector
-2          # binary case
-2          # One lattice point/unit cell
-0 0 0 0/1      # d-01
-.5 .5 .5  0/1  # d-02 
-1 5        # Enumerate 8-atom cells only
-.0001      # Finite precision parameter
-part       # Only generate a partial listing (e.g. consider AAAB==BBBA)
+fcc       
+bulk
+0.50000000     0.50000000      0.0000000        # a1 parent lattice vector
+0.50000000      0.0000000     0.50000000        # a2 parent lattice vector
+ 0.0000000     0.50000000     0.50000000        # a3 parent lattice vector
+ 3 -nary case
+    1 # Number of points in the multilattice
+ 0.0000000      0.0000000      0.0000000    0/1/2    # d01 d-vector
+   2   10 # Starting and ending cell sizes for search
+0.10000000E-03 # Epsilon (finite precision parameter)
+part list of labelings
+

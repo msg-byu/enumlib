@@ -8,7 +8,7 @@ character(80) fname, title, labeling, dummy
 integer ioerr,  i,j,  is,js, iD, nD
 integer k, strN, hnfN, sizeN, nAt, diag(3), a,b,c,d,e,f,  fullL(3,3), pgOps,&
      & label, L(2,2), temp(2), Nspots, rows, cols, indx
-real(sp) :: p(3,3),  scale
+real(sp) :: p(3,3),  scale, spotsize
 real(sp) :: xorig, yorig, parLat(2,2),point(2),yoff,xoff
 real(dp), allocatable :: dvec(:,:)
 
@@ -35,24 +35,25 @@ enddo
 read(11,'(i2)') k
 do i = 1,4;read(11,*);enddo ! Skip 4 lines
 
-scale = .12
-Nspots = 12
-rows = 24
-cols = 14
+scale = .30
+Nspots = 8
+rows = 12
+cols = 7
+spotsize = .33
 call init(scale,-10.0,-2.0)
 call init_colors
 
-xorig = 0.; yorig = 0.
+xorig = 0.; yorig = 0
 ! Need to add a loop over each structure
 outer: do js = 1,rows
    do is = 1,cols
       xoff = (is-1)*Nspots
-      yoff = 25.3/scale - (js-1)*Nspots
+      yoff = 28/scale - (js-1)*Nspots
       !if ((js-1)*cols+is>160) exit outer ! Ternary
       !if ((js-1)*cols+is>155) exit outer ! binary
       if (yoff < 0) exit outer
       ! Read in the info for the given structure
-      read(11,*,iostat=ioerr) strN, hnfN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f,&
+      read(11,*,iostat=ioerr) strN, hnfN,sizeN, nAt, pgOps, diag, a,b,c,d,e,f,&
       fullL,labeling
       if (ioerr/=0) exit
       L = reshape((/fullL(2,2),fullL(2,3),fullL(3,2),fullL(3,3)/),(/2,2/))
@@ -69,18 +70,17 @@ outer: do js = 1,rows
             !if (temp(1) < 0) temp(1) = temp(1) + diag(2)
             !if (temp(2) < 0) temp(2) = temp(2) + diag(3)
             if (any(temp<0)) stop "less than zero"
-            label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1
-            !print *, label, labeling
+            label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
             if (labeling(label:label)=='1') then
                 call color('black')
-                call bullet(point(1),point(2),.30)
+                call bullet(point(1),point(2),spotsize)
             else if (labeling(label:label)=='2') then
-                  call color('yellow')
-                  call bullet(point(1),point(2),.30)
+                  call color('blue')
+                  call bullet(point(1),point(2),spotsize)
             else
                if (diag(2)==1) then; call color('red');
                   else; call color('green'); endif
-                  call bullet(point(1),point(2),.30)
+                  call bullet(point(1),point(2),spotsize)
                endif
                !print *, point, labeling(label:label)
             enddo
