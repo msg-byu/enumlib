@@ -26,7 +26,7 @@ SUBROUTINE mixed_radix_counter(labels,digits)
 integer labels(:,:) ! second index is the digit #, first is the label #
 integer digits(:) ! List of the upper bound of each digit
 integer a(size(digits)), counter(size(digits)) ! The odometer; ordinal counter for each digit
-integer i,ic,j,n, k
+integer i,ic,j,n
 integer nUq ! number of unique numbers possible in this mixed radix system
 
 n = size(digits) ! Number of sites
@@ -380,40 +380,40 @@ if(any(RP==0)) then; print *, "d-vector didn't permute in map_dvector_permutatio
 
 ENDSUBROUTINE map_dvector_permutation
 
-!***************************************************************************************************
-! Take a superlattice (parent + HNF) and a set of interior points and generate all the multilattice
-! points in the supercell
-SUBROUTINE expand_dvectors(n,LV,sLV,sLVi,H,S,L,pd,d,eps)
-real(dp) :: LV(3,3), eps ! Lattice vectors of the parent cell, finite precision tolerance
-integer H(3,3), S(3,3), L(3,3) ! HNF, SNF matrix, and the left transform for the given HNF
-integer n ! Index (size) of the supercell
-real(dp), pointer :: pd(:,:), d(:,:) ! interior points of the primary lattice, points of the multilattice
-real(dp), intent(in), dimension(3,3) :: sLV, sLVi ! superlattice vectors and inverse
-
-integer, pointer :: g(:,:)
-integer id, Linv(3,3)
-real(dp) Li(3,3)
-logical err
-
-call make_member_list((/S(1,1),S(2,2),S(3,3)/),g)
-call matrix_inverse(real(L,dp),Li,err)
-if(.not. equal(Li,nint(Li),eps)) stop "Transform didn't work in expand d-vectors"
-Linv = nint(Li)
-
-d(:,1:n) = matmul(LV,matmul(Linv,g)) ! Get the set of superlattice d-vectors that are at the origin of
-                                     ! each parent cell in the superlattice 
-do id = 0, size(pd,2)-1 
-      d(:,id*n+1:id*n+n) = d(1:3,1:n) + spread(pd(1:3,id+1),2,n) 
-enddo ! loop over group elements
-! d now contains n copies of pd, each copy shifted by the origin of each parent cell in the superlattice
-do id = 1, n*size(pd,2) ! Move each of the primary cell d-vectors into the first unit cell
-   call bring_into_cell(d(:,id),sLVi,sLV,eps)
-enddo ! loop over primary cell d-vectors
-
-
-!write(*,'(/,20(3i3,/))') nint(d(:,1:n))
-
-ENDSUBROUTINE expand_dvectors
+!!!!***************************************************************************************************
+!!!! Take a superlattice (parent + HNF) and a set of interior points and generate all the multilattice
+!!!! points in the supercell
+!!!SUBROUTINE expand_dvectors(n,LV,sLV,sLVi,H,S,L,pd,d,eps)
+!!!real(dp) :: LV(3,3), eps ! Lattice vectors of the parent cell, finite precision tolerance
+!!!integer H(3,3), S(3,3), L(3,3) ! HNF, SNF matrix, and the left transform for the given HNF
+!!!integer n ! Index (size) of the supercell
+!!!real(dp), pointer :: pd(:,:), d(:,:) ! interior points of the primary lattice, points of the multilattice
+!!!real(dp), intent(in), dimension(3,3) :: sLV, sLVi ! superlattice vectors and inverse
+!!!
+!!!integer, pointer :: g(:,:)
+!!!integer id, Linv(3,3)
+!!!real(dp) Li(3,3)
+!!!logical err
+!!!
+!!!call make_member_list((/S(1,1),S(2,2),S(3,3)/),g)
+!!!call matrix_inverse(real(L,dp),Li,err)
+!!!if(.not. equal(Li,nint(Li),eps)) stop "Transform didn't work in expand d-vectors"
+!!!Linv = nint(Li)
+!!!
+!!!d(:,1:n) = matmul(LV,matmul(Linv,g)) ! Get the set of superlattice d-vectors that are at the origin of
+!!!                                     ! each parent cell in the superlattice 
+!!!do id = 0, size(pd,2)-1 
+!!!      d(:,id*n+1:id*n+n) = d(1:3,1:n) + spread(pd(1:3,id+1),2,n) 
+!!!enddo ! loop over group elements
+!!!! d now contains n copies of pd, each copy shifted by the origin of each parent cell in the superlattice
+!!!do id = 1, n*size(pd,2) ! Move each of the primary cell d-vectors into the first unit cell
+!!!   call bring_into_cell(d(:,id),sLVi,sLV,eps)
+!!!enddo ! loop over primary cell d-vectors
+!!!
+!!!
+!!!!write(*,'(/,20(3i3,/))') nint(d(:,1:n))
+!!!
+!!!ENDSUBROUTINE expand_dvectors
 
 !***************************************************************************************************
 ! Finds all the possible diagonals of the HNF matrices of a given size
@@ -560,7 +560,7 @@ integer, allocatable :: temp_hnf(:,:,:), tIndex(:)
 real(dp), pointer :: latts(:,:,:)
 logical duplicate
 type(opList), allocatable :: tmpOp(:)
-real(dp), allocatable :: tSGrots(:,:,:), tv(:,:,:)
+real(dp), allocatable :: tv(:,:,:)
 integer, pointer :: aTyp(:)
 
 
@@ -568,6 +568,10 @@ nD = size(d,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in remove_duplicate_lattices: aTyp"
 aTyp = 1
+!! Need to modify this to pass in numbers that differentiate site that are inequivalent because of
+!! the different labels that are allowed.
+!! Or, let the code apply all the symmetries and then eliminate invalid labelings (the counter won't
+!! generate any but they may appear after the symmetry has been applied to a legal one)
 
 call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
@@ -725,7 +729,6 @@ integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), 
 integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend!, removetime, organizetime, writetime,hnftime,snftime, permtime
-real(dp) genlabels,blockstart,endwrite
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
 type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation permutation lists
