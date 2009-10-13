@@ -7,9 +7,9 @@ use rational_mathematics, only: gcd
 use combinatorics
 implicit none
 private
-public   get_permutations, count_full_colorings, &
+public  get_permutations, count_full_colorings, &
         make_member_list, make_label_rotation_table, generate_unique_labelings, &
-       write_labelings
+        write_labelings
 CONTAINS
 !***************************************************************************************************
 ! This routine takes a list of HNFs, and index, and an indexed list to output the labels for the
@@ -225,95 +225,33 @@ do i = 1, nL
 enddo
 if (rowmatch) lists_match = .true.
 ENDFUNCTION lists_match
-!!!!***************************************************************************************************
-!!!! This routine takes a list of label permutations and a list of labelings and reduces the labelings
-!!!! list by removing those that are duplicate under the label rotation.
-!!!SUBROUTINE remove_label_rotation_dups(lr,lab,labTabin,trgrp,k,d,eps)
-!!!integer, intent(in) :: lr(:,:) ! Label rotations (permutations) and temp storage
-!!!integer, pointer :: lab(:,:) ! labelings that are unique except for label-rotation permutations
-!!!character, intent(in) :: labTabin(:) ! Complete table of labeling "flags", F, N, D, E, etc. 
-!!!integer, pointer :: trgrp(:,:) ! translation group, permutations that lead to equivalent labelings
-!!!integer, intent(in):: k ! Number of colors in the labelings
-!!!integer, intent(in):: d(3) ! Diagonal elements of the SNF
-!!!real(dp), intent(in) :: eps ! Finite precision tolerance
-!!!
-!!!character :: labTab(size(labTabin))
-!!!integer i, j, n, ip, np, il, nl, ic, nUql, itr, nlr(1), ilr, status
-!!!integer jl
-!!!integer(li) :: idx ! base-10 version of the labeling (normally a base-k, n-digit number)
-!!!integer b(size(lab,2)), c(size(lab,2)), multiplier(size(lab,2)), ctemp(size(lab,2))
-!!!integer ct(size(lab,2)) ! Temp storage for checking label exchange
-!!!integer trivPerm(size(lab,2)), kc(size(lab,2))
-!!!integer, pointer :: perm(:,:) => null()
-!!!
-!!!np = factorial(k)
-!!!call get_permutations((/(i,i=0,k-1)/),perm) ! Since we enter this loop so often (for same k) perhaps
-!!!! this should be an input
-!!!
-!!!nlr = count(lr/=0,2)
-!!!n = size(lab,2)
-!!!trivPerm = (/(i,i=1,n)/)
-!!!nl = size(lab,1)
-!!!multiplier = k**(/(i,i=n-1,0,-1)/)
-!!!
-!!!labTab = labTabin ! Make a copy of the flags table (so that we can cross off duplicates)
-!!!! Now that we have a list of label permutations, use them to shrink the input list of labelings
-!!!do ilr = 1, nlr(1) ! There's one permutation for each rotation that fixes the lattice
-!!!   if (all(lr(:,ilr)==trivPerm)) cycle ! If the permutation is the trivial one, skip over it
-!!!   do il = 1, nl ! loop over each labeling in the list
-!!!      b = lab(il,:)  ! Get the il-th labeling (we don't want to remove this one, just label-rotated copies of itself)
-!!!      do itr = 1,size(trgrp,1) ! Loop over all possible translations of this permutation
-!!!         c = b(lr(:,ilr)) ! Permute the labels according to the permutation of this rotation
-!!!         c = c(trgrp(itr,:)) ! Permute the labeling according to each translation
-!!!         ctemp = c
-!!!         do ip = 1, np ! Loop over all permutations (exchanges) of the labels (stored in 'perms')
-!!!            do jl = 1, nl ! For each digit in the labeling, permute the label (label exchange)
-!!!               ct(jl) = perm(b(jl)+1,ip)
-!!!            enddo
-!!!            !! Old way of permuting the labels (caused compiler warnings or errors) above is better anyway
-!!!            !!do ia=1,k ! Convert the k-ary labeling to one with the labels permuted
-!!!            !!   where(ctemp==ia-1); c(:) = perm(ia,ip);endwhere ! b is the permuted labeling
-!!!            !!end do
-!!!            !!if (any(c/=ct)) stop "label exchange didn't work in remove_label_rotation_dups"
-!!!            if (all(b==c)) cycle ! This permutation didn't change the labeling         
-!!!            idx = sum(c*multiplier)+1 ! Find the index for this permutation in the table
-!!!            if (labTab(idx)=='F' ) then ! This structure is a label rotation duplicate
-!!!               idx = sum(b*multiplier)+1
-!!!               labTab(idx) = 'R'
-!!!            endif
-!!!         enddo
-!!!      enddo
-!!!   enddo
-!!!enddo
-!!!! Now replace the input list of labelings with the new list that has shrunk by the number of label-rot dups
-!!!! Probably easiest to do this by using the k-nary counter again and just making a list of k-nary n-digit 
-!!!! numbers that aren't marked off in the label table.
-!!!nUql = count(labTab=='F')
-!!!if(associated(lab)) deallocate(lab)
-!!!allocate(lab(nUql,n),STAT=status)
-!!!if(status/=0) stop "Allocation of lab failed in remove_label_rotation_dups"
-!!!
-!!!kc = 0; ic = 0
-!!!do ! Loop over all values of a k-nary, n-digit counter
-!!!   idx = sum(kc*multiplier)+1
-!!!   if (labTab(idx)=='F') then
-!!!      ic = ic + 1   ! Count the number of labelings found so far
-!!!      lab(ic,:) = kc ! Store this labeling
-!!!   endif
-!!!   j = n
-!!!   do ! Check to see if we need to roll over any digits, start at the right
-!!!      if (kc(j) /= k - 1) exit ! This digit not ready to roll over, exit the loop and advance digit
-!!!      kc(j) = 0  ! Rolling over so set to zero
-!!!      j = j - 1;       ! Look at the next (going leftways) digit
-!!!      if (j < 1) exit  ! If we updated the leftmost digit then we're done
-!!!   enddo
-!!!   if (j < 1) exit ! We're done counting, exit
-!!!   kc(j) = kc(j) + 1 ! Update the next digit (add one to it)
-!!!enddo
-!!!if (ic/=nUql) stop "relabeling error"
-!!!
-!!!ENDSUBROUTINE remove_label_rotation_dups
-!!!
+
+!***************************************************************************************************
+! This function compares a proposed labeling to the list of allowed labels on each site. If any
+! label is present "illegally" on one site, then the function is false. This routine is needed
+! because in different labels are allowed on different sites, the symmetry operations of the
+! underlying parent lattice (where all sites are considered equivalent) can permute a legal labeling
+! to an illegal one by permuting one label (on an allowed site) to another site where it is not
+! allowed. (GLWH see moleskine 10/9/2009)
+FUNCTION labeling_is_legal(labeling,siteLabels,digitN)
+logical             :: labeling_is_legal, match
+integer, intent(in) :: labeling(:), siteLabels(:,:), digitN(:)
+integer iL, nL
+
+nL = size(labeling)
+labeling_is_legal = .true.
+!labeling_is_legal = .false.
+do iL = 1, nL
+   !match = .false.
+   if (all(labeling(iL)/=siteLabels(:digitN(iL),iL))) then ! no matching label for this digit
+      labeling_is_legal = .false.
+      exit ! if there isn't a match in just one digit, illegal labeling
+   endif
+enddo
+!if (match) labeling_is_legal = .true.
+
+ENDFUNCTION labeling_is_legal
+
 !****************************************************************************************************
 ! This routine takes in the permutations effected by both translation and by rotations that fix the
 ! superlattice and generates all labelings that are unique. It also removes super-periodic labelings
@@ -366,17 +304,17 @@ digit = (/((parDigit(j),i=1,n),j=1,nD)/) ! Repeat the digit ordinals across all 
 digCnt = 1 ! Initialize each place to the first label ("lowest" digit)
 forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
 forall(j=0:k-1); c(j) = count(label(1,:)==j); endforall
-write(*,'("count",20i2)') c
-do j = 1,k
-   write(*,'("initialize label:",1x,20i2)') label(j,:)
-enddo
+!!write(*,'("count",20i2)') c
+!!do j = 1,k
+!!   write(*,'("initialize label:",1x,20i2)') label(j,:)
+!!enddo
 !!print *,"nl",nl,"nD",nD,"n",n
 !!print *,shape(label)
 !!!write(*,'("nl",20i2)') nl
 !!!write(*,'("nD",20i2)') nD
 !!!write(*,'("mod",20i2)') (mod(i,nD)+1,i=0,nl-1)
 !!!
-write(*,'("digit",20i2)') digit
+!!write(*,'("digit",20i2)') digit
 !!!write(*,'("digCnt",20i2)') digCnt
 !!!stop
 !!>
@@ -385,11 +323,11 @@ a = 0; multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert 
 
 !!< Set up a new multiplier
 multiplier = 0; multiplier(nl)=1
-a = label(1,:); write(*,'("labeling",20i2)') a
+!!a = label(1,:); write(*,'("labeling",20i2)') a
 do i = nl-1,1,-1
    multiplier(i) = digit(i+1)*multiplier(i+1)
 enddo
-write(*,'("Multiplier: ",10(1x,i6))') multiplier
+!!write(*,'("Multiplier: ",10(1x,i6))') multiplier
 !!>
 
 lab = ''; iq = 0  ! Index for labelings; number of unique labelings
@@ -406,7 +344,7 @@ ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
    idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
-   write(*,'(/"index: ",i6)') idx
+   !!write(*,'(/"index: ",i6)') idx
    !if (idx/=ic) stop "index bug!" !! This check isn't useful for mixed-radix labeling
    if (any(c==0)) then ! Check to see if there are missing digits
       id = id + 1; ! Keep track of the number of incomplete labelings
@@ -414,12 +352,20 @@ do; ic = ic + 1
          lab(idx) = 'I';    ! Could mark its brothers too...
       endif
    endif
+   if (any(c<0)) stop "Bug in the digit counter in generate_unique_labelings: negative digit count!"
    ! If this label hasn't been marked yet, mark it as unique, 'U'
    ! and mark its duplicates as 'D'
    if (lab(idx)=='') then
       lab(idx) = 'U'
       ! Is the first permutation in the list guaranteed to be the identity? We need to skip the identity
       do q = 2,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
+         if (.not. labeling_is_legal(a(perm(q,:)),label,digit)) then
+            write(*, &
+'("1Skipping illegal labeling",/,"Permutation #: ",i4,/,"original labeling: ",20i1)') q,a
+write(*,'("permuted labeling: ",20i1)') a(perm(q,:))
+            !read(*,*)
+            cycle
+         endif
          idx = sum(a(perm(q,:))*multiplier)+1
          if (idx==ic .and. q <= n) lab(idx)='N' ! This will happen if the coloring is superperiodic
          ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
@@ -441,10 +387,17 @@ do; ic = ic + 1
                do il = 1, nl ! For each digit in the labeling, permute the label (label exchange)
                   b(il) = labPerms(a(il)+1,ip)
                enddo
+               if (.not. labeling_is_legal(b,label,digit)) then
+                  write(*,'("Permutation #: ",i4,/,"original labeling: ",20i1)') q,a
+                  write(*,'("permuted labeling: ",20i1,"#")') b
+                  !read(*,*)
+                  cycle
+               endif
                !!forall(ia=1:k) ! Convert the k-nary labeling to one with the labels permuted
                !!   where(a==ia-1); b(:) = labPerms(ia,ip);endwhere ! b is the permuted labeling
                !!end forall
                !!if (any(b/=ct)) stop "label exchange duplicate checker is not working..."
+               write(*,'("labeling permuted: ",20i1)') b(perm(q,:))
                idx = sum(b(perm(q,:))*multiplier)+1
                if  (lab(idx)=='') lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
                ! not otherwise marked
@@ -483,7 +436,7 @@ do; ic = ic + 1
    !!! This doesn't work because the labels aren't necessarily in numerical order
    !!!c(a(j)-1) = c(a(j)-1) - 1 ! subtract 1 from the number of digits of the j-th kind
    c(label(digCnt(j)-1,j)) = c(label(digCnt(j)-1,j)) - 1 ! subtract 1 from the number of digits of the j-th kind
-   write(*,'("iteration:",i3)') ic
+   write(*,'("iteration:",i10)') ic
    write(*,'("count",20i2)') c
    write(*,'("digCnt",20i2)') digCnt
    write(*,'("j",1x,i1)') j
