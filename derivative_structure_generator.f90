@@ -582,7 +582,7 @@ temp_hnf = hnf
 
 ! For the 2D case, eliminate the "3D" operations.
 if (LatDim==2) then
-   call rm_3d_operations(parent_lattice,sgrots,eps)
+   call rm_3d_operations(parent_lattice,sgrots,sgshift,eps)
    nRot = size(sgrots,3)
 endif
 
