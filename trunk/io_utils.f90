@@ -4,7 +4,7 @@ use numerical_utilities
 use vector_matrix_utilities
 implicit none
 private
-public read_input
+public read_input, write_lattice_symmetry_ops
 CONTAINS
 
 !***************************************************************************************************
@@ -134,4 +134,26 @@ backspace unit
 if (ios/=0) error = .true.
 end subroutine co_ca
 
+!***************************************************************************************************
+! This routine writes the symmetry operations of the multilattice (defined in lat.in to a file. This
+! isn't used anywhere but might be nice for debugging and other checks.
+SUBROUTINE write_lattice_symmetry_ops(rot,shift,key)
+real(dp), intent(in) :: rot(:,:,:), shift(:,:)
+character(2), optional :: key
+
+character(2) twoDkey
+integer iOp, nOp,i
+twoDkey = "3D"
+if (present(key)) then; if(key=="2D") twoDkey = "2D"; endif
+
+if(twoDkey=="2D") then; open(11,file="symops_enum_2D.out",status="unknown"); else
+open(11,file="symops_enum.out",status="unknown");endif
+nOp = size(rot,3)
+write(11,'("Number of symmetry operations: ",i2)') nOp
+do iOp = 1,nOp
+   write(11,'("Op #:",i2)') iOp
+   write(11,'(3(f10.6,1x))') (rot(:,i,iOp),i=1,3)
+   write(11,'("shift: ",3(f8.4,1x))') shift(:,iOp)
+enddo
+END SUBROUTINE write_lattice_symmetry_ops
 END MODULE io_utils

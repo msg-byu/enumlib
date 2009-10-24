@@ -1,6 +1,7 @@
 ! Generate all derivative structures of a parent structure
 ! Gus L. W. Hart BYU July 2007
 MODULE derivative_structure_generator
+use io_utils
 use num_types
 use enumeration_types
 use labeling_related
@@ -22,18 +23,25 @@ CONTAINS
 ! Just a test routine for expanding the code to treat different label sets on different sites
 ! This is just a counter of mixed radix form.
 !
-SUBROUTINE mixed_radix_counter(labels,digits)
+SUBROUTINE mixed_radix_counter(labels,digit)
 integer labels(:,:) ! second index is the digit #, first is the label #
-integer digits(:) ! List of the upper bound of each digit
-integer a(size(digits)), counter(size(digits)) ! The odometer; ordinal counter for each digit
-integer i,ic,j,n
+integer digit(:) ! List of the upper bound of each digit
+integer a(size(digit)), counter(size(digit)) ! The odometer; ordinal counter for each digit
+integer i,ic,j,n,ilab, quot
 integer nUq ! number of unique numbers possible in this mixed radix system
+integer multiplier(size(digit)), digIdx(size(digit)), temp(1), b(size(digit)), idx
 
-n = size(digits) ! Number of sites
+n = size(digit) ! Number of sites
 counter = 1
 
 ! Find the total number of numbers that the mixed radix system can represent
-nUq = product(digits) !;print *," Number of mixed-radix numbers",nUq
+nUq = product(digit) !;print *," Number of mixed-radix numbers",nUq
+
+multiplier = 0; multiplier(n)=1
+do i = n-1,1,-1
+   multiplier(i) = digit(i+1)*multiplier(i+1)
+enddo
+write(*,'("Multiplier: ",20i6)') multiplier
 
 a = labels(1,:)
 write(*,'("Starting value: ",10i2)') a
@@ -43,7 +51,7 @@ do; ic = ic + 1
    if(ic > nUq + 1) stop "Fail safe triggered. Wrong number of iterations in mixed-radix counterem"
    j = n ! Reset the digit index; start with j = the last place in the number
    do !;print *, "inner loop"
-      if (counter(j) /= digits(j)) exit ! The digit isn't ready to roll over, so exit and advance it
+      if (counter(j) /= digit(j)) exit ! The digit isn't ready to roll over, so exit and advance it
       counter(j) = 1     ! Roll back j-th digit to the beginning
       j = j - 1          ! Move to the next (on the left) digit
       if (j < 1) exit    ! Leftmost digit updated, we've finished all the numbers
@@ -51,8 +59,19 @@ do; ic = ic + 1
    if (j < 1) exit  ! We're done counting, exit
    counter(j) = counter(j) + 1
    forall(i=1:n); a(i) = labels(counter(i),i);endforall
+   do i=1,n; temp = minloc(labels(:,i),a(i)==labels(:,i)) - 1; digIdx(i) = temp(1) ;enddo
+   idx = sum(digIdx*multiplier)
+   idx = sum((counter-1)*multiplier)
    write(*,'(i6,":",2x,10i2)',advance="no") ic,counter
-   write(*,'(3x,10i2)') a
+   write(*,'(i10,1x)',advance="no") idx 
+   write(*,'(3x,10i2)',advance="no") a
+   write(*,'(3x,10i2)',advance="no") digIdx
+   do ilab = 1, n ! Loop over each place (digit) in the labeling
+      quot = idx/multiplier(ilab) ! divide the index by next highest multiplier
+      b(ilab) = labels(quot+1,ilab) ! store the quotient (indexed to labels)
+      idx = idx - quot*multiplier(ilab) ! find the remainder
+   enddo
+   write(*,'(3x,10i2)') b
 enddo
 END SUBROUTINE mixed_radix_counter
 
@@ -297,6 +316,8 @@ do iH = 1,nH ! loop over each superlattice
       ! Now we have the (d',g') table for this rotation. Now record the permutation
       rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/)) ! store permutation in the "long form"
       rperms%nL = nOp
+      write(*,'(i2,1x,20i2)')iOp,rperms%perm(iOp,:)
+      write(*,'("nL",1x,20i2)')rperms%nL
    enddo ! loop over rotations 
 
    ! Now that we have the permutations that are effected by N+t type of rotations (for each N in the
@@ -305,6 +326,7 @@ do iH = 1,nH ! loop over each superlattice
    ! nomenclature). Only when we have these two lists, and compose them, do we have a guarantee that
    ! the resulting list is actually a group. For efficiency, we reduce the N+t list (remove
    ! duplicates). Rod claims that the compositions (with the translations) will not have duplicates.
+   if (size(rperms%perm,1) > 1) &
    call sort_permutations_list(rperms%perm)
    ! The rotations permutations list is now in "alphabetical" order and contains no duplicates
 
@@ -579,11 +601,13 @@ Nhnf = size(hnf,3)
 allocate(temp_hnf(3,3,Nhnf),STAT=status)
 if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp_hnf"
 temp_hnf = hnf
+call write_lattice_symmetry_ops(sgrots,sgshift)
 
 ! For the 2D case, eliminate the "3D" operations.
 if (LatDim==2) then
    call rm_3d_operations(parent_lattice,sgrots,sgshift,eps)
    nRot = size(sgrots,3)
+   call write_lattice_symmetry_ops(sgrots,sgshift,"2D")
 endif
 
 ! For each HNF in the list, see if it is a derivative lattice of a preceding
@@ -850,7 +874,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       !enddo
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
-      call write_labelings(k,ivol,nD,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,cElementN,icRange)
+      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,cElementN,icRange)
       !call cpu_time(endwrite)
       !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock

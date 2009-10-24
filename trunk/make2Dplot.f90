@@ -35,11 +35,11 @@ enddo
 read(11,'(i2)') k
 do i = 1,4;read(11,*);enddo ! Skip 4 lines
 
-scale = .30
+scale = .23
 Nspots = 8
-rows = 12
-cols = 7
-spotsize = .33
+rows = 16
+cols = 10
+spotsize = .27
 call init(scale,-10.0,-2.0)
 call init_colors
 
@@ -72,14 +72,14 @@ outer: do js = 1,rows
             if (any(temp<0)) stop "less than zero"
             label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
             if (labeling(label:label)=='1') then
-                call color('black')
+                call color('blue')
                 call bullet(point(1),point(2),spotsize)
             else if (labeling(label:label)=='2') then
-                  call color('blue')
+                  call color('cyan')
                   call bullet(point(1),point(2),spotsize)
             else
                if (diag(2)==1) then; call color('red');
-                  else; call color('green'); endif
+                  else; call color('red'); endif
                   call bullet(point(1),point(2),spotsize)
                endif
                !print *, point, labeling(label:label)
