@@ -1,12 +1,12 @@
-hcp 
+2D square 
 surf
-1 0 0
-0 .5 0.866025403784439 
-0 1 0
-3
-2
-0 0 0 0/1/2
-.5 .5 0.28867513459 0/1
-1 6
-1e-10
-part
+1. 0. 0.
+0. 1. 0.
+0. 0. 1.
+3 # binary case
+2 # Number of d-vectors
+0 0 0 0/1/2 # d01
+.3 .3 .3 0/1   # d02
+   1 4 # Starting and ending cell sizes for search
+0.10E-03 # Epsilon (finite precision parameter)
+part 

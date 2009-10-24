@@ -22,15 +22,15 @@ if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
 ! With test case 006 there is a problem with the original code. label rotation fails...
 ! call generate_derivative_structures(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
 
-!allocate(labels(3,4),digits(4))
-!labels(:,1) = (/3,1,0/)
-!labels(:,2) = (/0,2,0/)
-!labels(:,3) = (/1,4,0/)
-!labels(:,4) = (/0,1,2/)
-!digits =(/2,2,2,3/)
-!
-!call mixed_radix_counter(labels,digits)
-
+!!allocate(label(3,4),digit(4))
+!!label(:,1) = (/3,1,0/)
+!!label(:,2) = (/0,2,0/)
+!!label(:,3) = (/1,4,0/)
+!!label(:,4) = (/0,1,2/)
+!!digit =(/2,2,2,3/)
+!!
+!!call mixed_radix_counter(label,digit)
+!!
 call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,&
          label,digit,conc_check=.false.)
 

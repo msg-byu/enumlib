@@ -11,6 +11,30 @@ public  get_permutations, count_full_colorings, &
         make_member_list, make_label_rotation_table, generate_unique_labelings, &
         write_labelings
 CONTAINS
+
+!***************************************************************************************************
+! This routine takes in a list of labels of the parent cell and and the number of different labels
+! allowed on each site. It returns a "multiplier", and *expanded* versions of parLabel and parDigit
+SUBROUTINE setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
+integer, intent(in) :: n,k ! The index (volume factor) of the supercell, k-nary case
+integer, intent(in) :: parLabel(:,:), parDigit(:)
+integer, pointer:: label(:,:), digit(:) ! n*longer than parLab/parDigit (INTENT(OUT))
+integer, pointer:: multiplier(:)
+integer i,j, nD, istat, ic
+
+nD = size(parDigit) ! Size of the d-set n*nD is the total length of a labeling
+if (associated(label)) deallocate(label,digit,multiplier)
+allocate(label(k,n*nD),digit(n*nD),multiplier(n*nD),STAT=istat)
+if (istat/=0) stop "Allocation failed in setup_mixed_radix_multiplier"
+
+digit = (/((parDigit(j),i=1,n),j=1,nD)/) ! Repeat the digit ordinals across all places in the labeling
+forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall ! Ditto for labels
+multiplier = 0; multiplier(n*nD)=1
+do i = n*nD-1,1,-1
+   multiplier(i) = digit(i+1)*multiplier(i+1)
+enddo
+END SUBROUTINE setup_mixed_radix_multiplier
+
 !***************************************************************************************************
 ! This routine takes a list of HNFs, and index, and an indexed list to output the labels for the
 ! HNFs matching the index. The input for the labelings is not a list of labelings but just the base
@@ -18,9 +42,13 @@ CONTAINS
 ! in the output file. Re-expanding the base-10 index to base-k when it was already done once in the
 ! generate_unique_labelings routine is not efficient CPU-wise but save lots of memory since the
 ! labelings are never stored in memory except as a base-10 number.
-SUBROUTINE write_labelings(k,n,nD,HNFi,HNFlist,SNFlist,L,fixOp,Tcnt,Scnt,Hcnt,permIndx,lm,number_ElementN,number_Range)
+SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp, &
+                           Tcnt,Scnt,Hcnt,permIndx,lm,number_ElementN,number_Range)
 integer, intent(in) :: k ! number of colors/labels
 integer, intent(in) :: n, nD ! index (size of supercell), size of d-set
+integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
+integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
+
 integer, intent(in) :: HNFi ! Index in the permIndx corresponding to the current block of HNFs
 integer, intent(in), dimension(:,:,:) :: HNFlist, SNFlist, L ! List of the HNFs, SNFs, L's. Need this just for the output
 type(opList), intent(in) :: fixOp(:)
@@ -39,6 +67,8 @@ integer :: labeling(n*nD) ! base-k, n-digit number representing the labeling
 integer(li) :: labIndx ! base-10 form of the labeling
 integer status ! Allocation exit flag
 integer ivsL
+integer, pointer :: label(:,:), digit(:), multiplier(:) ! Need to convert base-10 back to labeling
+
 
 if (any(lm=='')) stop "Labeling index has unmarked entries"
 nl = count(lm=='U'); nHNF = count(permIndx==HNFi)
@@ -57,13 +87,22 @@ ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; 
 
 ! end of packing.
 
+! set up the multiplier, labels, digits, etc
+call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
+
 do il = 1, nl ! Loop over the unique labelings
    labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
-   do ilab = 1, n*nD ! Loop over each place (digit) in the labeling
-      quot = labIndx/k ! divide the index by k to get the quotient
-      labeling(n*nD-ilab+1) = labIndx - quot*k ! store the remainder (base-k digit of current place)
-      labIndx = quot ! reduce current index to just the quotient and keep going
+   ! Now convert the base-10 number (labIndx) to the correct labeling
+   do ilab = 1, n*nD
+      quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
+      labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
+      labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
    enddo
+   !!!do ilab = 1, n*nD ! Loop over each place (digit) in the labeling
+   !!!   quot = labIndx/k ! divide the index by k to get the quotient
+   !!!   labeling(n*nD-ilab+1) = labIndx - quot*k ! store the remainder (base-k digit of current place)
+   !!!   labIndx = quot ! reduce current index to just the quotient and keep going
+   !!!enddo
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
       jHNF = vsH(iHNF) ! Index of matching HNFs
       if (check_labeling_numbers(labeling,number_ElementN,number_Range)) then
@@ -234,7 +273,7 @@ ENDFUNCTION lists_match
 ! to an illegal one by permuting one label (on an allowed site) to another site where it is not
 ! allowed. (GLWH see moleskine 10/9/2009)
 FUNCTION labeling_is_legal(labeling,siteLabels,digitN)
-logical             :: labeling_is_legal, match
+logical             :: labeling_is_legal
 integer, intent(in) :: labeling(:), siteLabels(:,:), digitN(:)
 integer iL, nL
 

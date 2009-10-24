@@ -54,8 +54,9 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
-SRC = sorting.f90 enumeration_types.f90 labeling_related.f90 derivative_structure_generator.f90 \
-	io_utils.f90 
+SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
+      derivative_structure_generator.f90 
+
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
          ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
