@@ -399,9 +399,9 @@ do; ic = ic + 1
       ! Is the first permutation in the list guaranteed to be the identity? We need to skip the identity
       do q = 2,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
          if (.not. labeling_is_legal(a(perm(q,:)),label,digit)) then
-            write(*, &
-'("1Skipping illegal labeling",/,"Permutation #: ",i4,/,"original labeling: ",20i1)') q,a
-write(*,'("permuted labeling: ",20i1)') a(perm(q,:))
+            !write(*, &
+!'("1Skipping illegal labeling",/,"Permutation #: ",i4,/,"original labeling: ",20i1)') q,a
+!write(*,'("permuted labeling: ",20i1)') a(perm(q,:))
             !read(*,*)
             cycle
          endif
@@ -427,8 +427,8 @@ write(*,'("permuted labeling: ",20i1)') a(perm(q,:))
                   b(il) = labPerms(a(il)+1,ip)
                enddo
                if (.not. labeling_is_legal(b,label,digit)) then
-                  write(*,'("Permutation #: ",i4,/,"original labeling: ",20i1)') q,a
-                  write(*,'("permuted labeling: ",20i1,"#")') b
+                  !write(*,'("Permutation #: ",i4,/,"original labeling: ",20i1)') q,a
+                  !write(*,'("permuted labeling: ",20i1,"#")') b
                   !read(*,*)
                   cycle
                endif
@@ -436,7 +436,7 @@ write(*,'("permuted labeling: ",20i1)') a(perm(q,:))
                !!   where(a==ia-1); b(:) = labPerms(ia,ip);endwhere ! b is the permuted labeling
                !!end forall
                !!if (any(b/=ct)) stop "label exchange duplicate checker is not working..."
-               write(*,'("labeling permuted: ",20i1)') b(perm(q,:))
+               !write(*,'("labeling permuted: ",20i1)') b(perm(q,:))
                idx = sum(b(perm(q,:))*multiplier)+1
                if  (lab(idx)=='') lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
                ! not otherwise marked
@@ -469,16 +469,16 @@ write(*,'("permuted labeling: ",20i1)') a(perm(q,:))
    !!a(j) = a(j) + 1 ! Update the next digit (add one to it)
    digCnt(j) = digCnt(j) + 1
    a(j) = label(digCnt(j),j)
-   write(*,'("labeling",20i2)') a
+   !write(*,'("labeling",20i2)') a
    
    c(a(j)) = c(a(j)) + 1     ! Add 1 to the number of digits of the j+1-th kind
    !!! This doesn't work because the labels aren't necessarily in numerical order
    !!!c(a(j)-1) = c(a(j)-1) - 1 ! subtract 1 from the number of digits of the j-th kind
    c(label(digCnt(j)-1,j)) = c(label(digCnt(j)-1,j)) - 1 ! subtract 1 from the number of digits of the j-th kind
-   write(*,'("iteration:",i10)') ic
-   write(*,'("count",20i2)') c
-   write(*,'("digCnt",20i2)') digCnt
-   write(*,'("j",1x,i1)') j
+   !write(*,'("iteration:",i10)') ic
+   !write(*,'("count",20i2)') c
+   !write(*,'("digCnt",20i2)') digCnt
+   !write(*,'("j",1x,i1)') j
    if (sum(c) /= nl .and. .not. full) stop 'counting bug'
    !if (ic > 5) stop "early exit for debugging"
 enddo

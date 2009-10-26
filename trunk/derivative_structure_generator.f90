@@ -187,10 +187,11 @@ enddo
 ENDSUBROUTINE organize_rotperm_lists
 
 !***************************************************************************************************
-SUBROUTINE get_dvector_permutations(pLV,pd,dRPList,eps)
+SUBROUTINE get_dvector_permutations(pLV,pd,dRPList,LatDim,eps)
 real(dp) :: pLV(3,3) ! Lattice vectors of the primary lattice (parent lattice)
 real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
 type(RotPermList), intent(out) :: dRPList ! Output. A list permutations effected by the Ops
+integer, intent(in) :: LatDim ! 2 or 3 dimensional case?
 real(dp), intent(in) :: eps ! finite precision tolerance
 
 integer nD, iD, nOp, iOp, status
@@ -199,13 +200,16 @@ real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
 real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
 real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
 logical err
-
+character(80) name
 nD = size(pd,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
 aTyp = 1
 
 call get_spaceGroup(pLV,aTyp,pd,rot,shift,.false.,eps)
+!call write_lattice_symmetry_ops(rot,shift)
+if(latDim==2) call rm_3D_operations(pLV,rot,shift,eps)
+!call write_lattice_symmetry_ops(rot,shift,"2D")
 nOp = size(rot,3)
 allocate(tList(nOp,nD),tv(3,nD,nOp),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: tList"
@@ -216,6 +220,7 @@ if(status/=0)stop "Allocation failed in get_dvector_permutations: dRPList"
 call matrix_inverse(pLV,inv_pLV,err)
 if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 
+dRPList%nL = nOp
 do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permuted for each
    rd = matmul(rot(:,:,iOp),pd)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
 !   do iD = 1,3
@@ -229,6 +234,9 @@ do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permu
    dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
    call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
 enddo
+!name = "temp_dvecs.out"
+!call write_rotperms_list(dRPList,name)
+
 ! I don't think we should reduce this list to a unique one. Some rotations that don't permute the d's could
 ! still permute the g's. So we have to keep all the d permutations, even if they look redundant here.
 
@@ -316,8 +324,8 @@ do iH = 1,nH ! loop over each superlattice
       ! Now we have the (d',g') table for this rotation. Now record the permutation
       rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/)) ! store permutation in the "long form"
       rperms%nL = nOp
-      write(*,'(i2,1x,20i2)')iOp,rperms%perm(iOp,:)
-      write(*,'("nL",1x,20i2)')rperms%nL
+      !write(*,'(i2,1x,20i2)')iOp,rperms%perm(iOp,:)
+      !write(*,'("nL",1x,20i2)')rperms%nL
    enddo ! loop over rotations 
 
    ! Now that we have the permutations that are effected by N+t type of rotations (for each N in the
@@ -760,6 +768,7 @@ type(RotPermList) :: ParRPList ! Just the list for the parent lattice
 integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation permutations corresponds to which HNF
 real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
+character(80) filename ! String to pass filenames into output writing routines
 
 if (.not. conc_check) then
   cElementN = 1
@@ -825,14 +834,15 @@ else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"
 
 ! The permutations of the interior points (d-vectors) under symmetry operations of the parent
 ! multilattice are used later on. Generate them here
-call get_dvector_permutations(parLV,d,ParRPList,eps)
+call get_dvector_permutations(parLV,d,ParRPList,LatDim,eps)
+filename = "d-vector_perms.out"
+call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging, etc.)
+
 ! This part generates all the derivative structures. Results are written to unit 14.
 Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax !max(k,nMin),nMax
-
    icRange = ivol*nD*cRange
-
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
       call get_all_HNFs(ivol,HNF)  ! 3D
@@ -866,6 +876,9 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
       call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
+      filename = "temp_perms.out"
+      call write_rotperms_list(rdRPList(iBlock),filename)
+      !stop "debugging"
       !call cpu_time(genlabels)
       !print *, "block",iBlock
       !print *, shape(rdRPList(iBlock)%perm), "shape"
