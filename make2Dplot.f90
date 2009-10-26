@@ -75,7 +75,7 @@ outer: do js = 1,rows
                 call color('blue')
                 call bullet(point(1),point(2),spotsize)
             else if (labeling(label:label)=='2') then
-                  call color('cyan')
+                  call color('green')
                   call bullet(point(1),point(2),spotsize)
             else
                if (diag(2)==1) then; call color('red');

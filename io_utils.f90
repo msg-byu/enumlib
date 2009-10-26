@@ -1,10 +1,11 @@
 MODULE io_utils
 use num_types
+use enumeration_types
 use numerical_utilities
 use vector_matrix_utilities
 implicit none
 private
-public read_input, write_lattice_symmetry_ops
+public read_input, write_lattice_symmetry_ops, write_rotperms_list
 CONTAINS
 
 !***************************************************************************************************
@@ -156,4 +157,20 @@ do iOp = 1,nOp
    write(11,'("shift: ",3(f8.4,1x))') shift(:,iOp)
 enddo
 END SUBROUTINE write_lattice_symmetry_ops
+
+!***************************************************************************************************
+! Write out the information contained in a rotations-permutations list
+SUBROUTINE write_rotperms_list(rpList,listfile)
+type(RotPermList), intent(in) :: rpList
+character(80), intent(in) :: listfile
+integer nP, iP
+open(11,file=listfile)
+nP = rpList%nL
+if(size(rpList%perm,1)/=rpList%nL) stop "rp list not initialized correctly (write_rotperms_list in io_utils)"
+write(11,'("Number of permutations: ",i2)') nP
+do iP = 1, nP
+   write(11,'("Perm #: ",i2,1x,"Perm: ",40i2)') iP, rpList%perm(iP,:)
+enddo
+close(11)
+END SUBROUTINE write_rotperms_list
 END MODULE io_utils
