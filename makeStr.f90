@@ -79,7 +79,8 @@ write(13,'("strN, hnfN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling")')
 write(13,'(i11,1x,i7,1x,i8,1x,i2,1x,i2,1x,3(i3,1x),1x,6(i3,1x),1x,9(i3,1x),1x,a40)') &
      strN, hnfN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
 
-L = transpose(L)
+L = transpose(L) ! Listed with columns as the fast index in the struct_enum.out but reads
+                 ! in with rows as the fast index. This was the source of a hard-to-find bug
 allocate(gIndx(nAt*nD),stat=istat)
 if(istat/=0) stop "allocation of gIndx failed"
 gIndx = -1
