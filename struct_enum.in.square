@@ -6,7 +6,7 @@ surf
 3 # binary case
 2 # Number of d-vectors
 0 0 0 0/1/2 # d01
-.3 .3 .3 0/1   # d02
+.5 .5 .5 0/1   # d02
    1 4 # Starting and ending cell sizes for search
 0.10E-03 # Epsilon (finite precision parameter)
-part 
+part

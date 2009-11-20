@@ -25,7 +25,7 @@ ifeq (${F90},ifort)  # Intel compiler
      FOUND = true
   endif
   ifeq (${DEBUG},)
-     FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -e95 -I${LBDR}  
+     FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBDR}  
      FOUND = true
   endif
 
