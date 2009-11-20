@@ -769,7 +769,6 @@ integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation
 real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
 character(80) filename ! String to pass filenames into output writing routines
-character(80) formatstring
 
 if (.not. conc_check) then
   cElementN = 1
@@ -805,13 +804,7 @@ do i = 1,3
 enddo
 write(14, '(i5," # Number of points in the multilattice")') nD
 do iD = 1,nD
-   ! Print out the dset points and their possible labels
-   ! (1) setup the format for output
-   formatstring='(3(g14.8,1x),3x,"# d",i2.2," d-vector, labels: "'
-   do i=1,digit(iD); if (i>1) formatstring=trim(formatstring)//',"/"'; formatstring=trim(formatstring)//',i1'; enddo
-   formatstring=trim(formatstring)//")"
-   ! (2) print the data
-   write(14,formatstring) d(:,iD),iD, label(1:digit(iD),iD)
+   write(14,'(3(g14.8,1x),3x,"# d",i2.2," d-vector")') d(:,iD),iD
 enddo
 write(14,'(i2,"-nary case")') k
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
@@ -831,10 +824,10 @@ write(14,'("start",3x,"#tot",6x,"HNF",5x,"#size",1x,"idx",3x,"pg",4x,"SNF",13x,"
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
-   if (.not. equal(parLV(2:3,1),(/0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first vector must be x,0,0'
+   if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first vector must be 1,0,0'
    if (.not. equal((/parLV(1,2),parLV(1,3)/),(/0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first component of second and third vector &
+        stop 'For "surf" setting, first component of second and third vectors &
                & must be zero'
 else if(pLatTyp=='b' .or. pLatTyp=='B') then; LatDim = 3
 else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"';endif

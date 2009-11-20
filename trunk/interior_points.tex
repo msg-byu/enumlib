@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+\setlength{\topmargin}{-3cm}
+\setlength{\oddsidemargin}{-1cm}
+\setlength{\evensidemargin}{-1cm}
+\setlength{\textwidth}{7.5in}
+\usepackage{amsmath,amssymb}
+\pagestyle{empty}
+\begin{document}
+\textbf{Finding the interior points}\\
+$\mathbb{A}$ is a matrix where the columns are the vectors of the
+parent lattice, $L_A$. $\mathbb{S}$ is an HNF matrix. Then, the superlattice
+is $L_b$, given by $\mathbb{B=AS}$.
+
+We want to know which points of $L_A$ are within one tile of
+$L_B$. Let a point within the tile be denoted $\vec x$. The components
+of $\vec x$ must be $0\leq x_i<1$. Since we are interested in points
+in the tile that are also points of $L_A$, we have
+$\mathbb{B}\vec x = \mathbb{A}\vec z$ where the components of $z$
+are integers.
+
+But since $\mathbb{B=AS}$,\\
+\parbox{2cm}{\ }
+\parbox{5cm}{
+\begin{eqnarray*}
+\mathbb{B}\vec x& = & \mathbb{A}\vec z\\
+\mathbb{AS}\vec x& = &\mathbb{A}\vec z\\
+\mathbb{A}^{-1}\mathbb{AS}\vec x& = &\mathbb{A}^{-1}\mathbb{A}\vec z\\
+\mathbb{S}\vec x& = &\vec z\\
+\end{eqnarray*}
+}$\Rightarrow$
+\parbox{5cm}{\[
+\left(\begin{array}{ccc}
+a&0&0\\
+b&c&0\\
+d&e&f\\
+\end{array}\right)
+\left(\begin{array}{c}
+x_1\\
+x_2\\
+x_3\\
+\end{array}\right)
+=
+\left(\begin{array}{c}
+z_1\\
+z_2\\
+z_3\\ 
+\end{array}\right)\]}
+
+So, 
+\begin{eqnarray*}
+ax_1&=&z_1\\
+bx_1+cx_2&=&z_2\\
+dx_1+ex_2+fx_3&=&z_3\\
+\end{eqnarray*}
+
+Since the components of $\vec x$ must be $[0,1)$,
+\begin{eqnarray*}
+0\leq x_1=z_1/a <
+1&\rightarrow& \boxed{0\leq z_1<a}\\
+0\leq x_2=\frac{z_2}{c}-\frac{b}{ca}z_1<1&\rightarrow&
+\frac{b}{ca}z_1\leq \frac{z_2}{c} < 1+\frac{b}{ca}z_1\\ &\rightarrow&
+\boxed{\frac{b}{a}z_1\leq z_2 < c+\frac{b}{a}z_1} \\
+%\end{eqnarray*}
+%\begin{eqnarray*}
+0\leq x_3 =
+\frac{z_3}{f}-\frac{d}{f}\frac{z_1}{a}-e[\frac{z_2}{c}-\frac{b}{ca}z_1]<1&&\\
+\frac{d}{f}\frac{z_1}{a}+\frac{e}{f}[\frac{z_2}{c}-\frac{b}{ca}z_1]\leq
+\frac{z_3}{f}<
+1+\frac{d}{f}\frac{z_1}{a}+\frac{e}{f}[\frac{z_2}{c}-\frac{b}{ca}z_1]&&\\
+d\frac{z_1}{a}+\frac{e}{c}[z_2-\frac{b}{a}z_1]\leq
+z_3<
+f+z_1\frac{d}{a}+\frac{e}{c}[z_2-\frac{b}{a}z_1]&&\\
+%
+\boxed{z_1[\frac{d}{a}-\frac{eb}{ca}]+\frac{e}{c}z_2\leq
+z_3<
+f+z_1[\frac{d}{a}-\frac{eb}{ca}]+\frac{e}{c}z_2}&&\\
+\end{eqnarray*}
+
+\end{document}

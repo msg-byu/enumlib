@@ -7,13 +7,13 @@ use vector_matrix_utilities
 implicit none
 character(80) fname, title, labeling
 integer ioerr,  z1, z2, z3, ic, i, ilab, pgOps, nD, status
-integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
+integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), hnfN
 real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), Binv(3,3), sLVorig(3,3), v(3), sLVinv(3,3)
 real(dp) :: eps
 real(dp), allocatable :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
 
-!character(40) dummy 
+character(40) dummy 
 read(*,*) fname
 open(11,file=fname,status='old',iostat=ioerr)
 if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);endif
@@ -37,15 +37,22 @@ do i = 1,nD; read(11,*) dvec(:,i); enddo
 read(11,'(i2)') k
 read(11,*) ! Skip one line
 read(11,*) eps
-do i = 1,2; read(11,*); enddo ! skip 4 lines to get to the beginning of the structure list
+i = 0
+do 
+   i = i + 1
+   read(11,*) dummy
+   if(dummy=="start") exit
+   if (i>20) stop "Didn't find the ""start"" tag in the input file"
+enddo 
 
 open(12,file="structures.in") ! The output goes in this file (despite the "in" name)
 write(12,'("peratom")')
+write(12,'("noweights")')
 do ! loop until end of file
    ! Read in the info for the given structure
-   read(11,*,iostat=status) strN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
+   read(11,*,iostat=status) strN, hnfN,sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
    !print *, strN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f,L,labeling
-   if (status/=0) exit
+   if (status/=0) then; print *,"exiting"; exit; endif
    
    ! Define the full HNF matrix
    HNF = 0

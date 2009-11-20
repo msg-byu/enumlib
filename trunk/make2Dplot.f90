@@ -12,8 +12,11 @@ real(sp) :: p(3,3),  scale, spotsize
 real(sp) :: xorig, yorig, parLat(2,2),point(2),yoff,xoff
 real(dp), allocatable :: dvec(:,:)
 
-print *,"Input file name (struct_enum.out format)"
-read(*,*) fname
+if(iargc()/=1) stop "2Dplot.x requires as an argument &
+     & the filename to read from"
+call getarg(1,dummy)
+read(dummy,*) fname
+
 open(11,file=fname,status='old',iostat=ioerr)
 if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);endif
 ! Read in the title from the struct_enum.out file
@@ -35,11 +38,11 @@ enddo
 read(11,'(i2)') k
 do i = 1,4;read(11,*);enddo ! Skip 4 lines
 
-scale = .23
-Nspots = 8
+scale = .33
+Nspots = 3
 rows = 16
-cols = 10
-spotsize = .27
+cols = 5
+spotsize = .35
 call init(scale,-10.0,-2.0)
 call init_colors
 
@@ -57,20 +60,30 @@ outer: do js = 1,rows
       fullL,labeling
       if (ioerr/=0) exit
       L = reshape((/fullL(2,2),fullL(2,3),fullL(3,2),fullL(3,3)/),(/2,2/))
-      !do i = 1,2
-      !   write(*,'(2i2)') L(i,:)
-      !enddo
+      do i = 1,2
+         write(*,'(2i2)') L(i,:)
+      enddo
       indx = diag(2)*diag(3)
       do i = 0,Nspots-2
-         do j = 0,Nspots-2
+         do j = 0,Nspots-1
             do iD = 1, nD
+            ! point is a 2-vector, Cartesian coordinates of the point
             point = i*parLat(:,1)+j*parLat(:,2)+(/xoff,yoff/)+dvec(2:3,iD)
-            temp = modulo(matmul(L,((/i,j-1/))),&
+            ! i, j are the parent lattice direct coordinates of a point 
+            ! (not including the d-vector index). In other words, (i,j)=A^-1.r
+            ! So temp is (LA^-1)r which maps the vector into the group
+            temp = modulo(matmul(L,((/i,j/))),&
                  ((/diag(2),diag(3)/)))
-            !if (temp(1) < 0) temp(1) = temp(1) + diag(2)
-            !if (temp(2) < 0) temp(2) = temp(2) + diag(3)
+            !write(*,'("i,j: ",2(i2,1x))') i,j
+            ! temp will now contain the "group member index" of the point (i,j)
+
             if (any(temp<0)) stop "less than zero"
+            ! the rhs of label= converts the "group member index" to a single index in the labeling
+            !string. It also accounts for the d-vector index
+            ! The coordinates in "point" tell us where to draw a circle; "label" tells us which
+            ! color belongs to that site.
             label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
+            write(*,'("i,j:",2(1x,i2),5x,"g coords:",2(1x,i1),5x,"label:",i1)') i,j,temp,label
             if (labeling(label:label)=='1') then
                 call color('blue')
                 call bullet(point(1),point(2),spotsize)
