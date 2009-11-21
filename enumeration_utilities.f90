@@ -33,7 +33,6 @@ integer  :: gIndx(n*size(pBas,2)) ! (ordinal) index of g-vector in the group
 real(dp) :: Ainv(3,3) ! Inverse of the parent lattice vectors
 logical err
 
-stop "This routine is buggy!"
 call matrix_inverse(pLV,Ainv,err)
 if(err) stop "Coplanar lattice vectors in call to map_enumStr_to_real_space"
 nD = size(pBas,2)
@@ -101,5 +100,10 @@ else
    enddo   
 endif
 x = x/real(n*nD,dp)
+
+do iAt = 1,n*nD
+   write(14,'("At#: ",i2," pos: ",3(f7.3,1x),"gIndx: ",i1," label",i1)') iAt, aBas(:,iAt),&
+        & gIndx(iAt), labeling(gIndx(iAt):gIndx(iAt))
+enddo
 ENDSUBROUTINE map_enumStr_to_real_space
 END MODULE enumeration_utilities
