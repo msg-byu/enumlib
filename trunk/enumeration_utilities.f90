@@ -73,7 +73,7 @@ enddo
 enddo
 if (ic /= n*nD) stop "ERROR: map_enumStr_to_real_space: Didn't find the correct # of basis atoms"
 ! Now map each position into the group so that the proper label can be applied
-write(*,'("L: ",3(i1,1x,/))') (L(i,:),i=1,3)
+write(*,'("L: ",3(i3,1x,/))') (L(i,:),i=1,3)
 write(*,'("SNF values: ",/,3(i1,1x))') S
 write(*,'("G indicies: ",/,10(i1,1x))') gIndx
 
