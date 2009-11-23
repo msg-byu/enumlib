@@ -70,7 +70,7 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a enum.x compare.x
+all: libenum.a multienum.x compare.x
 
 multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
@@ -82,13 +82,13 @@ compare.x: compare.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
 
 makestr.x: makeStr.o
-	${F90} ${LDFLAGS} -o $@ makeStr.o ${LIBS}
+	${F90} ${LDFLAGS} -o $@ makeStr.o ${LIBS} libenum.a
 
 makeperovstr.x: makePerovStr.o
 	${F90} ${LDFLAGS} -o $@ makePerovStr.o ${LIBS}
 
 makestructin.x: makeStrIn.o
-	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS}
+	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS} libenum.a
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<

@@ -4,14 +4,17 @@
 PROGRAM makeStrIn
 use num_types
 use vector_matrix_utilities
+use enumeration_utilities
 implicit none
 character(80) fname, title, labeling
-integer ioerr,  z1, z2, z3, ic, i, ilab, pgOps, nD, status
-integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), hnfN
+integer ioerr,  z1, z2, z3, ic, i, ilab, pgOps, nD, status, iAt
+integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), hnfN, idx
 real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), Binv(3,3), sLVorig(3,3), v(3), sLVinv(3,3)
 real(dp) :: eps
-real(dp), allocatable :: aBas(:,:), dvec(:,:)
+real(dp), pointer :: aBas(:,:), dvec(:,:)
 character(1) bulksurf
+integer, pointer :: spin(:)
+real(dp), pointer :: x(:)
 
 character(40) dummy 
 read(*,*) fname
@@ -51,6 +54,7 @@ write(12,'("noweights")')
 do ! loop until end of file
    ! Read in the info for the given structure
    read(11,*,iostat=status) strN, hnfN,sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
+   L = transpose(L)
    !print *, strN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f,L,labeling
    if (status/=0) then; print *,"exiting"; exit; endif
    
@@ -58,13 +62,22 @@ do ! loop until end of file
    HNF = 0
    HNF(1,1) = a; HNF(2,1) = b; HNF(2,2) = c
    HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
+
+call map_enumStr_to_real_space(k,nAt,HNF,labeling,p,dvec,eps,sLVorig,aBas,spin,x,L,diag)
+
+do iAt = 1,nAt*nD
+   idx = (spin(iAt)+1)/2+1
+   write(14,'("At#: ",i2," pos: ",3(f7.3,1x),"gIndx: ",i1," label",a1)') iAt, aBas(:,iAt),&
+        & spin(iAt), labeling(idx:idx)
+enddo
+stop
    ! Compute the inverse HNF
    call matrix_inverse(real(HNF,dp),Sinv)
    ! Compute the SL inverse
    call matrix_inverse(matmul(p,HNF),sLVinv)
 
    ! Find the coordinates of the basis atoms
-   if(allocated(aBas)) deallocate(aBas)
+   if(associated(aBas)) deallocate(aBas)
    allocate(aBas(3,nAt*nD))
    ic = 0
                do i = 1,nD    

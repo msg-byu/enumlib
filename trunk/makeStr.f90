@@ -5,6 +5,7 @@ PROGRAM makeStr
 use num_types
 use vector_matrix_utilities
 use numerical_utilities
+use enumeration_utilities ! Just need this for testing right now
 implicit none
 character(80) fname, title, labeling, strname, strNstring
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, hnfN, iAt
@@ -12,9 +13,14 @@ integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), g(3), istat
 integer, allocatable :: gIndx(:)
 real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3), greal(3)
 real(dp) :: map2G(3,3) ! Transformation that takes a real-space lattice point into the group
-real(dp), allocatable :: aBas(:,:), dvec(:,:)
+real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a routine
 character(1) bulksurf
 character(40) dummy 
+
+! Testing
+integer, pointer :: spin(:) ! Occupation variable of the positions
+real(dp), pointer :: x(:) ! Concentration of each component
+! Testing
 
 open(13,file="readcheck_makestr.out")
 write(13,'(5(/),"This file echoes the input for the makestr.x program and")')
@@ -53,6 +59,7 @@ allocate(dvec(3,nD))
 do i = 1,nD; read(11,*) dvec(:,i); enddo
 write(13,'("d-vectors:",/,40(3f8.4,1x,/))') (dvec(:,i),i=1,nD) 
 
+
 ! Read in the number of labels, i.e., binary, ternary, etc.
 read(11,'(i2)') k
 write(13,'("Number of labels (k): ",i2)') k 
@@ -81,6 +88,11 @@ write(13,'(i11,1x,i7,1x,i8,1x,i2,1x,i2,1x,3(i3,1x),1x,6(i3,1x),1x,9(i3,1x),1x,a4
 
 L = transpose(L) ! Listed with columns as the fast index in the struct_enum.out but reads
                  ! in with rows as the fast index. This was the source of a hard-to-find bug
+
+! Test
+allocate(spin(nAt*nD))
+allocate(x(k))
+! Test
 allocate(gIndx(nAt*nD),stat=istat)
 if(istat/=0) stop "allocation of gIndx failed"
 gIndx = -1
@@ -118,13 +130,19 @@ do z1 = 0, a-1
    do z2 = (b*z1)/a, c+(b*z1)/a - 1
       do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
             ic = ic + 1; if (ic > nAt*nD) stop "Problem in basis atoms..."
+            ! Matmul by Sinv puts the position of the parent unit cell into Cartesian coordinates
+            ! and adding the d-vector on just gives the shift inside the current parent cell
             aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))+matmul(sLVinv,dvec(:,i))
+            ! This matmul takes the Cartesian coordinates of the vector and converts them to direct
+            ! (lattice) coordinates of the supercell
             aBas(:,ic) = matmul(sLV,aBas(:,ic))
             write(13,'("at #: ",i3,4x,"position: ",3(f7.3,1x))') ic,aBas(:,ic) 
 
             ! Now take aBas and map it into the group.
             ! (LA^-1)^-1 takes a real space vector and maps it into the group.
-            greal = matmul(map2G,aBas(:,ic))
+            ! But subtract the d-set member since we only care about which parent unit cell this
+            ! atom is in
+            greal = matmul(map2G,matmul(sLV,matmul(Sinv,(/z1,z2,z3/))) )
             g = nint(greal)
             write(13,'("group member (real):",3(f8.3,1x))') greal 
             write(13,'("group member (nint):",3(i3,1x))') g
@@ -200,4 +218,11 @@ do ilab = 0,k-1
    enddo
 enddo
 close(12);close(13)
+
+call map_enumStr_to_real_space(k,nAt,HNF,labeling,p,dvec,eps,sLVorig,aBas,spin,x,L,diag)
+
+do iAt = 1,nAt*nD
+   write(14,'("At#: ",i2," pos: ",3(f7.3,1x),"gIndx: ",i1," label",a1)') iAt, aBas(:,iAt),&
+        & gIndx(iAt), labeling(gIndx(iAt):gIndx(iAt))
+enddo
 END PROGRAM makeStr
