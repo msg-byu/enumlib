@@ -4,8 +4,10 @@ use vector_matrix_utilities
 use numerical_utilities
 implicit none
 private
-public  map_enumStr_to_real_space
+public  map_enumStr_to_real_space, cartesian2direct
+
 CONTAINS
+
 !***************************************************************************************************
 SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, aBas, spin, x, L, S)
 integer, intent(in) :: k ! Number of atom types (number of colors in the enumeration)
@@ -15,8 +17,7 @@ character(80), intent(in) :: labeling ! List, 0..k-1, of the atomic type at each
 real(dp), intent(in) :: pLV(3,3), eps ! parent lattice vectors (Cartesian coordinates), epsilon
 real(dp), intent(in) :: pBas(:,:) ! 3xn array of the interior points of the parent lattice
 real(dp), intent(out) :: sLV(3,3) ! Superlattice vectors (Cartesian coordinates)
-real(dp)              :: sLVinv(3,3)
-real(dp), pointer :: aBas(:,:) ! Atomic positions (Direct (!!) coordinates)
+real(dp), pointer :: aBas(:,:) ! Atomic positions (cartesian coordinates)
 integer, pointer :: spin(:) ! Occupation variable of the positions
 real(dp), pointer :: x(:) ! Concentration of each component
 integer, intent(in):: L(3,3) ! HNF->SNF left transform. Need this to map r->G (Eq. 3 in first paper)
@@ -43,7 +44,6 @@ a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
 d = HNF(3,1); e = HNF(3,2); f = HNF(3,3)
 ! Compute the superlattice vectors 
 sLV = matmul(pLV,HNF)
-call matrix_inverse(sLV,sLVinv)
 
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,n*nD))
@@ -82,18 +82,6 @@ if (ic /= n*nD) stop "ERROR: map_enumStr_to_real_space: Didn't find the correct 
 !!write(*,'("SNF values: ",/,3(i1,1x))') S
 !!write(*,'("G indicies: ",/,10(i1,1x))') gIndx
 
-!!! Convert aBas to DIRECT COORDINATES
-!!do iAt=1,n*nD
-!!  aBas(:,iAt) = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
-!!  ! This keeps the atomic coordinates inside the first unit cell---
-!!  ! not necessary but aesthetically pleasing.
-!!  do while(any(aBas(:,iAt) >= 1.0_dp - eps) .or. any(aBas(:,iAt) < 0.0_dp - eps)) 
-!!    aBas(:,iAt) = merge(aBas(:,iAt), aBas(:,iAt) - 1.0_dp, aBas(:,iAt) <  1.0_dp - eps) 
-!!    aBas(:,iAt) = merge(aBas(:,iAt), aBas(:,iAt) + 1.0_dp, aBas(:,iAt) >= 0.0_dp - eps)
-!!  enddo
-!!end do
-!!! End of conversion to DIRECT COORDINATES
-
 allocate(x(k))
 x = 0.0
 if (mod(k,2)==0) then
@@ -118,4 +106,31 @@ else
 endif
 x = x/real(n*nD,dp)
 ENDSUBROUTINE map_enumStr_to_real_space
+
+
+
+subroutine cartesian2direct(sLV,aBas, eps)
+real(dp), intent(in)    :: sLV(3,3) ! Superlattice vectors (Cartesian coordinates)
+real(dp), intent(inout) :: aBas(:,:) ! Atomic positions (cartesian coordinates first, then direct)
+real(dp), intent(in)    :: eps
+
+real(dp) :: sLVinv(3,3)
+integer iAt, nAt
+
+nAt = size(aBas,2)
+call matrix_inverse(sLV,sLVinv)
+
+!!! Convert aBas to DIRECT COORDINATES
+do iAt=1,nAt
+  aBas(:,iAt) = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
+  ! This keeps the atomic coordinates inside the first unit cell---
+  ! not necessary but aesthetically pleasing.
+  do while(any(aBas(:,iAt) >= 1.0_dp - eps) .or. any(aBas(:,iAt) < 0.0_dp - eps)) 
+    aBas(:,iAt) = merge(aBas(:,iAt), aBas(:,iAt) - 1.0_dp, aBas(:,iAt) <  1.0_dp - eps) 
+    aBas(:,iAt) = merge(aBas(:,iAt), aBas(:,iAt) + 1.0_dp, aBas(:,iAt) >= 0.0_dp - eps)
+  enddo
+end do
+!!! End of conversion to DIRECT COORDINATES
+end subroutine cartesian2direct
+
 END MODULE enumeration_utilities

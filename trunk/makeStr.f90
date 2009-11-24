@@ -13,7 +13,7 @@ integer k, strN, istrN, strNi, strNf, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3)
 integer, allocatable :: gIndx(:)
 real(dp) :: p(3,3), sLV(3,3), HNFinv(3,3), sLVorig(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3), greal(3)
 real(dp) :: map2G(3,3) ! Transformation that takes a real-space lattice point into the group
-real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a routine
+real(dp), pointer :: aBas(:,:), aBasDirect(:,:),dvec(:,:) ! pointer so it can be passed in to a routine
 character(1) bulksurf
 character(40) dummy 
 
@@ -189,6 +189,7 @@ aBas(:,ic) = matmul(p,(/z1,z2,z3/))+dvec(:,i)
    write(13,'("Basis vectors after Minkowski reduction",/,3(3(f7.3,1x),/))') (sLV(i,:),i=1,3) 
    
    call matrix_inverse(sLV,sLVinv)
+
    do i = 1,3
       write(12,'(3f12.8)') sLV(:,i)
    enddo
@@ -212,13 +213,16 @@ aBas(:,ic) = matmul(p,(/z1,z2,z3/))+dvec(:,i)
    write(12,*) ! Start next line
    write(12,'("D")')
 !!   write(12,'("C")')
+
+   ! convert to direct coordinates
+   call cartesian2direct(sLV,aBas,eps)
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
    ! For vasp, UNCLE it needs to list the vectors in blocks of that have the same label.
    do ilab = 0,k-1
       do iAt = 1, nAt*nD
          if (labeling(gIndx(iAt):gIndx(iAt))==achar(ilab+48)) then 
-v = aBas(:,iAt)
+           v = aBas(:,iAt)
 !!            v = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
 !!            ! This keeps the atomic coordinates inside the first unit cell---
 !!            ! not necessary but aesthetically pleasing.
