@@ -17,6 +17,8 @@ real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a 
 character(1) bulksurf
 character(40) dummy 
 
+logical append
+
 ! Testing
 integer, pointer :: spin(:) ! Occupation variable of the positions
 real(dp), pointer :: x(:) ! Concentration of each component
@@ -40,7 +42,7 @@ if (iargc()==3) then
 else
   strNf=strNi
 endif
-
+if (strNf > strNi + 100) then; append=.true.; else; append=.false.; endif
 
 !call read_nth_line_from_enumlist()
 
@@ -86,9 +88,11 @@ do iline = 1, strNi-1
 enddo
 write(13,'("Skipped to the ",i10,"nth line in ",a80)') strNi,fname 
 
+if (append) open(12,file="vasp.POSCAR")
 ! Read in the info for the given structure
 do istrN=strNi,strNf
    read(11,*) strN, hnfN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
+   if (append) print *, "current structure: ", strN
    write(13,'("strN, hnfN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling")')  
    write(13,'(i11,1x,i7,1x,i8,1x,i2,1x,i2,1x,3(i3,1x),1x,6(i3,1x),1x,9(i3,1x),1x,a40)') &
         strN, hnfN, sizeN, nAt, pgOps, diag, a,b,c,d,e,f, L, labeling
@@ -172,9 +176,9 @@ do istrN=strNi,strNf
            gIndx(iAt), iAt, labeling(gIndx(iAt):gIndx(iAt)), aBas(:,iAt)
    enddo
    
-   write(strname,'("vasp.",i4.4)') strN
+   write(strname,'("vasp.",i3.3)') strN
    write(strNstring,*) strN
-   open(12,file=strname)
+   if (.not. append) open(12,file=strname)
    write(12,'(a80)') trim(adjustl(title)) // " str #: " // adjustl(strNstring)
    write(12,'("scale factor")')
    ! Make "nice" superlattice vectors (maximally orthogonal, Minkowski reduced)
@@ -224,7 +228,7 @@ do istrN=strNi,strNf
          endif
       enddo
    enddo
-   close(12);
+   if (.not. append) close(12);
    
    call map_enumStr_to_real_space(k,nAt,HNF,labeling,p,dvec,eps,sLVorig,aBas,spin,x,L,diag)
    
@@ -237,5 +241,7 @@ do istrN=strNi,strNf
 
 enddo ! structure loop
 close(11)
+if (append) close(12)
 close(13)
+
 END PROGRAM makeStr
