@@ -24,17 +24,18 @@ integer, intent(in):: S(3) ! Diagonal entries of the SNF
 integer a, b, c, d, e, f ! elements of the HNF matrix
 integer digit ! one of the labelings in the labeling
 integer ic, z1, z2, z3 ! Counter over number of interior points, steps in the g table ("lattice coords")
-real(dp):: HNFinv(3,3)!, gTab2Latt2Cart(3,3) ! Inverse of the HNF, convert gtable coords to Cartesian 
+!!real(dp):: HNFinv(3,3)!, gTab2Latt2Cart(3,3) ! Inverse of the HNF, convert gtable coords to Cartesian 
 integer iAt, i, iD, nD
 !real(dp) :: map2G(3,3) ! Transform for mapping a real vector into the group (r->G)
 real(dp) :: greal(3)   ! Floating point representation of the group element components (g-vector)
 integer  :: g(3)       ! Integer version of greal
 integer  :: gIndx(n*size(pBas,2)) ! (ordinal) index of g-vector in the group
-real(dp) :: Ainv(3,3) ! Inverse of the parent lattice vectors
+!!real(dp) :: Ainv(3,3) ! Inverse of the parent lattice vectors
 logical err
 
-call matrix_inverse(pLV,Ainv,err)
-if(err) stop "Coplanar lattice vectors in call to map_enumStr_to_real_space"
+!!call matrix_inverse(pLV,Ainv,err)
+!!if(err) stop "Coplanar lattice vectors in call to map_enumStr_to_real_space"
+
 nD = size(pBas,2)
 ! Define the non-zero elements of the HNF matrix
 a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
@@ -47,7 +48,7 @@ allocate(aBas(3,n*nD))
 allocate(spin(n*nD))
 
 ! Map HNF points to real space
-call matrix_inverse(real(HNF,dp),HNFinv)
+!!call matrix_inverse(real(HNF,dp),HNFinv)
 
 ! Let's get the fattest basis (Minkowski reduction)
 call reduce_to_shortest_basis(sLV,sLV,eps)
@@ -60,8 +61,9 @@ do z1 = 0, a-1 ! For the limits on the loops, see the "interior_points.pdf" writ
       do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
          ic = ic + 1 !; if (ic > n) stop "Problem in basis atoms..."
          ! Atomic basis vector in Cartesian coordinates
-         aBas(:,ic) = matmul(HNFinv,(/z1,z2,z3/))+pBas(:,iD) 
-         write(*,'("at #: ",i3,4x,"position: ",3(f7.3,1x))') ic,aBas(:,ic) 
+!!          aBas(:,ic) = matmul(HNFinv,(/z1,z2,z3/))+pBas(:,iD) 
+         aBas(:,ic)=matmul(pLV,(/z1,z2,z3/))+pBas(:,iD)
+!!         write(*,'("at #: ",i3,4x,"position: ",3(f7.3,1x))') ic,aBas(:,ic) 
          greal = matmul(L,(/z1,z2,z3/)) ! Map position into the group
          g = nint(greal) ! Convert the g-vector from real to integer
          if(.not. equal(greal,g,eps)) stop "map2G didn't work in map_enumStr_to_real_space"
@@ -72,17 +74,18 @@ do z1 = 0, a-1 ! For the limits on the loops, see the "interior_points.pdf" writ
 enddo
 enddo
 if (ic /= n*nD) stop "ERROR: map_enumStr_to_real_space: Didn't find the correct # of basis atoms"
+
 ! Now map each position into the group so that the proper label can be applied
-write(*,'("L: ",3(i3,1x,/))') (L(i,:),i=1,3)
-write(*,'("SNF values: ",/,3(i1,1x))') S
-write(*,'("G indicies: ",/,10(i1,1x))') gIndx
+!!write(*,'("L: ",3(i3,1x,/))') (L(i,:),i=1,3)
+!!write(*,'("SNF values: ",/,3(i1,1x))') S
+!!write(*,'("G indicies: ",/,10(i1,1x))') gIndx
 
 allocate(x(k))
 x = 0.0
 if (mod(k,2)==0) then
    do iAt = 1, n*nD
-      print *,iAt,gIndx(iAt),labeling(gIndx(iAt):gIndx(iAt))
-      print *,ichar(labeling(gIndx(iAt):gIndx(iAt)))
+!!      print *,iAt,gIndx(iAt),labeling(gIndx(iAt):gIndx(iAt))
+!!      print *,ichar(labeling(gIndx(iAt):gIndx(iAt)))
       i = ichar(labeling(gIndx(iAt):gIndx(iAt)))-48
       digit = i-k/2 ! convert 0..k-1 label to spin variable -k/2..k/2
       x(i+1) = x(i+1) + 1  ! Keep track of the concentration of each atom type
