@@ -211,19 +211,21 @@ aBas(:,ic) = matmul(p,(/z1,z2,z3/))+dvec(:,i)
    
    write(12,*) ! Start next line
    write(12,'("D")')
+!!   write(12,'("C")')
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
    ! For vasp, UNCLE it needs to list the vectors in blocks of that have the same label.
    do ilab = 0,k-1
       do iAt = 1, nAt*nD
          if (labeling(gIndx(iAt):gIndx(iAt))==achar(ilab+48)) then 
-            v = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
-            ! This keeps the atomic coordinates inside the first unit cell---
-            ! not necessary but aesthetically pleasing.
-            do while(any(v >= 1.0_dp - eps) .or. any(v < 0.0_dp - eps)) 
-               v = merge(v, v - 1.0_dp, v <  1.0_dp - eps) 
-               v = merge(v, v + 1.0_dp, v >= 0.0_dp - eps)
-            enddo
+v = aBas(:,iAt)
+!!            v = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
+!!            ! This keeps the atomic coordinates inside the first unit cell---
+!!            ! not necessary but aesthetically pleasing.
+!!            do while(any(v >= 1.0_dp - eps) .or. any(v < 0.0_dp - eps)) 
+!!               v = merge(v, v - 1.0_dp, v <  1.0_dp - eps) 
+!!               v = merge(v, v + 1.0_dp, v >= 0.0_dp - eps)
+!!            enddo
             write(12,'(3f12.8)') v
             write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,">")') iAt, v, labeling(gIndx(iAt):gIndx(iAt))
             !write(*,'(3f12.8)') aBas(:,i)
