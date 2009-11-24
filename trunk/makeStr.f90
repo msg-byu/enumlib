@@ -11,7 +11,7 @@ character(80) fname, title, labeling, strname, strNstring
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, hnfN, iAt
 integer k, strN, istrN, strNi, strNf, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), g(3), istat
 integer, allocatable :: gIndx(:)
-real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3), greal(3)
+real(dp) :: p(3,3), sLV(3,3), HNFinv(3,3), sLVorig(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3), greal(3)
 real(dp) :: map2G(3,3) ! Transformation that takes a real-space lattice point into the group
 real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a routine
 character(1) bulksurf
@@ -114,8 +114,8 @@ do istrN=strNi,strNf
    
    write(13,'("HNF matrix:",/,3(3(i2,1x),/))') (HNF(i,:),i=1,3) 
    ! Compute the inverse HNF 
-   call matrix_inverse(real(HNF,dp),Sinv)
-   write(13,'("Invers HNF matrix:",/,3(3(f7.3,1x),/))') (Sinv(i,:),i=1,3) 
+   call matrix_inverse(real(HNF,dp),HNFinv)
+   write(13,'("Invers HNF matrix:",/,3(3(f7.3,1x),/))') (HNFinv(i,:),i=1,3) 
    
    ! Compute the superlattice vectors
    sLV = matmul(p,HNF) 
@@ -141,19 +141,20 @@ do istrN=strNi,strNf
       do z2 = (b*z1)/a, c+(b*z1)/a - 1
          do z3 = z1*(d-(e*b)/c)/a+(e*z2)/c, f+z1*(d-(e*b)/c)/a+(e*z2)/c - 1
                ic = ic + 1; if (ic > nAt*nD) stop "Problem in basis atoms..."
-               ! Matmul by Sinv puts the position of the parent unit cell into Cartesian coordinates
-               ! and adding the d-vector on just gives the shift inside the current parent cell
-               aBas(:,ic) = matmul(Sinv,(/z1,z2,z3/))+matmul(sLVinv,dvec(:,i))
-               ! This matmul takes the Cartesian coordinates of the vector and converts them to direct
-               ! (lattice) coordinates of the supercell
-               aBas(:,ic) = matmul(sLV,aBas(:,ic))
+!!               ! Matmul by HNFinv puts the position of the parent unit cell into Cartesian coordinates
+!!               ! and adding the d-vector on just gives the shift inside the current parent cell
+!!               aBas(:,ic) = matmul(HNFinv,(/z1,z2,z3/))+matmul(sLVinv,dvec(:,i))
+!!               ! This matmul takes the Cartesian coordinates of the vector and converts them to direct
+!!               ! (lattice) coordinates of the supercell
+!!               aBas(:,ic) = matmul(sLV,aBas(:,ic))
+aBas(:,ic) = matmul(p,(/z1,z2,z3/))+dvec(:,i)
                write(13,'("at #: ",i3,4x,"position: ",3(f7.3,1x))') ic,aBas(:,ic) 
    
                ! Now take aBas and map it into the group.
                ! (LA^-1)^-1 takes a real space vector and maps it into the group.
                ! But subtract the d-set member since we only care about which parent unit cell this
                ! atom is in
-               greal = matmul(map2G,matmul(sLV,matmul(Sinv,(/z1,z2,z3/))) )
+               greal = matmul(map2G,matmul(sLV,matmul(HNFinv,(/z1,z2,z3/))) )
                g = nint(greal)
                write(13,'("group member (real):",3(f8.3,1x))') greal 
                write(13,'("group member (nint):",3(i3,1x))') g
@@ -162,9 +163,10 @@ do istrN=strNi,strNf
                write(13,'("group member modded:",3(i3,1x))') g
                ! Map the group element components (and d-vector index) to a single number
                ! This indexes the group member in the labeling
-               gIndx(ic) = (i-1)*nAt*nD+g(1)*diag(2)*diag(3) + g(2)*diag(3) + g(3) + 1
+!               gIndx(ic) = (i-1)*nAt*nD                 +g(1)*diag(2)*diag(3) + g(2)*diag(3) + g(3) + 1
+               gIndx(ic) = (i-1)*diag(1)*diag(2)*diag(3)+g(1)*diag(2)*diag(3)+g(2)*diag(3)+g(3)+1
                write(13,'("Ordinal # in the group:",i3)') gIndx(ic)
-               !write(*,'(3f12.8,5x,3f12.8)') matmul(Sinv,(/z1,z2,z3/)),matmul(sLVinv,dvec(:,i))
+               !write(*,'(3f12.8,5x,3f12.8)') matmul(HNFinv,(/z1,z2,z3/)),matmul(sLVinv,dvec(:,i))
             enddo
          enddo
       enddo
