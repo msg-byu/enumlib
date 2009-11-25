@@ -9,7 +9,7 @@ public  map_enumStr_to_real_space, cartesian2direct
 CONTAINS
 
 !***************************************************************************************************
-SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, aBas, spin, x, L, S)
+SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, aBas, spin, gIndx, x, L, S)
 integer, intent(in) :: k ! Number of atom types (number of colors in the enumeration)
 integer, intent(in) :: n ! Number of atoms in the unit cell of given structure
 integer, intent(in) :: HNF(3,3) ! Hermite normal form corresponding to the superlattice
@@ -19,6 +19,7 @@ real(dp), intent(in) :: pBas(:,:) ! 3xn array of the interior points of the pare
 real(dp), intent(out) :: sLV(3,3) ! Superlattice vectors (Cartesian coordinates)
 real(dp), pointer :: aBas(:,:) ! Atomic positions (cartesian coordinates)
 integer, pointer :: spin(:) ! Occupation variable of the positions
+integer, pointer :: gIndx(:) ! Label ordinal for each atom (position in the labeling)
 real(dp), pointer :: x(:) ! Concentration of each component
 integer, intent(in):: L(3,3) ! HNF->SNF left transform. Need this to map r->G (Eq. 3 in first paper)
 integer, intent(in):: S(3) ! Diagonal entries of the SNF
@@ -31,12 +32,12 @@ integer iAt, i, iD, nD
 !real(dp) :: map2G(3,3) ! Transform for mapping a real vector into the group (r->G)
 real(dp) :: greal(3)   ! Floating point representation of the group element components (g-vector)
 integer  :: g(3)       ! Integer version of greal
-integer  :: gIndx(n*size(pBas,2)) ! (ordinal) index of g-vector in the group
+!integer  :: gIndx(n*size(pBas,2)) ! (ordinal) index of g-vector in the group
 !!real(dp) :: Ainv(3,3) ! Inverse of the parent lattice vectors
 logical err
 
-!!call matrix_inverse(pLV,Ainv,err)
-!!if(err) stop "Coplanar lattice vectors in call to map_enumStr_to_real_space"
+allocate(gIndx(n*size(pBas,2)))
+gIndx=-1
 
 nD = size(pBas,2)
 ! Define the non-zero elements of the HNF matrix
@@ -47,7 +48,7 @@ sLV = matmul(pLV,HNF)
 
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,n*nD))
-allocate(spin(n*nD))
+allocate(spin(n*nD),gIndx(n*nD))
 
 ! Map HNF points to real space
 !!call matrix_inverse(real(HNF,dp),HNFinv)
@@ -78,16 +79,16 @@ enddo
 if (ic /= n*nD) stop "ERROR: map_enumStr_to_real_space: Didn't find the correct # of basis atoms"
 
 ! Now map each position into the group so that the proper label can be applied
-!!write(*,'("L: ",3(i3,1x,/))') (L(i,:),i=1,3)
-!!write(*,'("SNF values: ",/,3(i1,1x))') S
-!!write(*,'("G indicies: ",/,10(i1,1x))') gIndx
+!write(*,'(3("L: ",3(i1,1x),/))') (L(i,:),i=1,3)
+!write(*,'("SNF values: ",/,3(i1,1x))') S
+!write(*,'("G indicies: ",/,10(i1,1x))') gIndx
 
 allocate(x(k))
 x = 0.0
 if (mod(k,2)==0) then
    do iAt = 1, n*nD
-!!      print *,iAt,gIndx(iAt),labeling(gIndx(iAt):gIndx(iAt))
-!!      print *,ichar(labeling(gIndx(iAt):gIndx(iAt)))
+!      print *,iAt,gIndx(iAt),labeling(gIndx(iAt):gIndx(iAt))
+      !print *,ichar(labeling(gIndx(iAt):gIndx(iAt)))
       i = ichar(labeling(gIndx(iAt):gIndx(iAt)))-48
       digit = i-k/2 ! convert 0..k-1 label to spin variable -k/2..k/2
       x(i+1) = x(i+1) + 1  ! Keep track of the concentration of each atom type
@@ -107,9 +108,8 @@ endif
 x = x/real(n*nD,dp)
 ENDSUBROUTINE map_enumStr_to_real_space
 
-
-
-subroutine cartesian2direct(sLV,aBas, eps)
+!***************************************************************************************************
+subroutine cartesian2direct(sLV,aBas, eps) 
 real(dp), intent(in)    :: sLV(3,3) ! Superlattice vectors (Cartesian coordinates)
 real(dp), intent(inout) :: aBas(:,:) ! Atomic positions (cartesian coordinates first, then direct)
 real(dp), intent(in)    :: eps
