@@ -15,7 +15,7 @@ use sorting
 implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
-     &  gen_multilattice_derivatives, &
+     &  gen_multilattice_derivatives, find_permutation_of_group,&
      get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups, mixed_radix_counter
 CONTAINS
 
@@ -200,7 +200,7 @@ real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
 real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
 real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
 logical err
-character(80) name
+
 nD = size(pd,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"

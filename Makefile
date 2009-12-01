@@ -55,7 +55,7 @@ error:
 endif
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
-      enumeration_utilities.f90 derivative_structure_generator.f90 
+      derivative_structure_generator.f90 enumeration_utilities.f90
 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
@@ -70,7 +70,7 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a multienum.x compare.x
+all: libenum.a multienum.x compare.x test_driver.x 2Dplot.x
 
 multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
@@ -89,6 +89,9 @@ makeperovstr.x: makePerovStr.o
 
 makestructin.x: makeStrIn.o
 	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS} libenum.a
+test_driver.x: test_driver.o
+	${F90} ${LDFLAGS} -o $@ test_driver.o ${LIBS} libenum.a
+
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
