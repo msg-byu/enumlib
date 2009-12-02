@@ -334,13 +334,14 @@ END SUBROUTINE get_HNF_of_derivative_structure
 !***************************************************************************************************
 ! Map a list of real space atomic basis vectors and their labels into g-space and extracts the
 ! labeling 
-SUBROUTINE find_labeling_from_atom_basis(L,A,aBas,aTyp,SNF,labeling)
+SUBROUTINE find_labeling_from_atom_basis(L,A,aBas,aTyp,SNF,labeling,eps)
 integer, dimension(3,3), intent(in) :: L
 real(dp), dimension(3,3), intent(in) :: A
 real(dp), dimension(:,:), pointer :: aBas ! (in)
 integer, dimension(:), intent(in) :: aTyp
 integer, dimension(3,3), intent(in) :: SNF
 integer, pointer :: labeling(:) ! out
+real(dp), intent(in) :: eps
 
 integer, dimension(3,size(aBas,2)) :: g
 integer, pointer :: p(:,:)
@@ -359,6 +360,13 @@ diag(1) = SNF(1,1); diag(2) = SNF(2,2); diag(3) = SNF(3,3)
 nAt = size(aBas,2)
 
 write(18,'("Diagonal entries of HNF: ",3(i3,1x))') diag
+write(18,'("Left transform:",/,3(3i3,1x,/),/)') transpose(L)
+write(18,'("parent lattice vectors (columns):",/,3(3(f7.3,1x),/),/)') transpose(A)
+write(18,'("parLatt inverse (columns):",/,3(3(f7.3,1x),/),/)') transpose(Ainv)
+do iAt = 1, nAt
+   write(18,'("Atom #: ",i3,"   position: ",3(f7.3,1x))') iAt,aBas(:,iAt)
+enddo
+
 g = 0
 do iAt = 1, nAt ! Map each real space vector (atom position) into the group
    g(:,iAt)=matmul(matmul(L,Ainv),aBas(:,iAt))
@@ -466,7 +474,7 @@ nP = size(LattRotList(1)%perm,1)
 do ip = 1, nP
    write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
 enddo
-call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,aTyp,SNF,labeling)
+call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,aTyp,SNF,labeling,eps)
 write(17,'("Input atom labels: ",200(i2,1x))') aTyp
 write(17,'("Labeling:          ",200(i2,1x))') labeling
 
@@ -602,6 +610,7 @@ do
    foundHNF = .false.
    do iHNF = 1, nHNF
       if(.not. all(HNF==HNFin(:,:,iHNF))) cycle
+      foundHNF = .true.
    enddo
    if(.not. foundHNF) then
       write(13,'("HNF doesn''t match for str #:",i8," ---Skipping")') StrN
