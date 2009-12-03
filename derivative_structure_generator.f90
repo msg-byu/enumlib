@@ -853,8 +853,6 @@ write(14,'("start",3x,"#tot",6x,"HNF",5x,"#size",1x,"idx",3x,"pg",4x,"SNF",13x,"
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
-   if (.not. equal(parLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first vector must be 1,0,0'
    if (.not. equal((/parLV(1,2),parLV(1,3)/),(/0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first component of second and third vectors &
                & must be zero'
