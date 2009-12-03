@@ -43,7 +43,7 @@ END SUBROUTINE setup_mixed_radix_multiplier
 ! generate_unique_labelings routine is not efficient CPU-wise but save lots of memory since the
 ! labelings are never stored in memory except as a base-10 number.
 SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp, &
-                           Tcnt,Scnt,Hcnt,permIndx,lm,number_ElementN,number_Range)
+                           Tcnt,Scnt,Hcnt,permIndx,lm,equivalencies,number_ElementN,number_Range)
 integer, intent(in) :: k ! number of colors/labels
 integer, intent(in) :: n, nD ! index (size of supercell), size of d-set
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
@@ -69,6 +69,40 @@ integer status ! Allocation exit flag
 integer ivsL
 integer, pointer :: label(:,:), digit(:), multiplier(:) ! Need to convert base-10 back to labeling
 
+character(3) :: dummy
+character(80) :: struct_enum_out_formatstring 
+
+
+! Labeling Postprocessing data
+integer, intent(in)  :: equivalencies(:) ! { full-dset member }: equivalent sites
+integer              :: nAllD            ! size of full dset
+integer, allocatable :: allD(:)          ! help array: (/ 1, 2, 3, ..., nAllD /)
+integer, allocatable :: pplabeling(:)    ! postprocessed labeling
+logical :: postprocessLabeling           ! do we need to postprocess labeling
+integer, allocatable :: AllDPos2LabelPos(:)  ! { full-dset member }: respective position in labeling
+
+! Postprocessing labelings: setup
+nAllD = size(equivalencies)
+allocate(allD(nAllD)); allD = (/ (i,i=1,nAllD) /)
+allocate(allDPos2LabelPos(nAllD));
+! 1) Check whether we have to postprocess the labeling before writing it out
+postprocessLabeling = .not. (all(  abs( equivalencies-allD ) ==0))
+allocate(pplabeling(n*nAllD))  ! this is ok whether we do postprocessing (nAllD>nD) or not (nAllD==nD)
+! 2) if yes:
+!    - prepare the postprocessed labeling (pplabeling)
+!    - generate a map:  full dset -> enum dset
+!      that tells me for a dset member where I can find the correct labeling for it
+if (postprocessLabeling) then
+  allDPos2LabelPos = (/(count(pack(allD,allD<=equivalencies(i))==equivalencies),i=1,nAllD)/)
+  ! this construction is best explained by an example:
+  ! suppose we have a dset 1,2,3,4,5
+  ! and the equivalent list is 1,4,4,4,5 (so, dset member 1,4,5 will be enumerated, having positions 1,2,3 in labelings)
+  ! the map should accomplish: 1 -> 1, 2 -> 2, 3 -> 2, 4 -> 2, 5 -> 3
+  ! first, the pack operation take only those in the dset <= equivalent point,
+  ! then, the number of truly enumerated points is counted (truly enumerated points are points for which dset=equivalencies
+endif
+
+
 
 if (any(lm=='')) stop "Labeling index has unmarked entries"
 nl = count(lm=='U'); nHNF = count(permIndx==HNFi)
@@ -76,28 +110,27 @@ allocate(vsH(nHNF),vsL(nl),STAT=status); if (status/=0) stop "Allocation failed 
 
 ! Packing...
 vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); 
-
-! The pack operation, although really neat and fast, runs more often than not into a segfault problem
-! here. TK could not come up with a reasonable answer, but as sure as fire, the ifort is once again to blame.
-! If you compile without any optimisation, it's ok, turning on optimisation, it fails. Thus, TK resorts
-! to a "0815" do-loop-solution.
-! TK: removed: vsL = pack((/(i,i=1,size(lm))/), lm=='U')
-! TK: inserted:
 ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; enddo
-
-! end of packing.
 
 ! set up the multiplier, labels, digits, etc
 call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 
+write(dummy,'(I3)') n*nAllD
+struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
    labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
-   do ilab = 1, n*nD
-      quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
-      labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
-      labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
+   do ilab=1,n*nD
+     quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
+     labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
+     labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
    enddo
+   if (postprocessLabeling) then
+     call postprocess_labeling(n,nAllD,labeling,pplabeling,allDPos2LabelPos) 
+   else
+     pplabeling = labeling ! nothing changes
+   endif
+
    !!!do ilab = 1, n*nD ! Loop over each place (digit) in the labeling
    !!!   quot = labIndx/k ! divide the index by k to get the quotient
    !!!   labeling(n*nD-ilab+1) = labIndx - quot*k ! store the remainder (base-k digit of current place)
@@ -105,12 +138,12 @@ do il = 1, nl ! Loop over the unique labelings
    !!!enddo
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
       jHNF = vsH(iHNF) ! Index of matching HNFs
-      if (check_labeling_numbers(labeling,number_ElementN,number_Range)) then
+      if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
         Tcnt = Tcnt + 1; Scnt = Scnt + 1
-        write(14,'(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,40i1)') &
+        write(14,struct_enum_out_formatstring) &
              Tcnt, Hcnt+iHNF,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
              HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
-             HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),labeling   
+             HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling   
       endif
    enddo ! loop over HNFs
 enddo ! loop over labelings
@@ -131,6 +164,26 @@ else
   check_labeling_numbers = .false.
 endif
 end function check_labeling_numbers
+
+subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,oldlabel_pos)
+integer, intent(in) :: nUC, nAllD
+integer, intent(in) :: oldlabeling(:)
+integer, intent(out)   :: newlabeling(:)
+integer, intent(in) :: oldlabel_pos(:)
+
+
+integer :: newlab_pos, oldlab_pos
+integer :: iD,iUC
+
+do iD=1,nAllD
+  do iUC=1,nUC
+    newlab_pos = (iD-1)*nUC + iUC
+    oldlab_pos = oldlabel_pos(iD)+iUC-1
+    newlabeling(newlab_pos) = oldlabeling(oldlab_pos)
+  enddo
+enddo
+
+end subroutine postprocess_labeling
 
 ENDSUBROUTINE write_labelings
 

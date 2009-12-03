@@ -3,18 +3,20 @@ use num_types
 use enumeration_types
 use numerical_utilities
 use vector_matrix_utilities
+use utilities_module, only: ucase
 implicit none
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list
 CONTAINS
 
 !***************************************************************************************************
-subroutine read_input(title,LatDim,pLV,nD,d,k,Nmin,Nmax,eps,full,label,digit)
+subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit)
 character(80) :: title, pLatTyp, fullpart
 integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
 integer, pointer :: label(:,:), digit(:)
+integer, pointer :: eq(:)
 
 logical full, err
 integer iD, i
@@ -35,7 +37,7 @@ call co_ca(10,err)
 read(10,*) k
 call co_ca(10,err)
 read(10,*)  nD
-allocate(d(3,nD),label(k,nD),digit(nD))
+allocate(d(3,nD),label(k,nD),digit(nD),eq(nD))
 label = -1
 ! This next part is a bit messy but it makes the input file easy to set up 
 ! (no need for formatted reads from the file)
@@ -81,22 +83,32 @@ endif
 !stop
 
 call co_ca(10,err)
+read(10,*) line
+call ucase(line)
+if (line(1:1)=='E') then
+  call co_ca(10,err)
+  read(10,*) eq(:)
+else
+  eq = (/(i,i=1,nD)/)
+  backspace(10)
+endif
+call co_ca(10,err)
 read(10,*) Nmin, Nmax
 call co_ca(10,err)
 read(10,*) eps
 call co_ca(10,err)
 read(10,*) fullpart
-if (pLatTyp=='surf') then; LatDim = 2
-   if (.not. equal(pLV(:,1),(/1._dp,0._dp,0._dp/),eps)) &
-        stop 'For "surf" setting, first vector must be 1,0,0'
+call ucase(pLatTyp)
+call ucase(fullpart)
+if (pLatTyp=='SURF') then; LatDim = 2
    if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first component of second and third &
                & must be zero'
-else if(pLatTyp=='bulk') then; LatDim = 3
+else if(pLatTyp=='BULK') then; LatDim = 3
 else; stop 'Specify "surf" or "bulk" in input file';endif
 
-if (fullpart=='full') then; full = .true.
-else if(fullpart=='part') then; full = .false.
+if (fullpart=='FULL') then; full = .true.
+else if(fullpart=='PART') then; full = .false.
 else; stop 'Specify "full" or "part" on line 9 of input file';endif
 end subroutine read_input
 
