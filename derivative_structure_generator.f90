@@ -738,16 +738,19 @@ END SUBROUTINE get_HNF_2D_diagonals
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
 ! implemented here has been slightly reorder from the original routine and that discussed in the
 ! first paper.
-SUBROUTINE gen_multilattice_derivatives(title, parLV, nD, d, k, nMin, nMax, pLatTyp, eps, full,&
-    & label,digit,conc_check,conc_ElementN, conc_Range)
-integer, intent(in) :: k, nMin, nMax, nD 
+SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
+    & labelFull,digitFull,equivalencies,conc_check,conc_ElementN, conc_Range)
+integer, intent(in) :: k, nMin, nMax, nDFull
+integer             :: nD
 character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3), eps
-real(dp), pointer :: d(:,:)
+real(dp), pointer :: dFull(:,:), d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
-integer, intent(in) :: label(:,:) ! A list of the labels (index 1) allowed on each site (index 2)
-integer, intent(in) :: digit(:)   ! A list of the *number* of labels on each site 
+integer, intent(in) :: labelFull(:,:) ! A list of the labels (index 1) allowed on each site (index 2)
+integer, intent(in) :: digitFull(:)   ! A list of the *number* of labels on each site 
+integer, allocatable    :: label(:,:), digit(:)
+integer, intent(in) :: equivalencies(:)
 logical, intent(in)            :: conc_check
 integer , optional             :: conc_ElementN
 real(dp), optional             :: conc_Range(2)
@@ -769,7 +772,26 @@ integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation
 real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
 character(80) filename ! String to pass filenames into output writing routines
+character(80) formatstring
 
+! Divide the dset into member that are enumerated and those that are not
+nD = count( (/(i,i=1,nDFull)/)==equivalencies)
+allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD))
+
+nD = 0
+do iD=1,nDFull
+  if (iD==equivalencies(iD)) then
+    nD=nD+1
+    d(:,nD)     = dFull(:,iD)
+    label(:,nD) = labelFull(:,iD)
+    digit(nD)   = digitFull(iD)
+!write(*,*) "iD=",iD," label=",label(:,iD), " digit=",digit(iD)
+  endif
+enddo
+
+
+
+! Concentration check settings
 if (.not. conc_check) then
   cElementN = 1
   cRange    = (/0._dp,1._dp/)
@@ -802,11 +824,18 @@ stop '"pLatTyp" not defined in gen_multilattice_derivs in enumlib'; endif
 do i = 1,3
    write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
 enddo
-write(14, '(i5," # Number of points in the multilattice")') nD
-do iD = 1,nD
-   write(14,'(3(g14.8,1x),3x,"# d",i2.2," d-vector")') d(:,iD),iD
+write(14, '(i5," # Number of points in the multilattice")') nDFull
+do iD = 1,nDFull
+   ! Print out the dset points and their possible labels                                  
+   ! (1) setup the format for output                                                      
+   formatstring='(3(g14.8,1x),3x,"# d",i2.2," d-vector, labels: "'
+   do i=1,digitFull(iD); if (i>1) formatstring=trim(formatstring)//',"/"'; formatstring=trim(formatstring)//',i1'; enddo
+   formatstring=trim(formatstring)//")"
+   ! (2) print the data                                                                   
+   write(14,formatstring) dFull(:,iD),iD, labelFull(1:digitFull(iD),iD)
 enddo
 write(14,'(i2,"-nary case")') k
+write(14,'("Equivalency list:" ,40(I2,1x))') equivalencies(:)
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
 write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
 write(14,'(A)') "Concentration check:"
@@ -842,7 +871,7 @@ call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging
 Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax !max(k,nMin),nMax
-   icRange = ivol*nD*cRange
+   icRange = ivol*nDFull*cRange
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
       call get_all_HNFs(ivol,HNF)  ! 3D
@@ -887,7 +916,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       !enddo
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
-      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,cElementN,icRange)
+      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,cElementN,icRange)
       !call cpu_time(endwrite)
       !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
