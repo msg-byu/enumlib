@@ -570,7 +570,7 @@ ENDSUBROUTINE get_SNF
 !*******************************************************************************
 ! Takes a bunch of HNF matrices and a parent lattice and removes those that are
 ! rotationally equivalent (under the rotations of the parent lattice). Also
-! returns all the unique derivative _lattices_ for this parent. Returns also 
+! returns all the unique derivative _lattices_ for this parent. Also returns  
 ! a list of rotations that fix each superlattice. 
 SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,eps)
 integer, pointer :: hnf(:,:,:) ! HNF matrices (input)

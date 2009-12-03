@@ -82,15 +82,15 @@ compare.x: compare.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
 
 makestr.x: makeStr.o
-	${F90} ${LDFLAGS} -o $@ makeStr.o ${LIBS} libenum.a
+	${F90} ${LDFLAGS} -o $@ makeStr.o libenum.a ${LIBS} 
 
 makeperovstr.x: makePerovStr.o
 	${F90} ${LDFLAGS} -o $@ makePerovStr.o ${LIBS}
 
 makestructin.x: makeStrIn.o
-	${F90} ${LDFLAGS} -o $@ makeStrIn.o ${LIBS} libenum.a
+	${F90} ${LDFLAGS} -o $@ makeStrIn.o libenum.a ${LIBS}
 test_driver.x: test_driver.o
-	${F90} ${LDFLAGS} -o $@ test_driver.o ${LIBS} libenum.a
+	${F90} ${LDFLAGS} -o $@ test_driver.o libenum.a ${LIBS}
 
 
 .f95.o : 
