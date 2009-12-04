@@ -4,11 +4,12 @@ bulk
 0.50000000      0.0000000     0.50000000        # a2 parent lattice vector
  0.0000000     0.50000000     0.50000000        # a3 parent lattice vector
  2 -nary case
-    2 # Number of points in the multilattice
+   3 # Number of points in the multilattice
  0.0000000      0.0000000      0.0000000    0/1    # d01 d-vector
  0.100000      0.100000      0.100000    0/1    # d02 d-vector
-E
-1 1
+ 0.200000      0.100000      0.100000    0    # d02 d-vector
+#E
+#1 2 1
    1   6 # Starting and ending cell sizes for search
 0.10000000E-03 # Epsilon (finite precision parameter)
 full list of labelings

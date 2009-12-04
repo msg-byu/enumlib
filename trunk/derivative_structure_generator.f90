@@ -204,9 +204,10 @@ logical err
 nD = size(pd,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
-aTyp = 1
 
+aTyp = 1
 call get_spaceGroup(pLV,aTyp,pd,rot,shift,.false.,eps)
+
 !call write_lattice_symmetry_ops(rot,shift)
 if(latDim==2) call rm_3D_operations(pLV,rot,shift,eps)
 !call write_lattice_symmetry_ops(rot,shift,"2D")
@@ -572,7 +573,7 @@ ENDSUBROUTINE get_SNF
 ! rotationally equivalent (under the rotations of the parent lattice). Also
 ! returns all the unique derivative _lattices_ for this parent. Also returns  
 ! a list of rotations that fix each superlattice. 
-SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,eps)
+SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,label,digit,eps)
 integer, pointer :: hnf(:,:,:) ! HNF matrices (input)
 integer :: LatDim ! Is the parent lattice 2D or 3D?
 real(dp), intent(in) :: parent_lattice(3,3) ! parent lattice (input)
@@ -582,6 +583,7 @@ real(dp),intent(in):: eps ! finite precision (input)
 real(dp), pointer :: d(:,:) 
 type(RotPermList), intent(in) :: dperms
 type(RotPermList), pointer :: RPList(:)
+integer, intent(in)  :: label(:,:), digit(:)
 
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
 real(dp), dimension(3,3) :: test_latticei, test_latticej, thisRot, rotLat, origLat
@@ -597,12 +599,14 @@ integer, pointer :: aTyp(:)
 nD = size(d,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in remove_duplicate_lattices: aTyp"
-aTyp = 1
-!! Need to modify this to pass in numbers that differentiate site that are inequivalent because of
-!! the different labels that are allowed.
-!! Or, let the code apply all the symmetries and then eliminate invalid labelings (the counter won't
-!! generate any but they may appear after the symmetry has been applied to a legal one)
 
+
+! aTyp = 1
+!! !! Need to modify this to pass in numbers that differentiate site that are inequivalent because of
+!! !! the different labels that are allowed.
+!! !! Or, let the code apply all the symmetries and then eliminate invalid labelings (the counter won't
+!! !! generate any but they may appear after the symmetry has been applied to a legal one)
+call get_spaceGroup_atomTypes(label,digit,aTyp)
 call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
 Nhnf = size(hnf,3)
@@ -747,8 +751,8 @@ real(dp), intent(in) :: parLV(3,3), eps
 real(dp), pointer :: dFull(:,:), d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
-integer, intent(in) :: labelFull(:,:) ! A list of the labels (index 1) allowed on each site (index 2)
-integer, intent(in) :: digitFull(:)   ! A list of the *number* of labels on each site 
+integer, intent(inout) :: labelFull(:,:) ! A list of the labels (index 1) allowed on each site (index 2)
+integer, intent(inout) :: digitFull(:)   ! A list of the *number* of labels on each site 
 integer, allocatable    :: label(:,:), digit(:)
 integer, intent(in) :: equivalencies(:)
 logical, intent(in)            :: conc_check
@@ -780,15 +784,17 @@ allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD))
 
 nD = 0
 do iD=1,nDFull
-  if (iD==equivalencies(iD)) then
+  if (iD==equivalencies(iD)) then ! this dset member is a unique point
     nD=nD+1
     d(:,nD)     = dFull(:,iD)
     label(:,nD) = labelFull(:,iD)
     digit(nD)   = digitFull(iD)
-!write(*,*) "iD=",iD," label=",label(:,iD), " digit=",digit(iD)
+  else ! this dset member is equivalent (concerning the enumeration!) to a different point.
+       ! => Force the label and digit arrays to be equal for equivalent sites
+    labelFull(:,iD) = labelFull(:,equivalencies(iD))
+    digitFull(iD)   = digitFull(equivalencies(iD))
   endif
 enddo
-
 
 
 ! Concentration check settings
@@ -879,7 +885,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
-   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,eps)
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,label,digit,eps)
    !call cpu_time(Removetime)
    ! Superlattices with the same SNF will have the same list of translation permutations of the
    ! labelings. So they can all be done at once if we find the SNF. rdHNF is the reduced list.
@@ -929,5 +935,7 @@ close(14)
 write(*,'(A)') "---------------------------------------------------------------------------------------------"
 
 ENDSUBROUTINE gen_multilattice_derivatives
+
+
 END MODULE derivative_structure_generator
 
