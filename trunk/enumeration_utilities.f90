@@ -207,7 +207,8 @@ END SUBROUTINE read_poscar
 ! This subroutine takes a structure defined in real space (atomic basis vectors in Cartesian 
 ! coordinates) and checks whether or not it is a derivative structure of a parent lattice. If it is,
 ! the parent lattice, d-set, and HNF/SNF are returned
-SUBROUTINE get_HNF_of_derivative_structure(sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+SUBROUTINE get_HNF_of_derivative_structure(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+character(80), intent(in) :: sfname ! Name of file to be searched for target structure
 real(dp), intent(in) :: sLV(3,3), aBas(:,:) ! Input lattice vectors and atoms
 integer, intent(in) :: aTyp(:) ! Type of each atom
 real(dp), intent(out):: pLV(:,:) ! lattice vectors of the parent lattice
@@ -219,7 +220,7 @@ integer, intent(out) :: SNF(3,3), L(3,3) ! L is the left transform for SNF
 integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i
 integer, pointer :: aTypTemp(:)
 real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:)
-real(dp) :: pLVinv(3,3)
+real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest
 integer,dimension(3,3) :: S, R, tempH, newH
 logical err, unique
 integer, allocatable :: trow(:,:), vs(:), idx(:)
@@ -236,23 +237,38 @@ enddo
 
 ! Need to read in the parent lattice from struct_enum.out. The parent lattice of struct_enum.out and
 ! the parent lattice of the structure to be checked must, of course, be equivalent. But for checking
-! the structures via the HNF, the same parent lattice representation must be used for both. (
+! the structures via the HNF, the same parent lattice representation must be used for both. (That
+!  is, the bases for the parent lattice must not only be equivalent, but identical.) This is because,
+! if A_1/=A_2 (the two bases for the parent lattice), then A_1*H/=A_2*H. We need to use the same
+! parent basis when extracting the HNF of a superlattice.  
+open(18,file=sfname,status="old")
+read(18,*); read(18,*) ! Skip the first two lines
+do i = 1, 3; read(18,*) pLV(:,i); enddo
+write(17,'("parent lattice vectors from ",a80)') adjustl(sfname)
+write(17,'(3(3f7.3,1x,/))') transpose(pLV)
+
 allocate(aTypTemp(nAt),aBasTemp(3,nAt))
 aTypTemp = aTyp; aBasTemp = aBas
-pLV = sLV ! Use pLV as a temporary
-call make_primitive(pLV,aTypTemp,aBasTemp,.false.,eps)
+pLVtemp = sLV 
+call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 if(nAt/=size(aTypTemp)) then;
    write(17,'(/,"ERROR: The input structure wasn''t primitive")')
    write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
    write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
    stop "ERROR: input structure for get_HNF_of_derivative_structure was not primitive";endif
-aTypTemp = 1; pLV = sLV
-call make_primitive(pLV,aTypTemp,aBasTemp,.false.,eps)
-write(17,'("Parent lattice (columns): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
+aTypTemp = 1; pLVtemp = sLV
+call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
+write(17,'("Parent lattice of superlattice (columns): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
+call matrix_inverse(pLVtemp,parLattTest,err)
+if(err) stop "Problem inverting parent lattice basis"
+if(.not. equal(matmul(parLattTest,pLV),nint(matmul(parLattTest,pLV)),eps)) then
+    print*, "Parent lattices of input structure and of "//adjustl(sfname)//" are not equivalent"
+stop; endif
+! If we pass this test, the two bases are equivalent even if not equal. From this point on, use
+! the one from the struct_enum.out file
+
 allocate(dset(3,size(aTypTemp))); dset = aBasTemp
 write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
-print *,dset
-print *,atyptemp
 
 call matrix_inverse(pLV,pLVinv,err)
 if(err) stop "Coplanar vectors in get_HNF_of_derivative_structure"
@@ -266,12 +282,6 @@ S = nint(matmul(pLVinv,sLV))
 
 call get_spaceGroup(pLV,aTypTemp,dset,sgrot,sgshift,.false.,eps)
 nOp = size(sgrot,3)
-print *,eps
-write(*,'("nOps ",i2)')nOp
-print *,aTypTemp
-write(*,'("Vol: ",f7.3)') abs(determinant(pLV))
-write(*,'("pLV",/,3(3(f7.3,1x),/))') transpose(pLV)
-if (nOp/=48) stop "should be fcc---48 operations"
 allocate(trow(nOp,6),vs(nOp),idx(nOp))
 ! Find the unrotated form of this structure's HNF. We'll need this later to get the SNF's left
 ! transform matrix, L, to map atom postions into the group. The find_gspace_representation routine
@@ -287,7 +297,7 @@ do iOp = 1, nOp
    call HermiteNormalForm(tempH,newH,R)
    unique = .true.
    row = (/newH(1,1),newH(2,1),newH(2,2),newH(3,1),newH(3,2),newH(3,3)/)
-   write(*,'("HNF (rot #):",i3,3x,6(i2,1x))') iOp,row
+   write(17,'("HNF (rot #):",i3,3x,6(i2,1x))') iOp,row
    do iuq = 1, nuq
       if (all(row == trow(iuq,:))) then
          unique = .false.
@@ -407,7 +417,7 @@ integer, pointer :: pLabel(:,:)  ! The list of permuted labels (all equivalent)
 
 integer, pointer :: aTypTemp(:), SNFlabel(:)
 real(dp), pointer :: aBasTemp(:,:), sLVlist(:,:,:)
-real(dp) :: pLVtemp(3,3),sLVtemp(3,3)
+real(dp), dimension(3,3) :: pLVtemp, sLVtemp, parLattTest, T
 integer iAt, nAt, iOp, j, ip, iuq, nuq, nP, SNF(3,3)
 integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
 type(RotPermList) :: dRotList ! This is a list of permutations for the d-set 
@@ -451,8 +461,10 @@ call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 write(17,'("Parent lattice (columns): ",/,3(3(f7.3,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
 write(17,'("Parent lattice (in): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
 write(17,'("Superlattice (columns): ",/,3(3(f7.3,1x),/))') (sLV(iAt,:),iAt=1,3)
-
-if (.not. equal(pLV,pLVtemp,eps)) stop "Input for get_gspace_representation is inconsistent"
+call matrix_inverse(pLVtemp,parLattTest,err)
+if(err) stop "Parent lattice of input superstructure is wrong"
+T = matmul(parLattTest,pLV)
+if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
 write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
 write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
 !** Calls to enumlib routines **
