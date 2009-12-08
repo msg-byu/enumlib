@@ -70,7 +70,7 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a multienum.x compare.x test_driver.x 2Dplot.x
+all: libenum.a multienum.x compare.x find_structure_in_list.x 2Dplot.x
 
 multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
@@ -89,8 +89,8 @@ makeperovstr.x: makePerovStr.o
 
 makestructin.x: makeStrIn.o
 	${F90} ${LDFLAGS} -o $@ makeStrIn.o libenum.a ${LIBS}
-test_driver.x: test_driver.o
-	${F90} ${LDFLAGS} -o $@ test_driver.o libenum.a ${LIBS}
+find_structure_in_list.x: find_structure_in_list.o
+	${F90} ${LDFLAGS} -o $@ find_structure_in_list.o libenum.a ${LIBS}
 
 
 .f95.o : 

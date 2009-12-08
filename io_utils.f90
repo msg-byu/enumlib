@@ -71,16 +71,20 @@ do iD = 1, nD ! loop over all the d-vectors
    digit(iD) = i ! Store the number of labels that were specified for each d-vector
 ! Should also check that no labels were repeated.
 enddo
-if(all(digit<k)) then
-   write(*,'("digit: ",1x,80i2)') digit
-   write(*,'(/"Number of labels in input file is insufficient for a ",i1,"-nary case")')k
-   stop
-endif
-!do iD = 1,nD
-!   write(*,'(10i2)') label(:,iD)
-!enddo
-!write(*,'("digits: ",10i2)') digit
-!stop
+! Check that each label appears at least once
+do i = 0,k-1
+   if(all(label/=i))then
+      write(*,'("Not all of the labels were used. Label ",i1," was never used")') i
+   stop; endif
+enddo
+! Check that no label appears twice for one member of the dset
+do iD = 1, nD
+   do i = 0,K-1
+      if(count(label(:,iD)==i)>1)then
+         write(*,'("Label # ",i1," appears more than once for d-set # ",i2)') i,iD
+      stop; endif
+   enddo
+enddo
 
 call co_ca(10,err)
 read(10,*) line
