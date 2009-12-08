@@ -435,8 +435,10 @@ call get_permutations((/(i,i=0,k-1)/),labPerms)
 ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
-   idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
-   !!write(*,'(/"index: ",i6)') idx
+   !!idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
+   idx = sum((digCnt-1)*multiplier)+1
+   !!write(*,'("index: ",i6,"   a:",20(i1,1x))') idx, a
+   !!write(*,'("digCnt: ",20(i1,1x))') digCnt
    !if (idx/=ic) stop "index bug!" !! This check isn't useful for mixed-radix labeling
    if (any(c==0)) then ! Check to see if there are missing digits
       id = id + 1; ! Keep track of the number of incomplete labelings
