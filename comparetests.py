@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os
+import os, subprocess
 import glob
 from os import system
 from shutil import copyfile
@@ -18,6 +18,7 @@ if rs!=0: sys.exit("\n\n *** Compilation of makestr.x failed *** \n")
 #f=open('tests/list')
 
 system('rm -r vasp.0007')
+print "\n *** testing on of Rod's gang of 13 ***"
 system('./makestr.x ./tests/13struct.out 7')
 rs=system('diff -q vasp.0007 tests/vasp.0007_from2x3_Rods_case')
 if rs!=0:
@@ -31,9 +32,26 @@ else:
 poscar = glob.glob('tests/*.poscar')
 f = open('tests/17list')
 rs=system('make find_structure_in_list.x')  # need the exit status here...
+print "\n *** Testing compare code on first 17 fcc structures ***"
 if rs!=0: sys.exit("\n\n *** Compilation of find_structure_in_list.x failed *** \n")
 for ip in poscar:
-    rs=system('./find_structure_in_list.x '+ip+' tests/struct17fcc.out')  # need the exit status here...
-    if rs!=0: sys.exit("\n\n *** POSCAR: "+ip+" failed in test of first fcc 17 *** \n")
-    print f.readline()
+    #print ip
+    command = './find_structure_in_list.x '+ip+' tests/struct17fcc.out'
+    #process = subprocess.Popen('pwd')
+    process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
+    os.waitpid(process.pid, 0)
+    #print process.stdout.read()
+    #print process.stdout.read().strip() \w+([0-9]+)
+    r1 = re.compile('Structure #: \s+([0-9]+)')
+    m = r1.match(process.stdout.read().strip())
+    nStr =  m.group(1)
+    #print f.readline().strip()+"X"+nStr+"X
+    if(f.readline().strip()!=nStr):
+        sys.exit("\n\nFailure in test")
+    #print "test passed"
+    #rs=system('./find_structure_in_list.x '+ip+' tests/struct17fcc.out')  # need the exit status here...
+    #if rs!=0: sys.exit("\n\n *** POSCAR: "+ip+" failed in test of first fcc 17 *** \n")
+    #print f.readline()
     # How do you capture the output from a system call in python?
+
+print "\n <<< Test of 17 fcc with compare code passed >>>\n"
