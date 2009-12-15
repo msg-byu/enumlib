@@ -49,9 +49,5 @@ for ip in poscar:
     if(f.readline().strip()!=nStr):
         sys.exit("\n\nFailure in test")
     #print "test passed"
-    #rs=system('./find_structure_in_list.x '+ip+' tests/struct17fcc.out')  # need the exit status here...
-    #if rs!=0: sys.exit("\n\n *** POSCAR: "+ip+" failed in test of first fcc 17 *** \n")
-    #print f.readline()
-    # How do you capture the output from a system call in python?
 
 print "\n <<< Test of 17 fcc with compare code passed >>>\n"

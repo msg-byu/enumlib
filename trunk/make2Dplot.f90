@@ -39,7 +39,7 @@ read(11,'(i2)') k
 do i = 1,4;read(11,*);enddo ! Skip 4 lines
 
 scale = .33
-Nspots = 3
+Nspots = 8
 rows = 16
 cols = 5
 spotsize = .35
@@ -65,7 +65,7 @@ outer: do js = 1,rows
       enddo
       indx = diag(2)*diag(3)
       do i = 0,Nspots-2
-         do j = 0,Nspots-1
+         do j = 0,Nspots-2
             do iD = 1, nD
             ! point is a 2-vector, Cartesian coordinates of the point
             point = i*parLat(:,1)+j*parLat(:,2)+(/xoff,yoff/)+dvec(2:3,iD)
