@@ -841,7 +841,7 @@ do iD = 1,nDFull
    write(14,formatstring) dFull(:,iD),iD, labelFull(1:digitFull(iD),iD)
 enddo
 write(14,'(i2,"-nary case")') k
-write(14,'("Equivalency list:" ,40(I2,1x))') equivalencies(:)
+!write(14,'("Equivalency list:" ,40(I2,1x))') equivalencies(:)
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
 write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
 write(14,'(A)') "Concentration check:"

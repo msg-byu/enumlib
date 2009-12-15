@@ -109,7 +109,6 @@ integer iAt, nAt
 
 nAt = size(aBas,2)
 call matrix_inverse(sLV,sLVinv)
-
 !!! Convert aBas to DIRECT COORDINATES
 do iAt=1,nAt
   aBas(:,iAt) = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates

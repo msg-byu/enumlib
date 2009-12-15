@@ -460,7 +460,8 @@ do; ic = ic + 1
             !read(*,*)
             cycle
          endif
-         idx = sum(a(perm(q,:))*multiplier)+1
+         !idx = sum(a(perm(q,:))*multiplier)+1
+         idx = sum((digCnt(perm(q,:))-1)*multiplier)+1
          if (idx==ic .and. q <= n) lab(idx)='N' ! This will happen if the coloring is superperiodic
          ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
          ! "translation" permutation and not a rotation permutation (they're ordered in the
@@ -470,6 +471,9 @@ do; ic = ic + 1
             write(*,'("original labeling ",20i1)') a
             write(*,'("permuted labeling ",20i1)') a(perm(q,:))
             write(*,'("perm ",i2,":",4i2)') (i,perm(i,:),i=1,nPerm)
+            write(*,'("Index: ",i4)') idx
+            write(*,'("Max expected index: ",i4)') nexp
+            write(*,'("Multiplier: ",20(i3,1x))') multiplier
             stop
          endif
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
