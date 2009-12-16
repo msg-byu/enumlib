@@ -328,7 +328,7 @@ END SUBROUTINE get_HNF_of_derivative_structure
 
 
 !***************************************************************************************************
-! Map a list of real space atomic basis vectors and their labels into g-space and extracts the
+! Maps a list of real space atomic basis vectors and their labels into g-space and extracts the
 ! labeling 
 SUBROUTINE find_labeling_from_atom_basis(L,A,aBas,aTyp,SNF,labeling)
 integer, dimension(3,3), intent(in) :: L
@@ -549,7 +549,7 @@ END SUBROUTINE get_gspace_representation
 
 !***************************************************************************************************
 ! Reads in structure info from a struct_enum.out-type file and compares to the g-space
-! representation of a structure.
+! representation of a test structure.
 SUBROUTINE find_match_in_structenumout(fname,pLV,dset,HNFin,SNF,LatDim,pLabel,match,eps) 
 character(80), intent(in) :: fname
 real(dp), intent(in), dimension(3,3) :: pLV

@@ -601,11 +601,11 @@ allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in remove_duplicate_lattices: aTyp"
 
 
-! aTyp = 1
-!! !! Need to modify this to pass in numbers that differentiate site that are inequivalent because of
-!! !! the different labels that are allowed.
-!! !! Or, let the code apply all the symmetries and then eliminate invalid labelings (the counter won't
-!! !! generate any but they may appear after the symmetry has been applied to a legal one)
+aTyp = 1
+! Let the code apply all the symmetries and then eliminate invalid labelings (the counter won't
+! generate any but they may appear after the symmetry has been applied to a legal one). In other
+!  words, don't try and restrict the set of symmetries (at this point) but the set of labels that
+!  can be applied to any particular site.
 call get_spaceGroup_atomTypes(label,digit,aTyp)
 call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
