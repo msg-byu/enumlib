@@ -79,21 +79,22 @@ integer              :: nAllD            ! size of full dset
 integer, allocatable :: allD(:)          ! help array: (/ 1, 2, 3, ..., nAllD /)
 integer, allocatable :: pplabeling(:)    ! postprocessed labeling
 logical :: postprocessLabeling           ! do we need to postprocess labeling
-integer, allocatable :: AllDPos2LabelPos(:)  ! { full-dset member }: respective position in labeling
+integer, allocatable :: allD2LabelD(:)   ! { full-dset member }: respective d-vector ID in the labeling dset
 
 ! Postprocessing labelings: setup
 nAllD = size(equivalencies)
 allocate(allD(nAllD)); allD = (/ (i,i=1,nAllD) /)
-allocate(allDPos2LabelPos(nAllD));
+allocate(allD2LabelD(nAllD));
 ! 1) Check whether we have to postprocess the labeling before writing it out
 postprocessLabeling = .not. (all(  abs( equivalencies-allD ) ==0))
 allocate(pplabeling(n*nAllD))  ! this is ok whether we do postprocessing (nAllD>nD) or not (nAllD==nD)
 ! 2) if yes:
 !    - prepare the postprocessed labeling (pplabeling)
 !    - generate a map:  full dset -> enum dset
-!      that tells me for a dset member where I can find the correct labeling for it
+!      that tells me for a dset member of the full dset what dset member in the enumeration dset it
+!      corresponds to
 if (postprocessLabeling) then
-  allDPos2LabelPos = (/(count(pack(allD,allD<=equivalencies(i))==equivalencies),i=1,nAllD)/)
+  allD2LabelD = (/(count(pack(allD,allD<=equivalencies(i))==equivalencies),i=1,nAllD)/)
   ! this construction is best explained by an example:
   ! suppose we have a dset 1,2,3,4,5
   ! and the equivalent list is 1,4,4,4,5 (so, dset member 1,4,5 will be enumerated, having positions 1,2,3 in labelings)
@@ -126,7 +127,7 @@ do il = 1, nl ! Loop over the unique labelings
      labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
    enddo
    if (postprocessLabeling) then
-     call postprocess_labeling(n,nAllD,labeling,pplabeling,allDPos2LabelPos) 
+     call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
    else
      pplabeling = labeling ! nothing changes
    endif
@@ -165,20 +166,19 @@ else
 endif
 end function check_labeling_numbers
 
-subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,oldlabel_pos)
-integer, intent(in) :: nUC, nAllD
-integer, intent(in) :: oldlabeling(:)
-integer, intent(out)   :: newlabeling(:)
-integer, intent(in) :: oldlabel_pos(:)
-
+subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,newD2oldD)
+integer, intent(in) :: nUC, nAllD          ! number of unit cells, number of d-vectors in the new labeling
+integer, intent(in) :: oldlabeling(:)      ! the old labeling
+integer, intent(out):: newlabeling(:)      ! the wanna-be new labeling
+integer, intent(in) :: newD2oldD(:)        ! { new D# }: a map  newD -> oldD
 
 integer :: newlab_pos, oldlab_pos
 integer :: iD,iUC
 
 do iD=1,nAllD
   do iUC=1,nUC
-    newlab_pos = (iD-1)*nUC + iUC
-    oldlab_pos = oldlabel_pos(iD)+iUC-1
+    newlab_pos = (iD-1)*nUC + iUC               ! position in the new labeling
+    oldlab_pos = (newD2oldD(iD)-1)*nUC + iUC    ! corresponding position in the old labeling
     newlabeling(newlab_pos) = oldlabeling(oldlab_pos)
   enddo
 enddo
