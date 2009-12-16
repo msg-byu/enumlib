@@ -185,7 +185,7 @@ nP = rpList%nL
 if(size(rpList%perm,1)/=rpList%nL) stop "rp list not initialized correctly (write_rotperms_list in io_utils)"
 write(11,'("Number of permutations: ",i2)') nP
 do iP = 1, nP
-   write(11,'("Perm #: ",i2,1x,"Perm: ",40i2)') iP, rpList%perm(iP,:)
+   write(11,'("Perm #: ",i2,1x,"Perm: ",40(i2,1x))') iP, rpList%perm(iP,:)
 enddo
 close(11)
 END SUBROUTINE write_rotperms_list

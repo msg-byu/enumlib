@@ -20,7 +20,7 @@ ifeq (${F90},ifort)  # Intel compiler
   endif
   ifeq (${DEBUG},true)
 #  F90 =  /opt/intel/fc/10.0.016/bin/ifort
-     FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -e95 -I${LBDR} 
+     FFLAGS =  -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBDR} 
 #-prof-use -prof-dir .
      FOUND = true
   endif
