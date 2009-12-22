@@ -16,7 +16,7 @@ call getarg(1,dummy)
 read(dummy,'(a80)') fname
 call getarg(2,dummy)
 read(dummy,'(a80)') sfname
-if(iargc()/=2) stop "Need two arguments"
+if(iargc()/=2) stop "Need two arguments: poscar and struct_enum.out-type file"
 !sfname = "struct_enum.out"
 call read_poscar(fname,title,sLV,aBas,aTyp)
 call get_HNF_of_derivative_structure(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
