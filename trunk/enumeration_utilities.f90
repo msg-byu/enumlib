@@ -38,9 +38,6 @@ integer iAt, i, iD, nD
 real(dp) :: greal(3)   ! Floating point representation of the group element components (g-vector)
 integer  :: g(3)       ! Integer version of greal
 
-allocate(gIndx(n*size(pBas,2)))
-gIndx=-1
-
 nD = size(pBas,2)
 ! Define the non-zero elements of the HNF matrix
 a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
@@ -51,6 +48,7 @@ sLV = matmul(pLV,HNF)
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,n*nD))
 allocate(spin(n*nD),gIndx(n*nD))
+gIndx=-1
 
 ! Let's get the fattest basis (Minkowski reduction)
 call reduce_to_shortest_basis(sLV,sLV,eps)
