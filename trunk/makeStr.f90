@@ -93,7 +93,7 @@ do istrN=strNi,strNf
    HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
    
    call map_enumStr_to_real_space(k,n,HNF,labeling,p,dvec,eps,sLV,aBas,spin,gIndx,x,L,diag)
-   write(strname,'("vasp.",i4.4)') strN
+   write(strname,'("vasp.",i6.6)') strN
    write(strNstring,*) strN
    open(12,file=strname)
    write(12,'(a80)') trim(adjustl(title)) // " str #: " // adjustl(strNstring)
@@ -120,11 +120,11 @@ do istrN=strNi,strNf
    write(13,'("Finished counting the atoms of each type")')  
    
    write(12,*) ! Start next line
-   write(12,'("D")')
+   write(12,'("C")')
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
    ! For vasp, UNCLE it needs to list the vectors in blocks of that have the same label.
-   call cartesian2direct(sLV,aBas,eps)
+   !call cartesian2direct(sLV,aBas,eps)
    do ilab = 0,k-1
       do iAt = 1, n*nD
          if (labeling(gIndx(iAt):gIndx(iAt))==char(ilab+48)) then 
