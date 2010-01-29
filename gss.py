@@ -61,32 +61,28 @@ for j in poscars:
     for k in range(7+int(numofbasis[0]),7+numofatoms):
         batoms.append([float(pos[k].split()[1]),float(pos[k].split()[2])])
 
-    print atoms
+
     allatoms = []
-    print upperlimit
+
     for l in atoms:
         for i in range(0,upperlimit + 1):
             for z in range(0,upperlimit + 1):
                 shiftvec = [i, z]
                 newatom = [float(l[0]) + shiftvec[0], float(l[1]) + shiftvec[1]]
                 allatoms.append(newatom)
-    print allatoms
+
 
     finalaatomslist = []
     finalbatomslist = []
     for m in allatoms:
         mapped = unclefuncs.mapback2d(latvecs,m,atoms,upperlimit)
-        print mapped
-        print m
-        print aatoms
-        print batoms
-        print '-----------------------------------------------'
+
         if mapped in aatoms:
             finalaatomslist.append(m)
-            print 'a'
+
         elif mapped in batoms:
             finalbatomslist.append(m)
-            print 'b'
+
     xlista = []
     xlistb = []
 
@@ -100,10 +96,7 @@ for j in poscars:
         xlistb.append(g[0])
         ylistb.append(g[1])
         
-    print xlista
-    print xlistb
-    print ylista
-    print ylistb
+
     status = 'continue'
     for h in xlista:
         if h not in xlistb:
