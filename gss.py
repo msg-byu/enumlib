@@ -3,13 +3,13 @@
 import os,unclefuncs,sys
 from math import sqrt
 
-print 'You will need to copy the file makestr.2d to your bin for this program to work'
-verify = str(raw_input('Is it there?'))
-if verify != 'yes':
-    sys.exit('Do it then!')
-if os.path.isfile('inputvasp.txt') == False:
-    print 'You are lacking an input file called inputvasp.txt, which contains a list of the structures for which you desire to compute energies'
-    sys.exit()
+#print 'You will need to copy the file makestr.2d to your bin for this program to work'
+#verify = str(raw_input('Is it there?'))
+#if verify != 'yes':
+#    sys.exit('Do it then!')
+#if os.path.isfile('inputvasp.txt') == False:
+#    print 'You are lacking an input file called inputvasp.txt, which contains a list of the structures for which you desire to compute energies'
+#    sys.exit()
 input = unclefuncs.readfile('inputvasp.txt')
 
 poscars = input[0].split()
@@ -21,7 +21,7 @@ if '-' in input[0].split():
 
 writelines = []
 for j in poscars:
-    os.system('makestr.test struct_enum.out ' + j)
+    os.system('makestr.2d struct_enum.out ' + j)
     
     if int(j) > 9999:
         pos = unclefuncs.readfile('vasp.0'+ j)
@@ -65,8 +65,8 @@ for j in poscars:
     allatoms = []
 
     for l in atoms:
-        for i in range(0,upperlimit + 1):
-            for z in range(0,upperlimit + 1):
+        for i in range(0,int(upperlimit) + 1):
+            for z in range(0,int(upperlimit) + 1):
                 shiftvec = [i, z]
                 newatom = [float(l[0]) + shiftvec[0], float(l[1]) + shiftvec[1]]
                 allatoms.append(newatom)

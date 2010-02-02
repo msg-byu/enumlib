@@ -537,8 +537,8 @@ def mapback(latvecs,vec,basisvecs):
 
 def mapback2d(latvecs,vec,basisvecs,upperlimit):
     vecs = []
-    for j in range(-upperlimit,upperlimit + 1):
-        for k in range(-upperlimit ,upperlimit + 1):
+    for j in range(-3,2):
+        for k in range(-3 ,2):
             vecone = [j * float(latvecs[0].split()[0]),j * float(latvecs[0].split()[1])]
             vectwo = [k * float(latvecs[1].split()[0]),k * float(latvecs[1].split()[1])]
              
