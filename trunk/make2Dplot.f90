@@ -38,10 +38,10 @@ enddo
 read(11,'(i2)') k
 do i = 1,4;read(11,*);enddo ! Skip 4 lines
 
-scale = .33
-Nspots = 8
+scale = .19
+Nspots = 10
 rows = 16
-cols = 5
+cols = 10
 spotsize = .35
 call init(scale,-10.0,-2.0)
 call init_colors
