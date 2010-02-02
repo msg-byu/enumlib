@@ -84,6 +84,9 @@ compare.x: compare.o
 makestr.x: makeStr.o
 	${F90} ${LDFLAGS} -o $@ makeStr.o libenum.a ${LIBS} 
 
+makestr.2d: makeStr2d.o
+	${F90} ${LDFLAGS} -o $@ makeStr2d.o libenum.a ${LIBS} 
+
 makeperovstr.x: makePerovStr.o
 	${F90} ${LDFLAGS} -o $@ makePerovStr.o ${LIBS}
 
