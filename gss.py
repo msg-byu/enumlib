@@ -3,7 +3,7 @@
 import os,unclefuncs,sys
 from math import sqrt
 
-#print 'You will need to copy the file makestr.2d to your bin for this program to work'
+#print 'You will need to make sure the file makestr.2d is in this folder.  It is obtained by compiling makestr2d.f90'
 #verify = str(raw_input('Is it there?'))
 #if verify != 'yes':
 #    sys.exit('Do it then!')
@@ -19,29 +19,41 @@ if '-' in input[0].split():
     for i in range(int(input[0].split()[0]),int(input[0].split()[2])+1):
         poscars.append(str(i))
 
+
+struct_enum = unclefuncs.readfile('struct_enum.out')
+
+first = int(struct_enum[15].split()[0])
+#print poscars
+#if first != 1:
+#    for i in range(len(poscars)):
+#        poscars[i] = str(int(poscars[i]) + (first - 1))
+#print poscars
+
 writelines = []
 for j in poscars:
-    os.system('makestr.2d struct_enum.out ' + j)
+    os.system('./makestr.2d struct_enum.out ' + j)
     
-    if int(j) > 9999:
-        pos = unclefuncs.readfile('vasp.0'+ j)
-    elif int(j) > 999:
-        pos = unclefuncs.readfile('vasp.00'+ j)
-    elif int(j) > 99:
-        pos = unclefuncs.readfile('vasp.000'+ j)
-    elif int(j) > 9:
-        pos = unclefuncs.readfile('vasp.0000'+ j)
+    structnum = str(int(j) + first - 1)
+    print structnum
+    if int(structnum) > 9999:
+        pos = unclefuncs.readfile('vasp.0'+ structnum)
+    elif int(structnum) > 999:
+        pos = unclefuncs.readfile('vasp.00'+ structnum)
+    elif int(structnum) > 99:
+        pos = unclefuncs.readfile('vasp.000'+ structnum)
+    elif int(structnum) > 9:
+        pos = unclefuncs.readfile('vasp.0000'+ structnum)
     else:
-        pos = unclefuncs.readfile('vasp.00000'+ j)
+        pos = unclefuncs.readfile('vasp.00000'+ structnum)
 
     latvecone = pos[3].split()
     latvectwo = pos[4].split()
     upperlimitx = float(latvecone[1]) + float(latvectwo[1])
     upperlimity = float(latvecone[2]) + float(latvectwo[2])
     if upperlimitx > upperlimity:
-        upperlimit = upperlimitx
+        upperlimit = int(upperlimitx)
     else: 
-        upperlimit = upperlimity
+        upperlimit = int(upperlimity)
     latvecs = [latvecone[1] + ' ' + latvecone[2],latvectwo[1] + ' ' + latvectwo[2]]
 
     numofbasis = pos[5].split()
@@ -98,15 +110,15 @@ for j in poscars:
         
 
     status = 'continue'
-    for h in xlista:
-        if h not in xlistb:
-            status = 'done'
-            break
+#    for h in xlista:
+#        if h not in xlistb:
+#            status = 'done'
+#            break
 
-    if status == 'continue':
-        for r in ylista:
-            if r not in ylistb:
-                status = 'done'
+#    if status == 'continue':
+#        for r in ylista:
+#            if r not in ylistb:
+#                status = 'done'
 
     if status == 'continue':
         for p in xlistb:
@@ -116,13 +128,13 @@ for j in poscars:
     if status == 'continue':
         for q in ylistb:
             if q not in ylista:
-                status = 'done'
+               status = 'done'
     if status == 'done':
         energy = '  1\n'
     else:
         energy = '  0\n'
 
-    writelines.append(j + energy)
+    writelines.append(structnum + energy)
 
 os.system('rm vasp.*')
 
