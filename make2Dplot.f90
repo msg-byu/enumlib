@@ -36,14 +36,16 @@ enddo
 
 ! Read in the number of labels, i.e., binary, ternary, etc.
 read(11,'(i2)') k
-do i = 1,4;read(11,*);enddo ! Skip 4 lines
+do ;read(11,*) dummy
+   if(dummy(1:5)=="start") exit
+enddo 
 
-scale = .19
-Nspots = 10
+scale = .29
+Nspots = 5
 rows = 16
-cols = 10
-spotsize = .35
-call init(scale,-10.0,-2.0)
+cols = 5
+spotsize = .39
+call init(scale,-10.0,20.0)
 call init_colors
 
 xorig = 0.; yorig = 0
@@ -60,11 +62,11 @@ outer: do js = 1,rows
       fullL,labeling
       if (ioerr/=0) exit
       L = reshape((/fullL(2,2),fullL(2,3),fullL(3,2),fullL(3,3)/),(/2,2/))
-      do i = 1,2
-         write(*,'(2i2)') L(i,:)
-      enddo
+      !do i = 1,2
+      !   write(*,'(2i2)') L(i,:)
+      !enddo
       indx = diag(2)*diag(3)
-      do i = 0,Nspots-2
+      do i = 1,Nspots-2
          do j = 0,Nspots-2
             do iD = 1, nD
             ! point is a 2-vector, Cartesian coordinates of the point
@@ -83,12 +85,12 @@ outer: do js = 1,rows
             ! The coordinates in "point" tell us where to draw a circle; "label" tells us which
             ! color belongs to that site.
             label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
-            write(*,'("i,j:",2(1x,i2),5x,"g coords:",2(1x,i1),5x,"label:",i1)') i,j,temp,label
+            !write(*,'("i,j:",2(1x,i2),5x,"g coords:",2(1x,i1),5x,"label:",i1)') i,j,temp,label
             if (labeling(label:label)=='1') then
-                call color('blue')
+                call color('green')
                 call bullet(point(1),point(2),spotsize)
             else if (labeling(label:label)=='2') then
-                  call color('green')
+                  call color('blue')
                   call bullet(point(1),point(2),spotsize)
             else
                if (diag(2)==1) then; call color('red');
