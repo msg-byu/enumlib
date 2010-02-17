@@ -50,10 +50,10 @@ allocate(aBas(3,n*nD))
 allocate(spin(n*nD),gIndx(n*nD))
 gIndx=-1
 
-write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
+!write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
 ! Let's get the fattest basis (Minkowski reduction)
 call reduce_to_shortest_basis(sLV,sLV,eps)
-write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
+!write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
 
 ! Find each atomic position from the g-space information
 ic = 0  ! Keep track of the number of points mapped so far

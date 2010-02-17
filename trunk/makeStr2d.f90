@@ -98,7 +98,6 @@ do istrN=strNi,strNf
    open(12,file=strname)
    write(12,'(a80)') trim(adjustl(title)) // " str #: " // adjustl(strNstring)
    write(12,'("scale factor")')
-   sLV=matmul(p,HNF)
    call matrix_inverse(sLV,sLVinv)
    do i = 1,3
       write(12,'(3f12.8)') sLV(:,i)

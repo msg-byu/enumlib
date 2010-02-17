@@ -101,7 +101,6 @@ do istrN=strNi,strNf
    do i = 1,3
       write(12,'(3f12.8)') sLV(:,i)
    enddo
-   sLV=matmul(p,HNF)
    call matrix_inverse(sLV,sLVinv)
    write(13,'("New inverse after reduction",/,3(3(f7.3,1x),/))') (sLVinv(i,:),i=1,3) 
    
