@@ -6,7 +6,8 @@ use vector_matrix_utilities
 use numerical_utilities
 use enumeration_utilities ! This maps structures from real space into the group
 implicit none
-character(80) fname, title, labeling, strname, strNstring
+character(80) fname, title, strname, strNstring
+character(maxLabLength) :: labeling
 integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt
 integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
 integer, pointer :: gIndx(:)

@@ -4,7 +4,8 @@ PROGRAM make2Dplot
 use num_types
 use vector_matrix_utilities
 implicit none
-character(80) fname, title, labeling, dummy
+character(80) fname, title, dummy
+character(maxLabLength) :: labeling
 integer ioerr,  i,j,  is,js, iD, nD
 integer k, strN, hnfN, sizeN, nAt, diag(3), a,b,c,d,e,f,  fullL(3,3), pgOps,&
      & label, L(2,2), temp(2), Nspots, rows, cols, indx

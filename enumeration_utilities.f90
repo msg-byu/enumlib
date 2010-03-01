@@ -20,7 +20,7 @@ SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, a
 integer, intent(in) :: k ! Number of atom types (number of colors in the enumeration)
 integer, intent(in) :: n ! Number of atoms in the unit cell of given structure
 integer, intent(in) :: HNF(3,3) ! Hermite normal form corresponding to the superlattice
-character(80), intent(in) :: labeling ! List, 0..k-1, of the atomic type at each site
+character(maxLabLength), intent(in) :: labeling ! List, 0..k-1, of the atomic type at each site
 real(dp), intent(in) :: pLV(3,3), eps ! parent lattice vectors (Cartesian coordinates), epsilon
 real(dp), intent(in) :: pBas(:,:) ! 3xn array of the interior points of the parent lattice
 real(dp), intent(out) :: sLV(3,3) ! Superlattice vectors (Cartesian coordinates)
@@ -561,7 +561,8 @@ integer, intent(in) :: LatDim
 integer, intent(out) :: match
 real(dp) :: eps
 
-character(80) title, bulksurf, dummy,labeling
+character(80) title, bulksurf, dummy
+character(maxLabLength) :: labeling
 real(dp) :: p(3,3), Ainv(3,3)
 real(dp), allocatable :: dvec(:,:)
 integer, allocatable :: ilabeling(:)
