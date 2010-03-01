@@ -5,7 +5,8 @@ PROGRAM makeStr
 use num_types
 use vector_matrix_utilities
 implicit none
-character(80) fname, title, labeling, strname, strNstring
+character(80) fname, title, strname, strNstring
+character(maxLabLength) :: labeling
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, hnfN, iFace
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
 real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3), Binv(3,3), sLVinv(3,3), face(3,3)

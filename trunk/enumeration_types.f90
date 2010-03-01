@@ -2,7 +2,9 @@ MODULE enumeration_types
 use num_types
 implicit none
 private
-public derivCryst, opList, LabelRotationList, RotPermList
+public derivCryst, opList, LabelRotationList, RotPermList, maxLabLength
+
+integer, parameter :: maxLabLength = 200  ! maximum length of the character string labeling
 
 type RotPermList ! List of permutations that are equivalent 
    integer, pointer :: perm(:,:) => null() ! First index is the permutation number
