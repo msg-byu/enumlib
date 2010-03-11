@@ -5,6 +5,7 @@ use num_types
 use vector_matrix_utilities
 use numerical_utilities
 use enumeration_utilities ! This maps structures from real space into the group
+use enumeration_types, only: maxLabLength
 implicit none
 character(80) fname, title, strname, strNstring
 character(maxLabLength) :: labeling

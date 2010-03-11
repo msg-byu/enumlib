@@ -876,7 +876,7 @@ call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging
 Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax !max(k,nMin),nMax
-   icRange = ivol*nDFull*cRange
+   icRange = nint(ivol*nDFull*cRange)
    call cpu_time(tstart)
    if (LatDim==3) then !<<< 2D ? or 3D? >>
       call get_all_HNFs(ivol,HNF)  ! 3D
