@@ -1,11 +1,12 @@
-2D square 
-surf
-1. 0. 0.
-0. 1. 0.
-0. 0. 1.
-2 # binary case
-1 # Number of d-vectors
-0 0 0 0/1 # d01
-   1 10 # Starting and ending cell sizes for search
-0.10E-03 # Epsilon (finite precision parameter)
-full
+hcp 
+bulk
+1 0 0
+.5 0.866025403784439 0
+0 0 1.63
+2 # Number of atom types
+2 # Number of points in the parent lattice
+0 0 0 0/1 # first site and allowed spin tips
+.5 0.28867513459  .815 0/1 # second site
+1 2 # starting and ending supercell sizes
+.0001
+part

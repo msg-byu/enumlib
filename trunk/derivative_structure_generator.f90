@@ -478,7 +478,7 @@ integer, intent(in) :: volume
 integer, pointer:: hnf(:,:,:)
 
 integer, pointer    :: d(:,:) => null()
-integer             :: i, j, k, l    ! Loop counters
+integer             :: i, j, k, l!,m    ! Loop counters
 integer             :: N, Nhnf, ihnf ! # of triplets, # of HNF matrices, HNF counter
 integer status
 call get_HNF_diagonals(volume,d)
@@ -503,6 +503,7 @@ do i = 1,N ! Loop over the permutations of the diagonal elements of the HFNs
                                       k,      l, d(3,i)  /), (/3,3/))
       hnf(:,:,ihnf) = transpose(hnf(:,:,ihnf))
    enddo;enddo;enddo  ! End loops over values for off-diagonal elements
+!write(*,'(3(i2,1x))') (hnf(m,:,i),m=1,3); print *
 enddo ! End loop over all unique triplets of target determinant (volume)
 if (ihnf /= Nhnf) stop "HNF: not all the matrices were generated...(bug!)"
 END SUBROUTINE get_all_HNFs

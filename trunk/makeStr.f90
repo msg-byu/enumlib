@@ -121,11 +121,11 @@ do istrN=strNi,strNf
    write(13,'("Finished counting the atoms of each type")')  
    
    write(12,*) ! Start next line
-   write(12,'("C")')
+   write(12,'("D")')
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
    ! For vasp, UNCLE it needs to list the vectors in blocks of that have the same label.
-   !call cartesian2direct(sLV,aBas,eps)
+   call cartesian2direct(sLV,aBas,eps)
    do ilab = 0,k-1
       do iAt = 1, n*nD
          if (labeling(gIndx(iAt):gIndx(iAt))==char(ilab+48)) then 
