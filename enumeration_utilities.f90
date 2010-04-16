@@ -186,7 +186,7 @@ write(17,'("Coordinates (direct or Cartesian): ",a1)') coords
 do iAt = 1, nAt
    read(16,*) aBas(:,iAt)
    write(17,'("Atom #: ",i3," position: ",3(f7.3,1x))') iAt,aBas(:,iAt) 
-   if(coords=="D") then ! convert to Cartesian
+   if(coords(1:1) .EQ. "D") then ! convert to Cartesian
       aBas(:,iAt) = matmul(sLV,aBas(:,iAt))
       write(17,'("Atom #: ",i3," position (Cart): ",3(f7.3,1x))') iAt,aBas(:,iAt)
    endif
@@ -250,18 +250,22 @@ allocate(aTypTemp(nAt),aBasTemp(3,nAt))
 aTypTemp = aTyp; aBasTemp = aBas
 pLVtemp = sLV 
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-if(nAt/=size(aTypTemp)) then;
+if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
    write(17,'(/,"ERROR: The input structure wasn''t primitive")')
    write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
    write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
    stop "ERROR: input structure for get_HNF_of_derivative_structure was not primitive";endif
 aTypTemp = 1; pLVtemp = sLV
+! Now make every atom the same and apply make_primitive to find the parent cell
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 write(17,'("Parent lattice of superlattice (columns): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
 if(.not. equal(matmul(parLattTest,pLV),nint(matmul(parLattTest,pLV)),eps)) then
     print*, "Parent lattices of input structure and of "//adjustl(sfname)//" are not equivalent"
+    print *, "pLVtemp",pLVtemp
+    print *, "pLV",pLV
+    print *, matmul(parLattTest,pLV)
 stop; endif
 ! If we pass this test, the two bases are equivalent even if not equal. From this point on, use
 ! the one from the struct_enum.out file

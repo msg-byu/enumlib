@@ -2,6 +2,7 @@
 ! makes a postscript output of the 2D structures
 PROGRAM make2Dplot
 use num_types
+use enumeration_types
 use vector_matrix_utilities
 implicit none
 character(80) fname, title, dummy
@@ -41,11 +42,11 @@ do ;read(11,*) dummy
    if(dummy(1:5)=="start") exit
 enddo 
 
-scale = .29
-Nspots = 5
-rows = 16
-cols = 5
-spotsize = .39
+scale = .10
+Nspots = 12
+rows = 19
+cols = 6
+spotsize = .40
 call init(scale,-10.0,20.0)
 call init_colors
 
@@ -53,8 +54,8 @@ xorig = 0.; yorig = 0
 ! Need to add a loop over each structure
 outer: do js = 1,rows
    do is = 1,cols
-      xoff = (is-1)*Nspots
-      yoff = 28/scale - (js-1)*Nspots
+      xoff = 2*(is-1)*Nspots
+      yoff = 28/scale - (js-1)*(Nspots+3)
       !if ((js-1)*cols+is>160) exit outer ! Ternary
       !if ((js-1)*cols+is>155) exit outer ! binary
       if (yoff < 0) exit outer
@@ -67,7 +68,7 @@ outer: do js = 1,rows
       !   write(*,'(2i2)') L(i,:)
       !enddo
       indx = diag(2)*diag(3)
-      do i = 1,Nspots-2
+      do i = 0,Nspots-2
          do j = 0,Nspots-2
             do iD = 1, nD
             ! point is a 2-vector, Cartesian coordinates of the point
