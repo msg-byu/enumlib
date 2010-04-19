@@ -17,10 +17,10 @@ if rs!=0: sys.exit("\n\n *** Compilation of makestr.x failed *** \n")
 #tests=glob.glob('tests/struct_enum.in.*')
 #f=open('tests/list')
 
-system('rm -r vasp.0007')
+system('rm -r vasp.000007')
 print "\n *** testing on of Rod's gang of 13 ***"
 system('./makestr.x ./tests/13struct.out 7')
-rs=system('diff -q vasp.0007 tests/vasp.0007_from2x3_Rods_case')
+rs=system('diff -q vasp.000007 tests/vasp.0007_from2x3_Rods_case')
 if rs!=0:
     sys.exit("\n --- Failure in the first of Rod's 2x3 cases ---\n")
 else:
@@ -32,10 +32,12 @@ else:
 poscar = glob.glob('tests/*.poscar')
 f = open('tests/17list')
 rs=system('make find_structure_in_list.x')  # need the exit status here...
+if rs!=0:
+    sys.exit("\n --- Didn't compile ---\n")
 print "\n *** Testing compare code on first 17 fcc structures ***"
 if rs!=0: sys.exit("\n\n *** Compilation of find_structure_in_list.x failed *** \n")
 for ip in poscar:
-    #print ip
+    print ip
     command = './find_structure_in_list.x '+ip+' tests/struct17fcc.out'
     #process = subprocess.Popen('pwd')
     process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
@@ -51,3 +53,17 @@ for ip in poscar:
     #print "test passed"
 
 print "\n <<< Test of 17 fcc with compare code passed >>>\n"
+
+# Test to see if the poscar with Direct coordinates works correctly
+# This test came from a bug discovered on 4/16/2010
+print "\n *** Testing one poscar with direct coordinates (rather than Cartesian) ***"
+command = './find_structure_in_list.x tests/poscar.direct tests/struct17fcc.out'
+process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
+os.waitpid(process.pid, 0)
+r1 = re.compile('Structure #:\s+(15)') # Need the parentheses to "mark" the group
+m = r1.match(process.stdout.read().strip())
+nStr =  m.group(1)
+if("15"!=nStr):
+    sys.exit("\n\nFailure in test")
+
+print "\n <<< Test with direct coordinates passed >>>\n"
