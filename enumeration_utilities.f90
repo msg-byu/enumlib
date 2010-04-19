@@ -263,9 +263,6 @@ call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
 if(.not. equal(matmul(parLattTest,pLV),nint(matmul(parLattTest,pLV)),eps)) then
     print*, "Parent lattices of input structure and of "//adjustl(sfname)//" are not equivalent"
-    print *, "pLVtemp",pLVtemp
-    print *, "pLV",pLV
-    print *, matmul(parLattTest,pLV)
 stop; endif
 ! If we pass this test, the two bases are equivalent even if not equal. From this point on, use
 ! the one from the struct_enum.out file
