@@ -60,10 +60,10 @@ print "\n *** Testing one poscar with direct coordinates (rather than Cartesian)
 command = './find_structure_in_list.x tests/poscar.direct tests/struct17fcc.out'
 process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
 os.waitpid(process.pid, 0)
-r1 = re.compile('Structure #:\s+(15)') # Need the parentheses to "mark" the group
+r1 = re.compile('Structure #:\s+(15)') # Need the parentheses to "mark" the group (split the match
+# into pieces)
 m = r1.match(process.stdout.read().strip())
 nStr =  m.group(1)
 if("15"!=nStr):
     sys.exit("\n\nFailure in test")
-
 print "\n <<< Test with direct coordinates passed >>>\n"

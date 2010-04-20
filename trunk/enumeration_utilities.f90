@@ -68,6 +68,8 @@ do z1 = 0, a-1 ! For the limits on the loops, see the "interior_points.pdf" writ
          g = nint(greal) ! Convert the g-vector from real to integer
          if(.not. equal(greal,g,eps)) stop "map2G didn't work in map_enumStr_to_real_space"
          g = modulo(g,S) ! Bring the g-vector back into the first tile
+         ! gIndx is the index in the configuration string that tells us which atom type is used at
+         ! this position
          gIndx(ic) = (iD-1)*S(1)*S(2)*S(3)+g(1)*S(2)*S(3)+g(2)*S(3)+g(3)+1
       enddo
    enddo

@@ -106,7 +106,7 @@ do istrN=strNi,strNf
    call matrix_inverse(sLV,sLVinv)
    write(13,'("New inverse after reduction",/,3(3(f7.3,1x),/))') (sLVinv(i,:),i=1,3) 
    
-   ! This part counts the number of atoms of each type and lists the numbers on onlien before the atomic basis vectors
+   ! This part counts the number of atoms of each type and lists the numbers on the line before the atomic basis vectors
    do i = 0, k-1
       ic = 0
       do iAt = 1, n*nD
@@ -128,7 +128,8 @@ do istrN=strNi,strNf
    call cartesian2direct(sLV,aBas,eps)
    do ilab = 0,k-1
       do iAt = 1, n*nD
-         if (labeling(gIndx(iAt):gIndx(iAt))==char(ilab+48)) then 
+         if (labeling(gIndx(iAt):gIndx(iAt))==char(ilab+48)) then ! We have a match to the current
+            ! label so print it
            write(12,'(3f12.8)') aBas(:,iAt)
            write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,">")') iAt, aBas(:,iAt), labeling(gIndx(iAt):gIndx(iAt))
          endif
