@@ -10,8 +10,9 @@ public read_input, write_lattice_symmetry_ops, write_rotperms_list
 CONTAINS
 
 !***************************************************************************************************
-subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit)
+subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname)
 character(80) :: title, pLatTyp, fullpart
+character(80), optional :: fname
 integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
@@ -22,21 +23,32 @@ logical full, err
 integer iD, i
 character(100) line
 
-open(10,file='struct_enum.in',status='old')
+open(99,file="readcheck_enum.out")
+if(.not. present(fname)) then
+   open(10,file='struct_enum.in',status='old')
+else
+   open(10,file=fname,status='old')
+endif
 call co_ca(10,err)
 read(10,'(a80)') title
+write(99,'("Title: ",a80)') title
 call co_ca(10,err)
 read(10,'(a4)') pLatTyp
+call ucase(pLatTyp)
+write(99,'("Lattice type (bulk or surface): ",a4)') pLatTyp
 call co_ca(10,err)
 read(10,*) pLV(:,1)
 call co_ca(10,err)
 read(10,*) pLV(:,2)
 call co_ca(10,err)
 read(10,*) pLV(:,3)
+write(99,'(3(f7.3,1x))') transpose(pLV)
 call co_ca(10,err)
 read(10,*) k
+write(99,'("Number of labels: ",i2)') k
 call co_ca(10,err)
 read(10,*)  nD
+write(99,'("Number of d-vectors: ",i3)') nD
 allocate(d(3,nD),label(k,nD),digit(nD),eq(nD))
 label = -1
 ! This next part is a bit messy but it makes the input file easy to set up 
@@ -49,7 +61,7 @@ do iD = 1, nD ! loop over all the d-vectors
       read(line,*) d(i,iD) ! Get a coordinate of the d-vector 
       line = adjustl(line(index(line," "):)) ! Throw away the number we just read in
    enddo
-
+   write(99,'(3(f8.4,1x))',advance="no") d(:,iD)
 ! Now read in the labels for this d-vector
    ! Make sure that there is at least one comment marker in the line
    line(100:100) = "#"
@@ -65,9 +77,11 @@ do iD = 1, nD ! loop over all the d-vectors
          write(*,'("Incorrect number for a label, ''",i2,"'', on d-vector #",i2)') label(i,iD), iD
          stop
       endif
+      write(99,'(i1,"/")',advance="no") label(i,iD)
       line = adjustl(line(index(line,"/")+1:)) ! remove the label that we just read in
       if(line=="") exit ! No more labels so go to the next d-vector
    enddo
+   write(99,*)
    digit(iD) = i ! Store the number of labels that were specified for each d-vector
 ! Should also check that no labels were repeated.
 enddo
@@ -98,22 +112,27 @@ else
 endif
 call co_ca(10,err)
 read(10,*) Nmin, Nmax
+write(99,'("Min and Max cell sizes: ",2(i2,1x))') Nmin, Nmax
 call co_ca(10,err)
 read(10,*) eps
+write(99,'("Epsilon: ",g12.4)') eps 
 call co_ca(10,err)
 read(10,*) fullpart
-call ucase(pLatTyp)
+fullpart = adjustl(fullpart)
 call ucase(fullpart)
-if (pLatTyp=='SURF') then; LatDim = 2
+write(99,'("full/part mode: ",a4)') fullpart
+
+if (pLatTyp(1:4).eq.'SURF') then; LatDim = 2
    if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
         stop 'For "surf" setting, first component of second and third &
                & must be zero'
-else if(pLatTyp=='BULK') then; LatDim = 3
+else if(pLatTyp(1:4).eq.'BULK') then; LatDim = 3
 else; stop 'Specify "surf" or "bulk" in input file';endif
 
-if (fullpart=='FULL') then; full = .true.
-else if(fullpart=='PART') then; full = .false.
-else; stop 'Specify "full" or "part" on line 9 of input file';endif
+if (fullpart(1:4).eq.'FULL') then; full = .true.
+else if(fullpart(1:4).eq.'PART') then; full = .false.
+else; stop 'Specify "full" or "part" in the input file';endif
+close(10)
 end subroutine read_input
 
 subroutine co_ca(unit,error)
