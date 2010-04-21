@@ -11,7 +11,7 @@ use labeling_related
 implicit none
 private
 public  map_enumStr_to_real_space, cartesian2direct, read_poscar, get_HNF_of_derivative_structure, &
-        get_gspace_representation, find_match_in_structenumout
+        get_gspace_representation, find_match_in_structenumout, find_equivalent_labelings
 
 CONTAINS
 
@@ -426,7 +426,7 @@ type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
                               ! (needed as in put for several routines)
 type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
 type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
-integer, pointer :: labeling(:), tempLabeling(:,:)
+integer, pointer :: labeling(:)
 logical unique
 
 integer, pointer :: label(:,:), digit(:)
@@ -521,34 +521,56 @@ enddo
 !        &,matmul(Ainv,aBas(:,iAt)))),diag)
 !enddo
 
+
 call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,aTyp,SNF,labeling)
 write(17,'("Input atom labels: ",200(i2,1x))') aTyp
 write(17,'("Labeling:          ",200(i2,1x))') labeling
 
 ! Now that we know the labeling for the input atomic basis, find all possible permutations of that
 ! labeling. These can be compared to the entries in struct_enum.out
+
+! Use the permutations effected by the rotations that fix the superlattice to generate labelings
+! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
+! struct_enum file
+call find_equivalent_labelings(labeling,LattRotList,pLabel)
+
+nuq = size(pLabel,1)
+write(17,'(/,"Number of unique labelings: ",i5)') nuq
+do iuq = 1, nuq
+   write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,pLabel(iuq,:)
+enddo
+close(17)
+END SUBROUTINE get_gspace_representation
+
+!***************************************************************************************************
+SUBROUTINE find_equivalent_labelings(labeling,rotPerm,lab)
+integer, intent(in)           :: labeling(:)
+type(RotPermList), intent(in) :: rotPerm(:)
+integer, pointer              :: lab(:,:)
+
+integer iuq, nuq, ip, nP, nAt
+integer, pointer              :: tempLabeling(:,:)
+logical unique
+nP = size(rotPerm(1)%perm,1)
+nAt = size(labeling)
+
 iuq = 0; nuq = 0; allocate(tempLabeling(nP,nAt)); tempLabeling = 0
 do ip = 1, nP
    unique = .true.
    do iuq = 1, nuq
-      if(all(labeling(LattRotList(1)%perm(ip,:))==tempLabeling(iuq,:))) then
+      if(all(labeling(rotPerm(1)%perm(ip,:))==tempLabeling(iuq,:))) then
          unique = .false.
          exit
       endif
    enddo
    if (unique) then
       nuq = nuq + 1
-      tempLabeling(nuq,:) = labeling(LattRotList(1)%perm(ip,:))
+      tempLabeling(nuq,:) = labeling(rotPerm(1)%perm(ip,:))
    endif
 enddo
-write(17,'(/,"Number of unique labelings: ",i5)') nuq
-allocate(pLabel(nuq,nAt))
-pLabel = tempLabeling(1:nuq,:)
-do iuq = 1, nuq
-   write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,pLabel(iuq,:)
-enddo
-close(17)
-END SUBROUTINE get_gspace_representation
+allocate(lab(nuq,nAt))
+lab = tempLabeling(1:nuq,:)
+END SUBROUTINE find_equivalent_labelings
 
 !***************************************************************************************************
 ! Reads in structure info from a struct_enum.out-type file and compares to the g-space
@@ -558,7 +580,7 @@ character(80), intent(in) :: fname
 real(dp), intent(in), dimension(3,3) :: pLV
 integer, intent(in), dimension(3,3) :: SNF
 real(dp), pointer :: dset(:,:) ! (in)
-integer, pointer :: pLabel(:,:) ! (out)  permuted labelings
+integer, pointer :: pLabel(:,:) ! (in)  permuted labelings
 integer, pointer :: HNFin(:,:,:) ! (in) List of HNFs (all equivalent)
 integer, intent(in) :: LatDim
 integer, intent(out) :: match

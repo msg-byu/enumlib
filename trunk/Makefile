@@ -84,6 +84,12 @@ compare.x: compare.o
 makestr.x: makeStr.o
 	${F90} ${LDFLAGS} -o $@ makeStr.o libenum.a ${LIBS} 
 
+find_structure_in_list.x: find_structure_in_list.o
+	${F90} ${LDFLAGS} -o $@ find_structure_in_list.o libenum.a ${LIBS}
+compare_two_struct_enum.x: compare_two_struct_enum.o
+	${F90} ${LDFLAGS} -o $@ compare_two_struct_enum.o libenum.a ${LIBS}
+
+
 makestr.2d: makeStr2d.o
 	${F90} ${LDFLAGS} -o $@ makeStr2d.o libenum.a ${LIBS} 
 
@@ -92,8 +98,6 @@ makeperovstr.x: makePerovStr.o
 
 makestructin.x: makeStrIn.o
 	${F90} ${LDFLAGS} -o $@ makeStrIn.o libenum.a ${LIBS}
-find_structure_in_list.x: find_structure_in_list.o
-	${F90} ${LDFLAGS} -o $@ find_structure_in_list.o libenum.a ${LIBS}
 
 
 .f95.o : 

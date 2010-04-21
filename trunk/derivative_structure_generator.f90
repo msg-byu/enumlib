@@ -654,33 +654,58 @@ allocate(tmpOp(Nq),fixing_op(Nq),STAT=status)
 if(status/=0) stop "Allocation of tmpOp or fixing_op failed in remove_duplicate_lattices"
 allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
 do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),tmpOp(i)%shift(3,nRot),STAT=status)
-if(status/=0) stop "Allocation failed in remove_duplicat_lattices: tmpOp%rot or shift";enddo
+if(status/=0) stop "Allocation failed in remove_duplicate_lattices: tmpOp%rot or shift";enddo
 do iuq = 1, Nq  ! Loop over each unique HNF
-   ic = 0
-   tv = 0; tIndex = 0
-   do iRot = 1,nRot  ! Loop over each rotation
-      thisRot = sgrots(:,:,iRot) ! Store the rotation
-      origLat = matmul(parent_lattice,uq_hnf(:,:,iuq))  ! Compute the superlattice
-      rotLat = matmul(thisRot,origLat)          ! Compute the rotated superlattice
-      if (is_equiv_lattice(rotLat,origLat,eps)) then ! this operation fixes the lattice and should be recorded
-         ic = ic + 1
-         tmpOp(iuq)%rot(:,:,ic) = thisRot
-         tmpOp(iuq)%shift(:,ic) = sgshift(:,iRot)
-         tv(:,:,ic) = dperms%v(:,:,iRot)
-         tIndex(ic) = iRot
-      endif
-   enddo ! Now we know which rotations fix the lattice and how many there are so store them
-   do i=1,ic; allocate(fixing_op(iuq)%rot(3,3,ic),fixing_op(iuq)%shift(3,ic),STAT=status)
-      if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo ! Allocate the storage for them
-   fixing_op(iuq)%rot =   tmpOp(iuq)%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
-   fixing_op(iuq)%shift = tmpOp(iuq)%shift(:,1:ic) ! Stuff the shifts into the permanent array
-   allocate(RPList(iuq)%v(3,nD,ic),RPList(iuq)%RotIndx(ic),STAT=status)
-   if (status/=0) stop "Allocation of RPList failed in remove_duplicate_lattices" 
-   RPList(iuq)%v = tv(:,:,1:ic)
-   RPList(iuq)%RotIndx = tIndex(1:ic)
+   ! Determine which operations in the sym ops of the parent lattice leave the 
+   ! superlattice fixed. These operations may permute the labeling so we need them
+   ! when finding duplicate labelings
+   call get_sLV_fixing_operations(uq_hnf(:,:,iuq),parent_lattice,nD,sgrots,sgshift,&
+                                  dperms,fixing_op(iuq),RPList(iuq),eps)
 enddo
 END SUBROUTINE remove_duplicate_lattices
+!***************************************************************************************************
+SUBROUTINE get_sLV_fixing_operations(HNF,pLV,nD,rot,shift,dPerm,fixOp,rotPerm,eps)
+integer, intent(in)       :: HNF(:,:), nD
+real(dp), intent(in)      :: pLV(:,:), rot(:,:,:), shift(:,:)
+type(opList)              :: fixOp ! Stores the operations that leave sLV fixed
+real(dp), intent(in)      :: eps                 
+type(RotPermList)         :: rotPerm
+type(RotPermList), intent(in):: dPerm
 
+integer i, ic, iRot, nRot, status
+type(opList)               :: tmpOp
+real(dp), dimension(3,3)   :: thisRot, origLat, rotLat
+real(dp), allocatable      :: tv(:,:,:)
+integer, allocatable       :: tIndex(:)
+
+nRot = size(rot,3)
+allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
+
+ic = 0 ! Counter for the fixing operations
+tv = 0; tIndex = 0 ! temp variables
+do iRot = 1,nRot  ! Loop over each rotation
+   thisRot = rot(:,:,iRot) ! Store the rotation
+   origLat = matmul(pLV,HNF)  ! Compute the superlattice
+   rotLat = matmul(thisRot,origLat)          ! Compute the rotated superlattice
+   if (is_equiv_lattice(rotLat,origLat,eps)) then ! this operation fixes the lattice and should be recorded
+      ic = ic + 1
+      tmpOp%rot(:,:,ic) = thisRot
+      tmpOp%shift(:,ic) = shift(:,iRot)
+      tv(:,:,ic) = dPerm%v(:,:,iRot)
+      tIndex(ic) = iRot
+   endif
+enddo ! Now we know which rotations fix the lattice and how many there are so store them
+do i=1,ic; allocate(fixOp%rot(3,3,ic),fixOp%shift(3,ic),STAT=status)
+   if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo ! Allocate the storage for them
+fixOp%rot =   tmpOp%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
+fixOp%shift = tmpOp%shift(:,1:ic) ! Stuff the shifts into the permanent array
+allocate(rotPerm%v(3,nD,ic),rotPerm%RotIndx(ic),STAT=status)
+if (status/=0) stop "Allocation of RPList failed in remove_duplicate_lattices" 
+rotPerm%v = tv(:,:,1:ic)
+rotPerm%RotIndx = tIndex(1:ic)
+
+
+END SUBROUTINE get_sLV_fixing_operations
 !*******************************************************************************
 ! This subroutine generates all the unique HNF matrices of a given determinant
 ! (See Santoro and Mighell 1972 Acta. Cryst.) but for a quasi-2D case
