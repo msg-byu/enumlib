@@ -1,0 +1,11 @@
+2D square 
+surf
+1. 0. 0.
+0. 1. 0.
+0. 0. 1.
+2 # binary case
+1 # Number of d-vectors
+0 0 0 0/1 # d01
+   6 6 # Starting and ending cell sizes for search
+0.10E-03 # Epsilon (finite precision parameter)
+full
