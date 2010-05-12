@@ -210,7 +210,8 @@ END SUBROUTINE read_poscar
 ! the parent lattice, d-set, and HNF/SNF are returned
 SUBROUTINE get_HNF_of_derivative_structure(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
 character(80), intent(in) :: sfname ! Name of file to be searched for target structure
-real(dp), intent(in) :: sLV(3,3), aBas(:,:) ! Input lattice vectors and atoms
+real(dp), intent(in) :: sLV(3,3)    ! Input lattice vectors
+real(dp), intent(inout):: aBas(:,:) ! Input atomic coordinates (only changed if a shift is needed*) 
 integer, intent(in) :: aTyp(:) ! Type of each atom
 real(dp), intent(out):: pLV(:,:) ! lattice vectors of the parent lattice
 real(dp), pointer :: dset(:,:) ! (out)  d-set of the parent lattice
@@ -218,13 +219,14 @@ real(dp), intent(in):: eps
 integer, pointer :: HNF(:,:,:) ! (out) List of (rotationally-) equivalent HNFs
 integer, intent(out) :: SNF(3,3), L(3,3) ! L is the left transform for SNF
 
-integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i
+integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i, nEnumBas, iE, iP
 integer, pointer :: aTypTemp(:)
-real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:)
-real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest
+real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:), EnumBas(:,:)
+real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest, sLVinv
 integer,dimension(3,3) :: S, R, tempH, newH
-logical err, unique
+logical err, unique, mapped
 integer, allocatable :: trow(:,:), vs(:), idx(:)
+real(dp) :: testsite(3), diff(3)
 
 nAt = size(aBas,2)
 if(nAt/=size(aTyp)) stop "Input to get_HNF_of_derivative_structure is inconsistent"
@@ -240,13 +242,23 @@ enddo
 ! the parent lattice of the structure to be checked must, of course, be equivalent. But for checking
 ! the structures via the HNF, the same parent lattice representation must be used for both. (That
 !  is, the bases for the parent lattice must not only be equivalent, but identical.) This is because,
-! if A_1/=A_2 (the two bases for the parent lattice), then A_1*H/=A_2*H. We need to use the same
+! if A_1!=A_2 (the two bases for the parent lattice), then A_1*H!=A_2*H. We need to use the same
 ! parent basis when extracting the HNF of a superlattice.  
 open(18,file=sfname,status="old")
 read(18,*); read(18,*) ! Skip the first two lines
 do i = 1, 3; read(18,*) pLV(:,i); enddo
-write(17,'("parent lattice vectors from ",a80)') adjustl(sfname)
+write(17,'("parent lattice vectors (columns) from ",a80)') adjustl(sfname)
 write(17,'(3(3f7.3,1x,/))') transpose(pLV)
+
+! Need to make sure that the interior points of the parent lattice are also equivalent
+! so read them in as well.
+read(18,*) nEnumBas
+allocate(EnumBas(3,nEnumBas))
+write(17,'("Interior points of the parent (multi)lattice: ")')
+do iAt = 1, nEnumBas
+   read(18,*) EnumBas(:,iAt)
+   write(17,'("pBas: ",3(f8.4,1x))') EnumBas(:,iAt)
+enddo
 
 allocate(aTypTemp(nAt),aBasTemp(3,nAt))
 aTypTemp = aTyp; aBasTemp = aBas
@@ -260,14 +272,15 @@ if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
 aTypTemp = 1; pLVtemp = sLV
 ! Now make every atom the same and apply make_primitive to find the parent cell
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-write(17,'("Parent lattice of superlattice (columns): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
+write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f7.3,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
-if(.not. equal(matmul(parLattTest,pLV),nint(matmul(parLattTest,pLV)),eps)) then
-    print*, "Parent lattices of input structure and of "//adjustl(sfname)//" are not equivalent"
-stop; endif
-! If we pass this test, the two bases are equivalent even if not equal. From this point on, use
+if (nEnumBas/=size(aTypTemp))then;print*,"Number of parent lattice sites in "//trim(adjustl(sfname))
+   print *,"isn't the same as the structure being checked";
+   print *,"size(aTypTemp)",size(aTypTemp),"nEnumBas",nEnumBas;stop;endif
+! If we pass this test, the two cell bases are equivalent even if not equal. From this point on, use
 ! the one from the struct_enum.out file
+
 
 allocate(dset(3,size(aTypTemp))); dset = aBasTemp
 write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
@@ -276,6 +289,51 @@ call matrix_inverse(pLV,pLVinv,err)
 if(err) stop "Coplanar vectors in get_HNF_of_derivative_structure"
 write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
 
+!* Check that the site basis for both the enum file and POSCAR are consistent.
+!  They might not have the same origin so try all distinct origin shifts and see if there is any
+!  shift that maps all of the sites in one case to all of the sites in the other
+do iAt = 1, nEnumBas
+   diff = dset(:,iAt)-EnumBas(:,1)
+   do iE = 1, nEnumBas
+      mapped=.false.
+      do iP = 1, nEnumBas
+         testsite = dset(:,iP)-diff
+!         write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+         call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell        
+!         write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+         if (equal(testsite,EnumBas(:,iE),eps)) then ! this site maps to one in other lattice
+            mapped=.true. 
+            exit
+         endif
+      enddo
+      if(.not. mapped) exit
+   enddo
+   ! If we get to here and mapped is true, then the iE loop concluded without mapped ever coming up
+   ! false in the iP loop. If that is the case, then the sites in EnumBas all had coincident sites
+   ! in aBas. That means that the parent lattices (POSCAR and enum) are equivalent even if they
+   ! don't have the same origin.
+   if (mapped) exit
+enddo
+if (.not. mapped) stop "The lattice sites of the two parent lattices are not coincident"
+if (.not. equal(diff,0._dp,eps)) then
+   write(17,'("The atomic sites of the parent lattice of the input structure have been shifted by")')
+   write(17,'(3(f8.4,1x),/)') diff
+   dset = dset - spread(diff,2,size(aBas(:,2)))
+   do iAt = 1, nEnumBas
+      call bring_into_cell(dset(:,iAt),pLVinv,pLV,eps)
+      write(17,'("new pBas: ",3(f8.4,1x))') dset(:,iAt)
+   enddo
+   write(17,'(/)')
+   call matrix_inverse(sLV,sLVinv,err)
+   if(err) stop "Superlattice vectors are co-planar in routine ""get_HNF_of_derivative_superstructure"""
+   do iAt = 1, size(aBas,2)
+      aBas(:,iAt) = aBas(:,iAt) - diff
+      call bring_into_cell(aBas(:,iAt),sLVinv,sLV,eps)
+      write(17,'("new sLV bas: ",i2,3x,3(f8.4,1x))') iAt, aBas(:,iAt)
+   enddo
+   write(17,'(//)')
+endif
+
 if(.not. equal(determinant(sLV)/determinant(pLV),nint(determinant(sLV)/determinant(pLV)),eps)) stop &
      "The superlattice in not an integer multiple of the primitive"
 if(.not. equal(matmul(pLVinv,sLV),nint(matmul(pLVinv,sLV)),eps)) stop &
@@ -283,8 +341,20 @@ if(.not. equal(matmul(pLVinv,sLV),nint(matmul(pLVinv,sLV)),eps)) stop &
 S = nint(matmul(pLVinv,sLV))
 
 call get_spaceGroup(pLV,aTypTemp,dset,sgrot,sgshift,.false.,eps)
+! I think it's OK here not to pass in labels for the types (aTypTemp=1). If we 
+! pick up extra symmetries from d-set permutations, these will not be effective
+! if the allowed labels are different. In other words, it can't hurt anything.     
+
 nOp = size(sgrot,3)
 allocate(trow(nOp,6),vs(nOp),idx(nOp))
+open(16,file="debug_get_spacegroup.out")
+do iOp = 1, nOp
+   do i = 1, 3
+      write(16,'("Op#: ",i2,3x,3(f8.4,1x))') iOp,sgrot(i,:,iOp)
+   end do
+   write(16,'("Shift#: ",3(f8.4,1x),/)') sgshift(:,iOp)
+end do
+
 ! Find the unrotated form of this structure's HNF. We'll need this later to get the SNF's left
 ! transform matrix, L, to map atom postions into the group. The find_gspace_representation routine
 ! will assume that the *first* HNF in the list in the unrotated one. 
@@ -333,22 +403,24 @@ END SUBROUTINE get_HNF_of_derivative_structure
 !***************************************************************************************************
 ! Maps a list of real space atomic basis vectors and their labels into g-space and extracts the
 ! labeling 
-SUBROUTINE find_labeling_from_atom_basis(L,A,aBas,aTyp,SNF,labeling)
+SUBROUTINE find_labeling_from_atom_basis(L,A,aBas,dset,aTyp,SNF,eps,labeling)
 integer, dimension(3,3), intent(in) :: L
-real(dp), dimension(3,3), intent(in) :: A
-real(dp), dimension(:,:), pointer :: aBas ! (in)
-integer, dimension(:), intent(in) :: aTyp
+real(dp), dimension(3,3),intent(in) :: A
+real(dp), dimension(:,:), pointer   :: aBas ! (in)
+real(dp), dimension(:,:),intent(in) :: dset
+integer, dimension(:),   intent(in) :: aTyp
 integer, dimension(3,3), intent(in) :: SNF
-integer, pointer :: labeling(:) ! out
+real(dp),                intent(in) :: eps 
+integer, pointer                    :: labeling(:) ! out
 
 integer, dimension(3,size(aBas,2)) :: g
-integer, pointer :: p(:,:)
-integer :: diag(3), perm(size(aBas,2))
-integer :: i, iAt, nAt
-real(dp) :: Ainv(3,3), T(3,3)
-logical err
+integer, pointer :: p(:,:), p_with_d(:,:)
+integer :: diag(3), perm(size(aBas,2)), dmember(size(aBas,2))
+integer :: i, iAt, nAt, iD, nD, pLindx, n
+real(dp) :: Ainv(3,3), T(3,3), gtemp(3)
+logical err, mapped
 
-open(18,file="find_labeling.out")
+open(18,file="debug_find_labeling.out")
 write(18,'(3/,"Takes a list of vectors, maps them into the group, determines the labeling",2/)')
 
 call matrix_inverse(A,Ainv,err)
@@ -356,6 +428,7 @@ if(err) stop "Coplanar vectors in find_labeling_from_atom_basis"
 
 diag(1) = SNF(1,1); diag(2) = SNF(2,2); diag(3) = SNF(3,3) 
 nAt = size(aBas,2)
+nD = size(dset,2) ! Number of d-vectors in the dset
 
 write(18,'("Diagonal entries of HNF: ",3(i3,1x))') diag
 write(18,'("Left transform:",/,3(3i3,1x,/),/)') transpose(L)
@@ -367,15 +440,28 @@ enddo
 
 g = 0
 do iAt = 1, nAt ! Map each real space vector (atom position) into the group
-   g(:,iAt) = nint(matmul(matmul(L,Ainv),aBas(:,iAt)))
+   ! We need to account for the fact that some of the atomic positions are offset by one of the
+   ! d-vectors. So loop over the d-vectors and make sure that there is one mapping into the group
+   ! that has no (negligible) non-integer parts. If not, something is wrong.
+   mapped = .false.
+   do iD = 1, nD
+      gtemp = matmul(matmul(L,Ainv),aBas(:,iAt)-dset(:,iD))
+      !write(*,'("shifted site vector",3(f8.4,1x))') aBas(:,iAt)-dset(:,iD)
+      !write(*,'("iAt: ",i2,"    iD: ",i2,5x,3(f8.4,1x))') iAt, iD, gtemp
+      if (equal(gtemp,nint(gtemp),eps)) then;
+         mapped = .true.; dmember(iAt) = iD; exit; endif
+   enddo
+   if (.not. mapped) stop "One of the atomic sites in find_labeling_from_atom_basis didn't map into the group"
+   g(:,iAt) = nint(gtemp)
    g(:,iAt) = modulo(g(:,iAt),diag) ! Move each vector into first cell in g-space
 enddo
 
 ! Print out g-space representation of each vector
 write(18,'("group list:")')
 do i = 1, 3
-   write(18,'(200(i2,1x))') g(i,:)
+   write(18,'(5x,200(i2,1x))') g(i,:)
 enddo
+write(18,'(5x,200(i2,1x))') dmember
 
 ! Find the original (unpermuted) group
 call make_member_list(diag,p)
@@ -383,16 +469,33 @@ write(18,'("original member list:")')
 do i = 1, 3
    write(18,'(200(i2,1x))') p(i,:)
 enddo
+allocate(p_with_d(4,nAt))
+
+! Load up a 4xn*nD list of the group members
+n = nAt/nD ! volume factor of the supercell
+do iD = 1, nD ! Loop over each d-vector
+   pLindx = (iD-1)*n+1 ! Index with a stride equal to volume factor
+   ! need this because we want to set the group members for each d-member
+   p_with_d(1:3,pLindx:pLindx+n-1) = p
+   p_with_d(4,  pLindx:pLindx+n-1) = iD
+enddo
+do i = 1, 4
+   write(17,'(400(i2,1x))') p_with_d(i,:)
+enddo
 
 call matrix_inverse(matmul(L,Ainv),T)
 write(18,'("Map from group:",/,3(3(f7.3,1x),/),/)') transpose(T)
 
-do iAt = 1, nAt
-   write(18,'("Atom ",i3,"   from group (real space coords) ",3(f7.3,1x))') iAt,matmul(T,p(:,iAt))
-enddo
+! If we want to do this, we need the supercell vectors
+!do iAt = 1, nAt
+!   postemp = matmul(T,p_with_d(1:3,iAt))+dset(:,p_with_d(4,iAt))
+!   call bring_into_cell(postemp
+!   write(18,'("Atom ",i3,"   from group (real space coords) ",3(f7.3,1x))') &
+!        iAt,matmul(T,p_with_d(1:3,iAt))+dset(:,p_with_d(4,iAt))
+!enddo
 
 ! Find the permutation of the original group that gives the input atom types
-call find_permutation_of_group(p,g,perm)
+call find_permutation_of_group_and_dset(p_with_d,g,dmember,perm)
 allocate(labeling(nAt))
 labeling = aTyp(perm)
 write(18,'("Input atom labels: ",200(i2,1x))') aTyp
@@ -400,6 +503,36 @@ write(18,'("Group order:       ",200(i2,1x))') perm
 write(18,'("Labeling:          ",200(i2,1x))') labeling
 
 ENDSUBROUTINE find_labeling_from_atom_basis
+
+!***************************************************************************************************
+! Takes a 4xn list of the original group members and maps them onto the current atomic basis---this
+! generates the permutation of the original group that represents the current structure
+SUBROUTINE find_permutation_of_group_and_dset(g,gp,d,perm)
+integer, intent(in), dimension(:,:) :: g, gp ! unpermuted and permuted groups
+integer, intent(in), dimension(:)   :: d
+integer, intent(out) :: perm(:) ! permutation of gp
+
+integer n ! number of elements in the group (index of the superlattice * d-set size)
+logical skip(size(g,2))
+integer im, jm
+n = size(g,2); perm = 0
+skip = .false. ! This is just for efficiency
+do im = 1, n
+   do jm = 1, n
+      if (skip(jm)) cycle ! This is just for efficiency
+      if (all(gp(:,jm)==g(1:3,im)).and.g(4,im)==d(jm)) then
+         perm(im) = jm
+         skip(jm) = .true.
+         exit ! don't keep looking if you already found the match
+      endif
+   enddo ! jm
+enddo ! im
+!write (*,'(30i3)') perm
+if (any(perm==0)) then
+   write(*,'(5x,"perm: ",200(i2,1x))') perm
+   stop "mapping failed in find_permutation_of_group_and_dset";endif
+ENDSUBROUTINE find_permutation_of_group_and_dset
+
 
 !***************************************************************************************************
 ! This routine takes a derivative structure and finds its g-space representation. The routine
@@ -427,13 +560,12 @@ type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
 type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
 type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
 integer, pointer :: labeling(:)
-logical unique
 
 integer, pointer :: label(:,:), digit(:)
 !debug
-real(dp) Ainv(3,3)
+!real(dp) Ainv(3,3)
 logical err
-integer diag(3)
+!integer diag(3)
 ! debug
 
 allocate(label(1,size(dset,2)))
@@ -444,6 +576,7 @@ digit = 1
 
 open(17,file="debug_gspace_rep.out")
 nAt = size(aBas,2)
+write(17,'("Number of atoms: ",i3)') nAt
 if(nAt/=size(aTyp)) stop "Input to get_gspace_representation is inconsistent: nAt"
 
 allocate(HNFin(3,3,1))
@@ -522,7 +655,7 @@ enddo
 !enddo
 
 
-call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,aTyp,SNF,labeling)
+call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,dset,aTyp,SNF,eps,labeling)
 write(17,'("Input atom labels: ",200(i2,1x))') aTyp
 write(17,'("Labeling:          ",200(i2,1x))') labeling
 
@@ -634,6 +767,7 @@ endif
 
 ! Read in the number of d-vectors, then read each one in
 read(11,*) nD
+write(13,'("Number of d-vectors: ",i3)') nD
 if(nD/=size(dset,2)) stop "Numbers of d-vectors don't match"
 allocate(dvec(3,nD),ilabeling(nD*volume))
 do i = 1,nD; read(11,*) dvec(:,i); enddo
@@ -643,7 +777,8 @@ write(13,'("d-vectors:",/,40(3f8.4,1x,/))') (dvec(:,i),i=1,nD)
 ! Read in the number of labels, i.e., binary, ternary, etc.
 read(11,'(i2)') k
 write(13,'("Number of labels (k): ",i2)') k 
-read(11,*)
+
+read(11,*) ! Skip starting and ending cell sizes
 read(11,*) eps
 write(13,'("Finite precision parameter (epsilon): ",g17.10)') eps 
 
@@ -664,7 +799,9 @@ do
    iStr = iStr + 1
    read(11,*,iostat=ioerr) strN, hnfN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L, labeling
    if(ioerr/=0) exit
-   read(labeling,'(50i1)') ilabeling(1:n*nD)
+   !print *,n*nD
+   !print *,ilabeling(1:n*nD)
+   read(labeling,'(500i1)') ilabeling(1:n*nD)
    L = transpose(L) ! Listed with columns as the fast index in the struct_enum.out but reads
                     ! in with rows as the fast index. 
    write(13,'(i11,1x,i7,1x,i8,1x,i2,1x,i2,1x,3(i3,1x),1x,6(i3,1x),1x,1x,50i1)') &
@@ -702,5 +839,7 @@ do
    endif
 enddo
 close(13)
-END SUBROUTINE find_match_in_structenumout
+deallocate(ilabeling)
+
+End SUBROUTINE find_match_in_structenumout
 END MODULE enumeration_utilities

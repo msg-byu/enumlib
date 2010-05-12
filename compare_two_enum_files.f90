@@ -8,23 +8,26 @@ use derivative_structure_generator
 implicit none
 character(80) f1name, title, f2name, dummy
 real(dp), dimension(3,3) :: pLV1, pLV2
-integer,  dimension(3,3) :: L
+integer, dimension(3,3,1):: L, SNF
 real(dp), pointer :: dset1(:,:), dset2(:,:), sLVlist(:,:,:)
 integer, pointer :: pLabel(:,:), HNFout(:,:,:), eq(:), digit(:)
 integer, pointer :: HNFin(:,:,:), label(:,:)
 integer :: LatDim1, LatDim2, match, nD1, nD2, Nmin, Nmax, k, ioerr
 integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f
+integer :: iuq, nuq, iP, nP, lc, iStr2, HNFtest(3,3)
+integer :: strN2, hnfN2, sizeN2, n2, pgOps2, diag2(3), iL, nL
+integer, allocatable :: ilabeling(:), ilabeling2(:)
 real(dp) :: eps
-logical full
+logical full, HNFmatch, foundLab
 character(maxLabLength)   :: labeling ! List, 0..k-1, of the atomic type at each site
 type(RotPermList)         :: dRotList
 type(RotPermList),pointer :: LattRotList(:)
 type(opList), pointer     :: fixOp(:)
 
-
+SNF = 0
 allocate(HNFin(3,3,1))
 eps = 1e-4
-print *, "Epsilon is currently hardwired at", eps
+write(*,'("Epsilon is currently hardwired at ", g10.4)') eps
 call getarg(1,dummy)
 read(dummy,'(a80)') f1name
 call getarg(2,dummy)
@@ -51,48 +54,118 @@ print *,"Successfully opened first file and advanced to the structures list"
 ! are allowed. The permutations are needed to eliminate duplicate lattices.
 call get_dvector_permutations(pLV1,dset1,dRotList,LatDim1,eps)
 
+print *, "Be aware that HNFs are directly compared"
+print *, "Rotationally equivalent HNFs are not considered"
+print *, "Change this in the future"
 
 do ! Read each structure from f1 and see if it is in the list of f2 structures
-   read(10,*,iostat=ioerr) strN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L, labeling
+   read(10,*,iostat=ioerr) strN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L(:,:,1), labeling
    if(ioerr/=0) exit
-   L = transpose(L) ! Written out column-wise but read in row-wise. So fix it by transposing
+   L(:,:,1) = transpose(L(:,:,1)) ! Written out column-wise but read in row-wise. So fix it by
+   ! transposing
+   SNF(1,1,1) = diag(1); SNF(2,2,1) = diag(2); SNF(3,3,1) = diag(3)
+
    HNFin = 0 ! Load up the HNF with the elements that were read in.
    HNFin(1,1,1) = a; HNFin(2,1,1) = b; HNFin(2,2,1) = c;
    HNFin(3,1,1) = d; HNFin(3,2,1) = e; HNFin(3,3,1) = f;
    call remove_duplicate_lattices(HNFin,LatDim1,pLV1,dset1,dRotList,HNFout,fixOp,&
                                   LattRotList,sLVlist,label,digit,eps)
 
-open(17,file="debug_rotation_permutations.out")
+   open(17,file="debug_rotation_permutations.out")
 
-! Get the list of label permutations
-call get_rotation_perms_lists(pLV,HNFout,L,SNFlist,fixOp,LattRotList,dRotList,eps)
-write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
-write(17,'("Permutation group (trans+rot):")')
-nP = size(LattRotList(1)%perm,1)
-do ip = 1, nP
-   write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
-enddo
+   ! Get the list of label permutations
+   call get_rotation_perms_lists(pLV1,HNFout,L,SNF,fixOp,LattRotList,dRotList,eps)
+   write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
+   write(17,'("Permutation group (trans+rot):")')
+   nP = size(LattRotList(1)%perm,1)
+   do ip = 1, nP
+      write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
+   enddo
 
-! Use the permutations effected by the rotations that fix the superlattice to generate labelings
-! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
-! struct_enum file
-call find_equivalent_labelings(labeling,LattRotList,pLabel)
+   ! Use the permutations effected by the rotations that fix the superlattice to generate labelings
+   ! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
+   ! struct_enum file
+   allocate(ilabeling(n*nD1),ilabeling2(n*nD1))
+   read(labeling,'(500i1)') ilabeling
+   call find_equivalent_labelings(ilabeling,LattRotList,pLabel)
 
-nuq = size(pLabel,1)
-write(17,'(/,"Number of unique labelings: ",i5)') nuq
-do iuq = 1, nuq
-   write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,pLabel(iuq,:)
-enddo
-close(17)
-
-!   call find_match_in_structenumout(f2name,pLV1,dset1,HNF,SNF,LatDim,pLabel,match,eps) 
-   if(match/=0) then
-      write(*,'("Structure #: ",i8," is a match to the structure in ",a80)') match, adjustl(f2name)
+   nuq = size(pLabel,1)
+   write(17,'(/,"Number of unique labelings: ",i5)') nuq
+   do iuq = 1, nuq
+      write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,pLabel(iuq,:)
+   enddo
+   close(17)
+   match = 0
+   ! Read in each structure from the second file and see if it matches the current structures from
+   ! file 1.
+   open(11,file=f2name,status="old")
+   lc = 0 ! Count the number of lines
+   do ! read f1name file until the structure list begins
+      read(11,*) title
+      title = adjustl(title)
+      if(title(1:5).eq."start")exit
+      lc = lc + 1
+      if (lc > 100) stop "Didn't find the 'start' tag in the second file"
+   enddo
+   !print *,"Successfully opened second file and advanced to the structures list"
+   open(13,file="debug_match_check.out")
+   iStr2 = 0
+   do
+      iStr2 = iStr2 + 1
+      read(11,*,iostat=ioerr) strN2, hnfN2, sizeN2, n2, pgOps2, diag2, a,b,c,d,e,f, L, labeling
+      if(ioerr/=0) exit
+      if (n2 < n) then ! Unit cells in this block are too small
+         write(13,'("Volume is too small for structure #: ",i9," in file 2 (label # ",i9,")")') iStr2
+         cycle 
+      endif
+      if (n2 > n) then  ! We've passed the point in the f2 file where the size of cells matches
+         write(13,'("Volume is too big for structure #: ",i9," in file 2 (label # ", &
+              & i9,")")') iStr2, strN2
+         !exit
+      else
+         write(13,'("Volume matches for structure #: ",i9," in file 2 (label # ", &
+              & i9,")")') iStr2, strN2
+      endif
+      read(labeling,'(500i1)') ilabeling2(1:n*nD1)
+      HNFtest = 0; 
+      HNFtest = reshape((/a,b,d,0,c,e,0,0,f/),(/3,3/))
+      !print *,HNFtest
+      HNFmatch = .false.
+      if(all(HNFtest==HNFin(:,:,1))) then ! HNFs match, next check the labeling
+         write(13,'("HNF matches for structure #: ",i9," in file 2 (label # ", &
+              & i9,")")') iStr2, strN2
+         HNFmatch = .true.
+      else
+         write(13,'("HNF doesn''t match for structure #: ",i9," in file 2 (label # ", &
+                       & i9,")")') iStr2, strN2
+         cycle
+      endif
+      foundLab = .false.
+      nL = size(pLabel,2)
+      do iL = 1, nL
+         if(all(ilabeling2==pLabel(iL,:))) then
+            foundLab = .true.
+            if (match/=0) stop "BUG! Found more than one match in struct_enum.out file"
+            match = iStr2
+            exit
+         endif
+      enddo
+      if(.not. foundLab) then
+         write(13,'("Labeling didn''t match for str #:",i8)') strN
+      else
+         write(13,'("Structure number:",i8," is a match!")') strN
+      endif
+   enddo
+   if(match==0) then
+      write(13,'("Match for str #:",i8," in file 1 was not found in file 2")') strN
+      write(*,'("Match for str #:",i8," in file 1 was not found in file 2")') strN
    else
-      write(*,'("No match to the structure in ",a80)') adjustl(f2name)
-      stop
+      write(13,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
+      write(*,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
    endif
-   stop
+   close(13)
+   deallocate(ilabeling,ilabeling2)
+   !read(*,*)
 enddo
 endprogram compare_two_struct_enum
 
