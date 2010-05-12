@@ -15,7 +15,7 @@ endif
 
 ifeq (${F90},ifort)  # Intel compiler
   ifeq (${DEBUG},false)
-     FFLAGS =  -O3 -xW -I${LBDR} 
+     FFLAGS =  -O3 -I${LBDR} 
      FOUND = true
   endif
   ifeq (${DEBUG},true)
@@ -70,13 +70,10 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a multienum.x compare.x find_structure_in_list.x 2Dplot.x
-
+all: libenum.a multienum.x find_structure_in_list.x 2Dplot.x \
+     compare_two_enum_files.x
 multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
-
-compare.x: compare.o
-	${F90} ${LDFLAGS} -o $@ compare.o ${LIBS}
 
 2Dplot.x: make2Dplot.o splot.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
@@ -86,8 +83,8 @@ makestr.x: makeStr.o
 
 find_structure_in_list.x: find_structure_in_list.o
 	${F90} ${LDFLAGS} -o $@ find_structure_in_list.o libenum.a ${LIBS}
-compare_two_struct_enum.x: compare_two_struct_enum.o
-	${F90} ${LDFLAGS} -o $@ compare_two_struct_enum.o libenum.a ${LIBS}
+compare_two_enum_files.x: compare_two_enum_files.o
+	${F90} ${LDFLAGS} -o $@ compare_two_enum_files.o libenum.a ${LIBS}
 
 
 makestr.2d: makeStr2d.o
@@ -109,7 +106,7 @@ makestructin.x: makeStrIn.o
 
 
 
-CLEAN  = *.o *.mod *.a
+CLEAN  = *.o *.mod *.a *.x
 clean : 
 	rm -f ${CLEAN}
 clobber : 

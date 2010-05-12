@@ -8,4 +8,4 @@ surf
 0 0 0 0/1 # d01
    1 4 # Starting and ending cell sizes for search
 0.10E-03 # Epsilon (finite precision parameter)
-part
+full

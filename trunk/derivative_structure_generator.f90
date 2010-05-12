@@ -194,13 +194,13 @@ type(RotPermList), intent(out) :: dRPList ! Output. A list permutations effected
 integer, intent(in) :: LatDim ! 2 or 3 dimensional case?
 real(dp), intent(in) :: eps ! finite precision tolerance
 
-integer nD, iD, nOp, iOp, status
+integer nD, iD, nOp, iOp, status, ix
 integer, pointer :: aTyp(:), tList(:,:)
 real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
 real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
 real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
 logical err
-
+character(80) name
 nD = size(pd,2)
 allocate(aTyp(nD),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
@@ -222,12 +222,18 @@ call matrix_inverse(pLV,inv_pLV,err)
 if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 
 dRPList%nL = nOp
+!print *,"numops",nOp,"nD",nD
+!print*,"shape(pd)",shape(pd),"shape(rd)",shape(rd)
 do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permuted for each
    rd = matmul(rot(:,:,iOp),pd)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
-!   do iD = 1,3
-!      write(*,'(i2,": ",3i2)') iOp,nint(rot(iD,:,iOp))
+!   do ix = 1,3
+!      write(*,'(i2,":  pd/rd:",20(f8.4,1x))') iOp,pd(ix,:),rd(ix,:)
+!   enddo
+!   do ix = 1,3
+!      write(*,'(i2,": ",3(f7.3,1x))') iOp,rot(iD,:,iOp) !nint(rot(iD,:,iOp))
 !   enddo
 !   write(*,'("S:",3i3,/)') nint(shift(:,iOp))
+!   write(*,'("S:",3(f7.3,1x),/)') shift(:,iOp)
    tRD = rd
    do iD = 1, nD
       call bring_into_cell(rd(:,iD),inv_pLV,pLV,eps)
@@ -235,8 +241,8 @@ do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permu
    dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
    call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
 enddo
-!name = "temp_dvecs.out"
-!call write_rotperms_list(dRPList,name)
+name = "debug_dvec_rots.out"
+call write_rotperms_list(dRPList,name)
 
 ! I don't think we should reduce this list to a unique one. Some rotations that don't permute the d's could
 ! still permute the g's. So we have to keep all the d permutations, even if they look redundant here.
@@ -407,44 +413,10 @@ do iD = 1, nD
       endif
    enddo
 enddo
-if(any(RP==0)) then; print *, "d-vector didn't permute in map_dvector_permutation";stop;endif
-
+if(any(RP==0)) then; print *, "d-vector didn't permute in map_dvector_permutation";
+   print *,"It's possible that the basis atoms of the input structure are shifted"
+   print *,"relative to the lattice sites of the parent.";stop;endif
 ENDSUBROUTINE map_dvector_permutation
-
-!!!!***************************************************************************************************
-!!!! Take a superlattice (parent + HNF) and a set of interior points and generate all the multilattice
-!!!! points in the supercell
-!!!SUBROUTINE expand_dvectors(n,LV,sLV,sLVi,H,S,L,pd,d,eps)
-!!!real(dp) :: LV(3,3), eps ! Lattice vectors of the parent cell, finite precision tolerance
-!!!integer H(3,3), S(3,3), L(3,3) ! HNF, SNF matrix, and the left transform for the given HNF
-!!!integer n ! Index (size) of the supercell
-!!!real(dp), pointer :: pd(:,:), d(:,:) ! interior points of the primary lattice, points of the multilattice
-!!!real(dp), intent(in), dimension(3,3) :: sLV, sLVi ! superlattice vectors and inverse
-!!!
-!!!integer, pointer :: g(:,:)
-!!!integer id, Linv(3,3)
-!!!real(dp) Li(3,3)
-!!!logical err
-!!!
-!!!call make_member_list((/S(1,1),S(2,2),S(3,3)/),g)
-!!!call matrix_inverse(real(L,dp),Li,err)
-!!!if(.not. equal(Li,nint(Li),eps)) stop "Transform didn't work in expand d-vectors"
-!!!Linv = nint(Li)
-!!!
-!!!d(:,1:n) = matmul(LV,matmul(Linv,g)) ! Get the set of superlattice d-vectors that are at the origin of
-!!!                                     ! each parent cell in the superlattice 
-!!!do id = 0, size(pd,2)-1 
-!!!      d(:,id*n+1:id*n+n) = d(1:3,1:n) + spread(pd(1:3,id+1),2,n) 
-!!!enddo ! loop over group elements
-!!!! d now contains n copies of pd, each copy shifted by the origin of each parent cell in the superlattice
-!!!do id = 1, n*size(pd,2) ! Move each of the primary cell d-vectors into the first unit cell
-!!!   call bring_into_cell(d(:,id),sLVi,sLV,eps)
-!!!enddo ! loop over primary cell d-vectors
-!!!
-!!!
-!!!!write(*,'(/,20(3i3,/))') nint(d(:,1:n))
-!!!
-!!!ENDSUBROUTINE expand_dvectors
 
 !***************************************************************************************************
 ! Finds all the possible diagonals of the HNF matrices of a given size
@@ -650,11 +622,11 @@ forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
 ! symmetry operations leave the superlattice unchanged. These operations, while they leave
 ! the superlattice unchanged can permute the labels inside. Thus, this is another source of 
 ! duplicates. 
-allocate(tmpOp(Nq),fixing_op(Nq),STAT=status)
-if(status/=0) stop "Allocation of tmpOp or fixing_op failed in remove_duplicate_lattices"
-allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
-do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),tmpOp(i)%shift(3,nRot),STAT=status)
-if(status/=0) stop "Allocation failed in remove_duplicate_lattices: tmpOp%rot or shift";enddo
+allocate(fixing_op(Nq),STAT=status)
+if(status/=0) stop "Allocation of fixing_op failed in remove_duplicate_lattices"
+!!allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
+!!do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),tmpOp(i)%shift(3,nRot),STAT=status)
+!!if(status/=0) stop "Allocation failed in remove_duplicate_lattices: tmpOp%rot or shift";enddo
 do iuq = 1, Nq  ! Loop over each unique HNF
    ! Determine which operations in the sym ops of the parent lattice leave the 
    ! superlattice fixed. These operations may permute the labeling so we need them
@@ -680,6 +652,7 @@ integer, allocatable       :: tIndex(:)
 
 nRot = size(rot,3)
 allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
+allocate(tmpOp%rot(3,3,nRot),tmpOp%shift(3,nRot))
 
 ic = 0 ! Counter for the fixing operations
 tv = 0; tIndex = 0 ! temp variables
@@ -804,7 +777,7 @@ character, pointer :: lm(:) ! labeling markers (use to generate the labelings wh
 character(80) filename ! String to pass filenames into output writing routines
 character(80) formatstring
 
-! Divide the dset into member that are enumerated and those that are not
+! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
 allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD))
 
