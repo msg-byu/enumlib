@@ -241,14 +241,14 @@ enddo
 ! Need to read in the parent lattice from struct_enum.out. The parent lattice of struct_enum.out and
 ! the parent lattice of the structure to be checked must, of course, be equivalent. But for checking
 ! the structures via the HNF, the same parent lattice representation must be used for both. (That
-!  is, the bases for the parent lattice must not only be equivalent, but identical.) This is because,
+! is, the bases for the parent lattice must not only be equivalent, but identical.) This is because,
 ! if A_1!=A_2 (the two bases for the parent lattice), then A_1*H!=A_2*H. We need to use the same
-! parent basis when extracting the HNF of a superlattice.  
+! parent basis when extracting the HNF of a superlattice.
 open(18,file=sfname,status="old")
 read(18,*); read(18,*) ! Skip the first two lines
 do i = 1, 3; read(18,*) pLV(:,i); enddo
 write(17,'("parent lattice vectors (columns) from ",a80)') adjustl(sfname)
-write(17,'(3(3f7.3,1x,/))') transpose(pLV)
+write(17,'(3(3f8.4,1x,/))') transpose(pLV)
 
 ! Need to make sure that the interior points of the parent lattice are also equivalent
 ! so read them in as well.
@@ -272,37 +272,49 @@ if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
 aTypTemp = 1; pLVtemp = sLV
 ! Now make every atom the same and apply make_primitive to find the parent cell
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f7.3,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
+write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
 if (nEnumBas/=size(aTypTemp))then;print*,"Number of parent lattice sites in "//trim(adjustl(sfname))
    print *,"isn't the same as the structure being checked";
    print *,"size(aTypTemp)",size(aTypTemp),"nEnumBas",nEnumBas;stop;endif
 ! If we pass this test, the two cell bases are equivalent even if not equal. From this point on, use
-! the one from the struct_enum.out file
+! the one from the struct_enum.out file. (that one is pLV, not pLVtemp)
 
 
 allocate(dset(3,size(aTypTemp))); dset = aBasTemp
-write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
-
-call matrix_inverse(pLV,pLVinv,err)
-if(err) stop "Coplanar vectors in get_HNF_of_derivative_structure"
+call matrix_inverse(pLV,pLVinv,err) 
+if(err) stop "matrix inverse failed in get_HNF_of_derivative_structure"
+write(17,'("d-set: ",/,200(3(f8.4,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
 write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
+
+! I think that both of the d-sets (one from struct_enum.out and one from POSCAR) should be brought
+! the unit cell (if they aren't already) and it should be the *same* unit cell
+write(17,'("After bringing into common unit cell:")')
+do iAt = 1, nEnumBas
+   call bring_into_cell(dset(:,iAt),pLVinv,pLV,eps) 
+   call bring_into_cell(EnumBas(:,iAt),pLVinv,pLV,eps) 
+   write(17,'("  EnumBas: ",3(F8.4,1x))') EnumBas(:,iAt)
+   write(17,'("     dset: ",3(F8.4,1x))') dset(:,iAt)   
+end do; write(17,*)
 
 !* Check that the site basis for both the enum file and POSCAR are consistent.
 !  They might not have the same origin so try all distinct origin shifts and see if there is any
 !  shift that maps all of the sites in one case to all of the sites in the other
 do iAt = 1, nEnumBas
+   !write(*,'("iAt:",i3,"  EnumBas ",3(F8.4,1x))') iAt,EnumBas(:,iAt)
+   !write(*,'("iAt:",i3,"  dset ",3(F8.4,1x))') iAt,dset(:,iAt)
    diff = dset(:,iAt)-EnumBas(:,1)
+   !write(*,'("iAt:",i3,"  diff ",3(F8.4,1x))') iAt,dset(:,iAt)-EnumBas(:,1)
    do iE = 1, nEnumBas
       mapped=.false.
       do iP = 1, nEnumBas
          testsite = dset(:,iP)-diff
-!         write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+         !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
          call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell        
-!         write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+         !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
          if (equal(testsite,EnumBas(:,iE),eps)) then ! this site maps to one in other lattice
-            mapped=.true. 
+            mapped=.true.;!print *,"mapped" 
             exit
          endif
       enddo
@@ -344,6 +356,14 @@ call get_spaceGroup(pLV,aTypTemp,dset,sgrot,sgshift,.false.,eps)
 ! I think it's OK here not to pass in labels for the types (aTypTemp=1). If we 
 ! pick up extra symmetries from d-set permutations, these will not be effective
 ! if the allowed labels are different. In other words, it can't hurt anything.     
+
+write(17,'("After get_spaceGroup:")')
+do iAt = 1, nEnumBas
+   call bring_into_cell(dset(:,iAt),pLVinv,pLV,eps) 
+   call bring_into_cell(EnumBas(:,iAt),pLVinv,pLV,eps) 
+   write(17,'("  EnumBas: ",3(F8.4,1x))') EnumBas(:,iAt)
+   write(17,'("     dset: ",3(F8.4,1x))') dset(:,iAt)   
+end do; print *
 
 nOp = size(sgrot,3)
 allocate(trow(nOp,6),vs(nOp),idx(nOp))
@@ -505,8 +525,9 @@ write(18,'("Labeling:          ",200(i2,1x))') labeling
 ENDSUBROUTINE find_labeling_from_atom_basis
 
 !***************************************************************************************************
-! Takes a 4xn list of the original group members and maps them onto the current atomic basis---this
-! generates the permutation of the original group that represents the current structure
+! Takes a 4xn list of the original group members and maps them onto the group representation of the
+! current atomic basis---this generates the permutation of the original group that represents the
+! current structure.
 SUBROUTINE find_permutation_of_group_and_dset(g,gp,d,perm)
 integer, intent(in), dimension(:,:) :: g, gp ! unpermuted and permuted groups
 integer, intent(in), dimension(:)   :: d
