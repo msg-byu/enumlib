@@ -224,20 +224,28 @@ if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 dRPList%nL = nOp
 !print *,"numops",nOp,"nD",nD
 !print*,"shape(pd)",shape(pd),"shape(rd)",shape(rd)
+!!DEBUG  do ix = 1,3
+!!DEBUG      write(*,'("pLV, pLVinv:",20(f8.4,1x))') pLV(ix,:),inv_pLV(ix,:)
+!!DEBUG   enddo
+
 do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permuted for each
    rd = matmul(rot(:,:,iOp),pd)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
-!   do ix = 1,3
-!      write(*,'(i2,":  pd/rd:",20(f8.4,1x))') iOp,pd(ix,:),rd(ix,:)
-!   enddo
-!   do ix = 1,3
-!      write(*,'(i2,": ",3(f7.3,1x))') iOp,rot(iD,:,iOp) !nint(rot(iD,:,iOp))
-!   enddo
-!   write(*,'("S:",3i3,/)') nint(shift(:,iOp))
-!   write(*,'("S:",3(f7.3,1x),/)') shift(:,iOp)
+!!DEBUG   do ix = 1,3
+!!DEBUG      write(*,'(i2,":  pd/rd:",20(f8.4,1x))') iOp,pd(ix,:),rd(ix,:)
+!!DEBUG   enddo
+!!DEBUG   do ix = 1,3
+!!DEBUG      write(*,'(i2,": ",3(f7.3,1x))') iOp,rot(ix,:,iOp) !nint(rot(iD,:,iOp))
+!!DEBUG   enddo
+!!DEBUG!   write(*,'("S:",3i3,/)') nint(shift(:,iOp))
+!!DEBUG   write(*,'("S:",3(f7.3,1x),/)') shift(:,iOp)
    tRD = rd
    do iD = 1, nD
       call bring_into_cell(rd(:,iD),inv_pLV,pLV,eps)
    enddo
+!!DEBUG  do ix = 1,3
+!!DEBUG      write(*,'(i2,":  postrot pd/rd:",20(f8.4,1x))') iOp,pd(ix,:),rd(ix,:)
+!!DEBUG   enddo
+ 
    dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
    call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
 enddo
@@ -402,6 +410,11 @@ logical found(size(RP))
 
 RP = 0; found = .false.
 nD = size(rd,2) ! # of d-vectors
+!!DEBUGdo iD = 1, nD
+!!DEBUG   write(*,'("rd: ",3(f8.4,1x))') rd(:,iD)
+!!DEBUG   write(*,'(" d: ",3(f8.4,1x))')  d(:,iD)
+!!DEBUGenddo
+
 do iD = 1, nD
    do jD = 1, nD
       if(found(jD)) cycle
@@ -414,8 +427,11 @@ do iD = 1, nD
    enddo
 enddo
 if(any(RP==0)) then; print *, "d-vector didn't permute in map_dvector_permutation";
-   print *,"It's possible that the basis atoms of the input structure are shifted"
-   print *,"relative to the lattice sites of the parent.";stop;endif
+   print *,"This usually means that the d-set from the input structure and the d-set"
+   print *,"from the struct_enum.out have a different origin or don't live in the same"
+   print *,"unit cell. This probably isn't your fault---the code should overcome this."
+   write(*,'(200(i2,1x))') RP
+   stop;endif
 ENDSUBROUTINE map_dvector_permutation
 
 !***************************************************************************************************
