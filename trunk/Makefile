@@ -5,9 +5,10 @@
 LBDR = ../../celib/trunk
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
-  FFLAGS =  -g -fbounds-check -warn  -I${LBDR}
+  FFLAGS =  -g -fbounds-check -Wall -ffree-line-length-none -I${LBDR} 
   FOUND = true
 endif
+
 ifeq (${F90},ifc)  # Intel compiler
   FFLAGS =  -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
   FOUND = true
