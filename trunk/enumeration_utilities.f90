@@ -37,8 +37,11 @@ integer ic, z1, z2, z3 ! Counter over number of interior points, steps in the g 
 integer iAt, i, iD, nD
 real(dp) :: greal(3)   ! Floating point representation of the group element components (g-vector)
 integer  :: g(3)       ! Integer version of greal
+logical, pointer  :: gotAtomFromLabPos(:)
 
 nD = size(pBas,2)
+allocate(gotAtomFromLabPos(n*nD)); gotAtomFromLabPos = .false.
+
 ! Define the non-zero elements of the HNF matrix
 a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
 d = HNF(3,1); e = HNF(3,2); f = HNF(3,3)
@@ -54,6 +57,7 @@ gIndx=-1
 ! Let's get the fattest basis (Minkowski reduction)
 call reduce_to_shortest_basis(sLV,sLV,eps)
 !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
+
 
 ! Find each atomic position from the g-space information
 ic = 0  ! Keep track of the number of points mapped so far
@@ -77,11 +81,13 @@ enddo
 enddo
 if (ic /= n*nD) stop "ERROR: map_enumStr_to_real_space: Didn't find the correct # of basis atoms"
 
+
 allocate(x(k))
 x = 0.0
 if (mod(k,2)==0) then
    do iAt = 1, n*nD
       i = ichar(labeling(gIndx(iAt):gIndx(iAt)))-48
+      gotAtomFromLabPos(gIndx(iAt)) = .true.
       digit = i-k/2 ! convert 0..k-1 label to spin variable -k/2..k/2
       x(i+1) = x(i+1) + 1  ! Keep track of the concentration of each atom type
       if (digit<0) then
@@ -98,6 +104,8 @@ else
    enddo   
 endif
 x = x/real(n*nD,dp)
+
+if (.not. all(gotAtomFromLabPos .eqv. .true.)) stop "Labeling to atom conversion failed in map_enumStr_to_real_space"
 ENDSUBROUTINE map_enumStr_to_real_space
 
 !***************************************************************************************************
