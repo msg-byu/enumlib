@@ -40,7 +40,7 @@ integer  :: g(3)       ! Integer version of greal
 logical, pointer  :: gotAtomFromLabPos(:)
 
 nD = size(pBas,2)
-allocate(gotAtomFromLabPos(n*nD)); gotAtomFromLabPos = .false.
+!allocate(gotAtomFromLabPos(n*nD)); gotAtomFromLabPos = .false.
 
 ! Define the non-zero elements of the HNF matrix
 a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
@@ -87,7 +87,7 @@ x = 0.0
 if (mod(k,2)==0) then
    do iAt = 1, n*nD
       i = ichar(labeling(gIndx(iAt):gIndx(iAt)))-48
-      gotAtomFromLabPos(gIndx(iAt)) = .true.
+!      gotAtomFromLabPos(gIndx(iAt)) = .true.
       digit = i-k/2 ! convert 0..k-1 label to spin variable -k/2..k/2
       x(i+1) = x(i+1) + 1  ! Keep track of the concentration of each atom type
       if (digit<0) then
@@ -105,7 +105,8 @@ else
 endif
 x = x/real(n*nD,dp)
 
-if (.not. all(gotAtomFromLabPos .eqv. .true.)) stop "Labeling to atom conversion failed in map_enumStr_to_real_space"
+!if (.not. all(gotAtomFromLabPos .eqv. .true.)) stop "Labeling to atom conversion failed in map_enumStr_to_real_space"
+!deallocate(gotAtomFromLabPos)
 ENDSUBROUTINE map_enumStr_to_real_space
 
 !***************************************************************************************************
