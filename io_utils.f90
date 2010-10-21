@@ -3,24 +3,113 @@ use num_types
 use enumeration_types
 use numerical_utilities
 use vector_matrix_utilities
-use utilities_module, only: ucase
+use utilities_module, only: ucase, reallocate
+use rational_mathematics, only: HermiteNormalForm, SmithNormalForm
 implicit none
 private
-public read_input, write_lattice_symmetry_ops, write_rotperms_list
+public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file
 CONTAINS
 
+subroutine read_in_cells_from_file(n,HNFList,pLat,eps)
+integer, intent(in) :: n ! current index of superlattices
+integer, pointer    :: HNFList(:,:,:) ! Output
+real(dp), intent(in):: pLat(3,3), eps
+
+integer status, ns, is, iv, i, cStr
+logical err
+character(80) line
+real(dp), dimension(3,3)::  H, pLatInv
+integer,  dimension(3,3)::  Hout, Hin, T, L, R, S
+real(dp), allocatable :: inStrs(:,:,:)
+
+ns = 0
+open(43,file="fixed_cells.in")
+open(44,file="debug_read_in_cells_from_file.out")
+status=0 
+! Count the number of structures in the input file
+do while (status==0)
+   call co_ca(43,err)
+!   if(err) stop "Trouble reading in structures in read_in_cells_from_file"
+   read(43,*,iostat=status) line
+   if(index(line,"<str>")>0) ns = ns + 1
+enddo
+rewind(43)
+call matrix_inverse(pLat,pLatInv,err)
+if(err) stop "Matrix inversion failed in read_in_cell_from_file"
+write(44,'("Inverse matrix of the parent lattice (vectors in columns):")')
+do i = 1,3
+   write(44,'(3(f12.6,1x))') pLatInv(i,:)
+enddo
+
+! Now read in the unit cells of the structures
+allocate(HNFList(3,3,ns),inStrs(3,3,ns))
+cStr = 0 ! Number of structures of the correct volume factor
+do is = 1, ns
+   call co_ca(43,err)
+   i = 0
+   do
+      i = i + 1
+      read(43,*,iostat=status) line
+      if (status/=0 .or. i >100) stop " Didn't find an <str> flag in fixed_cells.in"
+      if(index(line,"<str>")>0) exit
+   enddo
+   do iv = 1, 3
+      call co_ca(43,err)
+      read(43,*) inStrs(:,iv,is)
+   enddo
+   write(44,'(/,i2,"-th read-in structure (vectors in columns):")') is
+   do i = 1,3
+      write(44,'(3(f12.6,1x))') inStrs(i,:,is)
+   enddo
+
+   ! Now that we have the lattice vectors, let's check to see that
+   ! the read-in structure is a derivative of the parent lattice
+   H = matmul(pLatInv,inStrs(:,:,is))
+   if(.not. equal(H,nint(H),eps)) then 
+      write(*,'("The ",i2,"-th structure in the fixed_cells.in file is &
+      & not a derivative structure")') is
+      stop
+   endif
+   Hin = nint(H)
+   write(44,'("Integer transform to generate the superlattice:")')
+   do i = 1,3
+      write(44,'(3(i2,1x))') Hin(i,:)
+   enddo
+
+   call HermiteNormalForm(Hin,Hout,T)
+   write(44,'("HNF to generate the superlattice:")')
+   do i = 1,3
+      write(44,'(3(i2,1x))') Hout(i,:)
+   enddo
+
+   call SmithNormalForm(Hout,L,S,R)
+   write(44,'("Smith Normal Form of the HNF:")')
+   do i = 1,3
+      write(44,'(3(i2,1x))') S(i,:)
+   enddo
+   write(44,'("Index of the superlattice:",i3)') S(1,1)*S(2,2)*S(3,3)
+   if (S(1,1)*S(2,2)*S(3,3)==n) then
+      cStr = cStr + 1
+      HNFList(:,:,cStr) = Hout
+   endif
+enddo
+HNFList => reallocate(HNFList,cStr)
+close(43); close(44)
+endsubroutine read_in_cells_from_file
 !***************************************************************************************************
-subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname)
+subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full&
+     &,label,digit,fname,cRange,conc_check)
 character(80) :: title, pLatTyp, fullpart
 character(80), optional :: fname
-integer,intent(out):: Nmin, Nmax, k, LatDim, nD
+integer,intent(out):: Nmin, Nmax, k, LatDim, nD, cRange(3)
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
 integer, pointer :: label(:,:), digit(:)
 integer, pointer :: eq(:)
+logical, intent(out):: conc_check
 
 logical full, err
-integer iD, i
+integer iD, i, status
 character(100) line
 
 open(99,file="readcheck_enum.out")
@@ -132,6 +221,13 @@ else; stop 'Specify "surf" or "bulk" in input file';endif
 if (fullpart(1:4).eq.'FULL') then; full = .true.
 else if(fullpart(1:4).eq.'PART') then; full = .false.
 else; stop 'Specify "full" or "part" in the input file';endif
+call co_ca(10,err)
+read(10,*,iostat=status) cRange
+conc_check = .true.
+if (status/=0) then ! concentration is not specificed specified
+   cRange = 0 
+   conc_check = .false.
+endif
 close(10)
 end subroutine read_input
 

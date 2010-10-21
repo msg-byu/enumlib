@@ -755,8 +755,11 @@ END SUBROUTINE get_HNF_2D_diagonals
 ! This routine should eventually replace "generate_derivative_structures". The difference with
 ! this one is that it applies to superstructures derived from multilattices. This is more general
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
-! implemented here has been slightly reorder from the original routine and that discussed in the
+! implemented here has been slightly reordered from the original routine and that discussed in the
 ! first paper.
+! 
+! GH 2010 This routine has long since replaced the original
+!
 SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
     & labelFull,digitFull,equivalencies,conc_check,conc_ElementN, conc_Range)
 integer, intent(in) :: k, nMin, nMax, nDFull
@@ -772,13 +775,12 @@ integer, allocatable    :: label(:,:), digit(:)
 integer, intent(in) :: equivalencies(:)
 logical, intent(in)            :: conc_check
 integer , optional             :: conc_ElementN
-real(dp), optional             :: conc_Range(2)
+integer, optional              :: conc_Range(3)
 integer                        :: cElementN
-real(dp)                       :: cRange(2)
-integer                        :: icRange(2)
+integer                        :: cRange(3)
 
 
-integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt
+integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
 integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -792,6 +794,7 @@ real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
 character(80) filename ! String to pass filenames into output writing routines
 character(80) formatstring
+logical fixed_cells ! This is set to true if we are giving a list of cells from a fil instead of generating them all
 
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
@@ -815,11 +818,21 @@ enddo
 ! Concentration check settings
 if (.not. conc_check) then
   cElementN = 1
-  cRange    = (/0._dp,1._dp/)
+stop "does cRange need to be initialized?"
+  !cRange    = (/0._dp,1._dp/)
 else
   cElementN = conc_ElementN
   cRange    = conc_Range
 endif
+! Are we going to use a set of fixed cells? Or loop over all possible cells?
+fixed_cells = .false.
+open(43,file="fixed_cells.in",status="old",iostat=status)
+if(status==0) then
+   write(*,'(A)') "---------------------------------------------------------------------------------------------"
+   write(*,'("Generating permutations for fixed cells. index n=",i2," to ",i2)') nMin, nMax
+   fixed_cells=.true.
+endif
+close(43)
 
 write(*,'(A)') "---------------------------------------------------------------------------------------------"
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
@@ -828,7 +841,8 @@ if (conc_check) then
   write(*,'(A)') "Including only structures of which the concentration of"
   write(*,'(A,I6)') "   element             ", cElementN
   write(*,'(A)') "is in the"
-  write(*,'(A,2(F6.3,1x))') "   concentration range ", cRange
+  write(*,'(A,1x,2(i2,"/",i2,3x))')   "* Allowed concentration range &
+       &   : ", cRange(1),cRange(3),cRange(2),cRange(3)
 endif
 
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
@@ -862,7 +876,8 @@ write(14,'(A)') "Concentration check:"
 write(14,'(L5)') conc_check
 if (conc_check) then
   write(14,'(A,1x,I6,1x,A,I6,A)') "* Check concentration of element : ", cElementN, "(denoted by ", cElementN-1,")"
-  write(14,'(A,1x,2(F6.3,1x))')   "* Allowed concentration range    : ", cRange(:)
+  write(14,'(A,1x,2(i2,"/",i2,3x))')   "* Allowed concentration range &
+       &   : ", cRange(1),cRange(3),cRange(2),cRange(3)
 endif
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
@@ -891,12 +906,17 @@ call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging
 Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax !max(k,nMin),nMax
-   icRange = nint(ivol*nDFull*cRange)
+   if (.not. is_a_rational_in_range(cRange,ivol,eps)) cycle
+!!GH   icRange = nint(ivol*nDFull*cRange)
    call cpu_time(tstart)
-   if (LatDim==3) then !<<< 2D ? or 3D? >>
-      call get_all_HNFs(ivol,HNF)  ! 3D
+   if (fixed_cells) then
+      call read_in_cells_from_file(ivol,HNF,parLV,eps)
    else
-      call get_all_2D_HNFs(ivol,HNF) ! 2D
+      if (LatDim==3) then !<<< 2D ? or 3D? >>
+         call get_all_HNFs(ivol,HNF)    ! 3D
+      else
+         call get_all_2D_HNFs(ivol,HNF) ! 2D
+      endif
    endif
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
@@ -918,13 +938,18 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    !call cpu_time(permtime)
    call organize_rotperm_lists(RPList,rdRPList,RPLindx)
    !call cpu_time(organizetime)
-   ! This next if statement makes the run-time horrible (N^3 scaling) if enabled.
+   ! This next if statement makes the run-time horrible (N^3 scaling) if enabled. (only used for checking once.)
    !if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
    !call cpu_time(groupcheck)
    Scnt = 0 ! Keep track of the number of structures at this size
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
-      call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
+      if (fixed_cells) then
+         print *, "I'm here"
+         call generate_permutation_labelings()
+      else
+         call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
+      endif
       filename = "temp_perms.out"
       call write_rotperms_list(rdRPList(iBlock),filename)
       !stop "debugging"
@@ -936,7 +961,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
       !enddo
       !write(*,'(256a1)') lm(1:150)
       ! Now that we have the labeling marker, we can write the output.
-      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,cElementN,icRange)
+      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,cElementN,cRange)
       !call cpu_time(endwrite)
       !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
