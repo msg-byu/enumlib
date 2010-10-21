@@ -188,6 +188,19 @@ end subroutine postprocess_labeling
 ENDSUBROUTINE write_labelings
 
 !***************************************************************************************************
+! This subroutine is conceptually the same as generate_unique_labelings. That routine generates
+! labelings as a lexicographical list of all possible labelings (all concentrations). This routine
+! generates all possible *permuations* of a fixed concentration of labels. See Rod's multiperms.pdf
+! write-up (in the enumlib repository) for details on how the algorithm works. Rod's approach makes
+! it possible to design a minimal hash table and perfect hash function for this list (just like we
+! did for the combinations list in the other routine.
+
+SUBROUTINE generate_permutation_labelings
+
+
+END SUBROUTINE generate_permutation_labelings
+
+!***************************************************************************************************
 ! This routine takes in a list of HNFs and a list of rotations (orthogonal transformations) and
 ! computes the permutations of the labels effected by the rotation. Then the HNFs are grouped into
 ! categories according to which permutations are applicable.
@@ -321,7 +334,7 @@ ENDFUNCTION lists_match
 !***************************************************************************************************
 ! This function compares a proposed labeling to the list of allowed labels on each site. If any
 ! label is present "illegally" on one site, then the function is false. This routine is needed
-! because in different labels are allowed on different sites, the symmetry operations of the
+! because if different labels are allowed on different sites, the symmetry operations of the
 ! underlying parent lattice (where all sites are considered equivalent) can permute a legal labeling
 ! to an illegal one by permuting one label (on an allowed site) to another site where it is not
 ! allowed. (GLWH see moleskine 10/9/2009)
@@ -506,6 +519,7 @@ do; ic = ic + 1
 
 ! "c" counts the number of labels of each kind across the entire labeling. Need this for "partial"
 ! lists that have label-exchange duplicates removed.
+! "a" is the reading on the odometer
 ! "digCnt" is the ordinal counter of each digit (i.e., place) in the mixed-radix number (labeling)
    ! Advance the base-k, n*nD-digit counter and keep track of the # of each digit
    j = nl ! Reset the digit index (start all the way to the right again)
