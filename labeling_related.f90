@@ -55,8 +55,10 @@ type(opList), intent(in) :: fixOp(:)
 integer, intent(inout) :: Tcnt, Scnt, Hcnt ! counters for total number of labelings and number of this size and HNF running total 
 integer, intent(in) :: permIndx(:)
 character, intent(in) :: lm(:)
-integer, intent(in) :: number_ElementN
-integer, intent(in) :: number_Range(2)
+integer, intent(in) :: number_ElementN     ! concentration check parameter: which element's concentration is checked?
+integer, intent(in) :: number_Range(2)     ! concentration check parameter: the lower and upper limit of the number of atoms
+                                           !                                if spezies "number_ElementN" in the unit cell of 
+                                           !                                size "n"
 
 integer nHNF ! Number of HNFs in the list that match the current block index, HNFi
 integer, allocatable :: vsH(:), vsL(:) ! Vector subscript for matching the HNF index to the HNF list
@@ -86,6 +88,33 @@ nAllD = size(equivalencies)
 allocate(allD(nAllD)); allD = (/ (i,i=1,nAllD) /)
 allocate(allD2LabelD(nAllD));
 ! 1) Check whether we have to postprocess the labeling before writing it out
+!    Postprocessing is needed if we do not want to enumerate all dset members of a primitive unit cell
+!    due to some equivalencies. 
+!    For example, in a 1x1 symmetric surface slab ( (*) denotes an atom ):
+!
+!      ------------------------------------------------ surface
+!         (*)  topmost surface layer, dvector# 1
+!         (*)  dvector# 2
+!         (*)  dvector# 3
+!         (*)  bottommost surface layer, dvector# 4
+!      ------------------------------------------------ surface
+!
+!    the topmost and the bottommost atom should always have the same occupancy, as well as dvector 2
+!    and dvector 3 should. You can therefore specify the following equivalency list:
+!
+!         equivalency of dvector# | 1 2 3 4
+!         ---------------------------------   
+!         equivalency list        | 1 2 2 1
+!
+!    which means that dvector# 1 and dvector# 4 have to have the same occupancy, they are equivalent
+!    by enumeration. The same is true for dvector# 2 and dvector# 3
+!
+!    In this example, the enumeration code should only find enumerations of dvector# 1 and dvector# 2.
+!    The occupations of dvector# 3 and dvector# 4 are then constructed in a postprocessing step. 
+!    The postprocessing step takes the enumerated form (i.e. dvectors# 1 and 2, e.g. a labeling 0101 for
+!    two unit cells) and tranforms it into a form that is valid for ALL dvectors, e.g. labeling 01010101 for
+!    two unit cells).
+!
 postprocessLabeling = .not. (all(  abs( equivalencies-allD ) ==0))
 allocate(pplabeling(n*nAllD))  ! this is ok whether we do postprocessing (nAllD>nD) or not (nAllD==nD)
 ! 2) if yes:
@@ -127,6 +156,7 @@ do il = 1, nl ! Loop over the unique labelings
      labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
    enddo
    if (postprocessLabeling) then
+     ! see the comments at the beginning of the current routine
      call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
    else
      pplabeling = labeling ! nothing changes
@@ -139,6 +169,7 @@ do il = 1, nl ! Loop over the unique labelings
    !!!enddo
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
       jHNF = vsH(iHNF) ! Index of matching HNFs
+      ! check if concentrations of this labeling match the user specification:
       if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
         Tcnt = Tcnt + 1; Scnt = Scnt + 1
         write(14,struct_enum_out_formatstring) &
@@ -152,6 +183,10 @@ Hcnt = Hcnt + nHNF
 
 contains
 
+! Purpose: a concentration check routine. But it does not work with real(dp) concentrations
+!          but rather with integers: For a given unit cell size, the range(2) is calculated
+!          before the call to this function and contains the lower and upper limit of number 
+!          of atoms of species el
 logical function check_labeling_numbers(labeling,el,range)
 integer, intent(in) :: labeling(:)
 integer, intent(in) :: el
@@ -166,6 +201,10 @@ else
 endif
 end function check_labeling_numbers
 
+! Purpose: take an enumeration labeling (for selected, non-equivalent (by enumeration) dvectors) and
+!          construct the full labeling for all dvectors. It makes sure that two dvectors in the same
+!          primitive unit cell of the parent lattice get the SAME labeling always.
+! See also comments at the beginning of write_labelings
 subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,newD2oldD)
 integer, intent(in) :: nUC, nAllD          ! number of unit cells, number of d-vectors in the new labeling
 integer, intent(in) :: oldlabeling(:)      ! the old labeling
