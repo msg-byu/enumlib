@@ -1,5 +1,6 @@
 MODULE labeling_related
 use num_types
+use utilities_module
 use enumeration_types
 use vector_matrix_utilities
 use numerical_utilities
@@ -9,7 +10,7 @@ implicit none
 private
 public  get_permutations, count_full_colorings, &
         make_member_list, make_label_rotation_table, generate_unique_labelings, &
-        write_labelings
+        write_labelings, generate_permutation_labelings
 CONTAINS
 
 !***************************************************************************************************
@@ -234,9 +235,8 @@ ENDSUBROUTINE write_labelings
 ! it possible to design a minimal hash table and perfect hash function for this list (just like we
 ! did for the combinations list in the other routine.
 
-SUBROUTINE generate_permutation_labelings
-
-
+SUBROUTINE generate_permutation_labelings()
+stop
 END SUBROUTINE generate_permutation_labelings
 
 !***************************************************************************************************
