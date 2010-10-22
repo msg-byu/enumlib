@@ -911,6 +911,7 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    call cpu_time(tstart)
    if (fixed_cells) then
       call read_in_cells_from_file(ivol,HNF,parLV,eps)
+      if(size(HNF,3)==0) cycle
    else
       if (LatDim==3) then !<<< 2D ? or 3D? >>
          call get_all_HNFs(ivol,HNF)    ! 3D
@@ -945,7 +946,6 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
       if (fixed_cells) then
-         print *, "I'm here"
          call generate_permutation_labelings()
       else
          call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
