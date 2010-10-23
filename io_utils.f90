@@ -3,7 +3,7 @@ use num_types
 use enumeration_types
 use numerical_utilities
 use vector_matrix_utilities
-use utilities_module, only: ucase, reallocate
+use utilities_module, only: ucase, ralloc
 use rational_mathematics, only: HermiteNormalForm, SmithNormalForm
 implicit none
 private
@@ -93,7 +93,7 @@ do is = 1, ns
       HNFList(:,:,cStr) = Hout
    endif
 enddo
-HNFList => reallocate(HNFList,cStr)
+HNFList => ralloc(HNFList,cStr)
 close(43); close(44)
 endsubroutine read_in_cells_from_file
 !***************************************************************************************************
