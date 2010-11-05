@@ -15,7 +15,7 @@ real(dp) :: parLV(3,3)
 
 character(80) title, fname
 logical fullLab,concCheck
-integer cRange(3)
+integer, pointer :: cRange(:,:)
 integer, pointer :: label(:,:)
 integer, pointer :: digit(:)
 integer, pointer :: equivalencies(:)
@@ -37,6 +37,6 @@ if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
 !!call mixed_radix_counter(label,digit)
 !!
 call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,&
-         label,digit,equivalencies,concCheck,1,cRange)
+         label,digit,equivalencies,cRange)
 
 END PROGRAM driver

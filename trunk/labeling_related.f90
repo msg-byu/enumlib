@@ -13,6 +13,7 @@ public  get_permutations, count_full_colorings, &
         write_labelings, generate_permutation_labelings
 CONTAINS
 
+
 !***************************************************************************************************
 ! This routine takes in a list of labels of the parent cell and and the number of different labels
 ! allowed on each site. It returns a "multiplier", and *expanded* versions of parLabel and parDigit
@@ -44,7 +45,7 @@ END SUBROUTINE setup_mixed_radix_multiplier
 ! generate_unique_labelings routine is not efficient CPU-wise but save lots of memory since the
 ! labelings are never stored in memory except as a base-10 number.
 SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp, &
-                           Tcnt,Scnt,Hcnt,permIndx,lm,equivalencies,number_ElementN,number_Range)
+                           Tcnt,Scnt,Hcnt,permIndx,lm,equivalencies,concVect)
 integer, intent(in) :: k ! number of colors/labels
 integer, intent(in) :: n, nD ! index (size of supercell), size of d-set
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
@@ -56,10 +57,7 @@ type(opList), intent(in) :: fixOp(:)
 integer, intent(inout) :: Tcnt, Scnt, Hcnt ! counters for total number of labelings and number of this size and HNF running total 
 integer, intent(in) :: permIndx(:)
 character, intent(in) :: lm(:)
-integer, intent(in) :: number_ElementN     ! concentration check parameter: which element's concentration is checked?
-integer, intent(in) :: number_Range(2)     ! concentration check parameter: the lower and upper limit of the number of atoms
-                                           !                                if spezies "number_ElementN" in the unit cell of 
-                                           !                                size "n"
+integer, optional, intent(in):: concVect(:)
 
 integer nHNF ! Number of HNFs in the list that match the current block index, HNFi
 integer, allocatable :: vsH(:), vsL(:) ! Vector subscript for matching the HNF index to the HNF list
@@ -71,7 +69,7 @@ integer(li) :: labIndx ! base-10 form of the labeling
 integer status ! Allocation exit flag
 integer ivsL
 integer, pointer :: label(:,:), digit(:), multiplier(:) ! Need to convert base-10 back to labeling
-
+logical conc_check
 character(3) :: dummy
 character(80) :: struct_enum_out_formatstring 
 
@@ -133,6 +131,8 @@ if (postprocessLabeling) then
   ! then, the number of truly enumerated points is counted (truly enumerated points are points for which dset=equivalencies
 endif
 
+conc_check = .false.
+if (present(concVect)) conc_check = .true.
 
 
 if (any(lm=='')) stop "Labeling index has unmarked entries"
@@ -146,16 +146,22 @@ ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; 
 ! set up the multiplier, labels, digits, etc
 call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 
+!print *,lm
+!print *,nL
 write(dummy,'(I3)') n*nAllD
 struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
    labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
-   do ilab=1,n*nD
-     quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
-     labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
-     labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
-   enddo
+   if(conc_check) then
+      call generate_labeling_from_index(labIndx,concVect,labeling)
+   else
+      do ilab=1,n*nD
+        quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
+        labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
+        labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
+      enddo
+   endif
    if (postprocessLabeling) then
      ! see the comments at the beginning of the current routine
      call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
@@ -163,44 +169,21 @@ do il = 1, nl ! Loop over the unique labelings
      pplabeling = labeling ! nothing changes
    endif
 
-   !!!do ilab = 1, n*nD ! Loop over each place (digit) in the labeling
-   !!!   quot = labIndx/k ! divide the index by k to get the quotient
-   !!!   labeling(n*nD-ilab+1) = labIndx - quot*k ! store the remainder (base-k digit of current place)
-   !!!   labIndx = quot ! reduce current index to just the quotient and keep going
-   !!!enddo
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
       jHNF = vsH(iHNF) ! Index of matching HNFs
       ! check if concentrations of this labeling match the user specification:
-      if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
+      !!GH if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
         Tcnt = Tcnt + 1; Scnt = Scnt + 1
         write(14,struct_enum_out_formatstring) &
              Tcnt, Hcnt+iHNF,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
              HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
              HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling   
-      endif
+      !!GH endif
    enddo ! loop over HNFs
 enddo ! loop over labelings
 Hcnt = Hcnt + nHNF
 
 contains
-
-! Purpose: a concentration check routine. But it does not work with real(dp) concentrations
-!          but rather with integers: For a given unit cell size, the range(2) is calculated
-!          before the call to this function and contains the lower and upper limit of number 
-!          of atoms of species el
-logical function check_labeling_numbers(labeling,el,range)
-integer, intent(in) :: labeling(:)
-integer, intent(in) :: el
-integer, intent(in) :: range(2)
-integer             :: c
-
-c = count(labeling==el-1)
-if (c>=range(1) .and. c<= range(2)) then
-  check_labeling_numbers = .true.
-else
-  check_labeling_numbers = .false.
-endif
-end function check_labeling_numbers
 
 ! Purpose: take an enumeration labeling (for selected, non-equivalent (by enumeration) dvectors) and
 !          construct the full labeling for all dvectors. It makes sure that two dvectors in the same
@@ -230,15 +213,268 @@ ENDSUBROUTINE write_labelings
 !***************************************************************************************************
 ! This subroutine is conceptually the same as generate_unique_labelings. That routine generates
 ! labelings as a lexicographical list of all possible labelings (all concentrations). This routine
-! generates all possible *permuations* of a fixed concentration of labels. See Rod's multiperms.pdf
+! generates all possible *permutations* of a fixed concentration of labels. See Rod's multiperms.pdf
 ! write-up (in the enumlib repository) for details on how the algorithm works. Rod's approach makes
 ! it possible to design a minimal hash table and perfect hash function for this list (just like we
 ! did for the combinations list in the other routine.
 
-SUBROUTINE generate_permutation_labelings()
-stop
+SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc)
+integer, intent(in) :: k ! Number of colors/labels
+integer, intent(in) :: n ! Index of the superlattice
+integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
+integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
+character, pointer :: lab(:) ! Array to store markers for every raw labeling
+! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
+! Need to pass lab out to write out the labelings
+integer, intent(in) :: iConc(:) ! concentration; the numerator of each rational number that is the
+                                ! concentration for each label
+
+
+integer nL, status !  number of perumations (labelings)
+integer q, nPerm ! loop counter for symmetry permutations
+integer(li) iP, idx  ! Loop variable over symmetry permutations, Index of a permuted labeling
+integer a(n*nD) ! The current labeling depicted as a list of integers
+!integer a(11) ! The current labeling depicted as a list of integers
+
+! testing, debugging
+!integer, dimension(4) :: x, m, j
+
+nL = multinomial(iConc)
+allocate(lab(nL),STAT=status)
+if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
+lab = ""
+nPerm = size(perm,1)
+a = -1
+!print *,"iConc",iConc
+do iP = 1, nL ! Loop over each possible permutation (later generalize this for k-nary case)
+   if(lab(iP)=='') then ! this labeling is unique. Keep it and cross off the duplicates
+      lab(iP) = 'U'
+      ! Get the labeling so we can apply the permutations
+!      call generate_labeling_from_index(32520,iConc,a)
+      call generate_labeling_from_index(iP,iConc,a)
+      !write(*,'(20(i1,1x))') a
+      do q = 2, nPerm
+         !write(*,'(20(i1,1x))') a(perm(q,:))
+         ! Add a check for legal labelings later
+         call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
+         if (idx==iP .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
+         ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+         ! "translation" permutation and not a rotation permutation (they're ordered in the
+         ! list...and there are n. The first is the identity so skip that one.)
+         if (idx > nL) then
+            print *,"idx",idx
+            print *,"expected",nL
+            print *,"An index outside the expected range occurred in get_permutations_labeling"
+            stop
+         endif
+         if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
+         if(lab(idx)=='U' .and. idx/=iP) then ! I think something may be wrong
+            write(*,'("Hash table index iP was: ",i20)') iP
+            write(*,'("Permuted  index     was: ",i20)') idx
+            write(*,'("Permution number    was: ",i20)') q
+            write(*,'("Permutation looked like: ",32(i2,1x))') perm(q,:)
+            stop "Idx landed on a spot in the hash table that was marked as 'U'"
+         endif
+      enddo
+   endif   
+enddo
+if (any(lab=='')) stop "Not every labeling was marked in generate_permutation_labelings"
+
 END SUBROUTINE generate_permutation_labelings
 
+!***************************************************************************************************
+! This routine takes a number (an index) and the number of labels and the number of each type of
+! label (i.e., the concentration) and generates the labeling that corresponds to the index. 
+SUBROUTINE generate_labeling_from_index(INindx,conc,l)
+integer, intent(in)   :: conc(:)
+integer,intent(out)   :: l(:)
+integer(li),intent(in):: INindx
+
+integer(li)               :: indx
+integer(li), dimension(4) :: x
+integer,     dimension(4) :: m, j
+
+integer  iK, k, ij, n, slotsRem
+integer, allocatable :: vsBits(:), vsLabels(:) ! Vector subscripts for masking elements to be updated
+integer, allocatable :: bitString(:)
+
+
+indx = INindx - 1 ! The algorithm uses a 0..N-1 indexing so shift by one 
+k = size(conc)
+n = sum(conc)
+!k = 4
+!n = 11
+!conc = (/4,1,2,4/)
+slotsRem = n
+l = -1
+!print *, k,n
+!print *, "generate labeling routine"
+!write(*,'("indx: ",20(i10,1x))') indx
+!write(*,'("conc: ",20(i10,1x))') conc
+
+call get_Xmj_for_labeling(indx,conc,x,m,j)
+
+do iK = 1, k
+!   print *,"iK",iK
+!   write(*,'("x,m,j: ",20(i4,1x))') x(iK),m(iK),j(iK)
+   allocate(bitString(m(iK)))
+   call generate_BitStringEqv(x(iK),m(iK),j(iK),bitString)
+   allocate(vsBits(j(iK)),vsLabels(slotsRem))
+!write(*,'("x,m,j: ",20(i2,1x))') x(iK),m(iK),j(iK)
+!write(*,'("l: ",20(i2,1x))') l
+!write(*,'("bits: ",20(i2,1x))') bitString
+   vsLabels = pack((/(ij,ij=1,n)/),l==-1)
+   vsBits   = pack((/(ij,ij=1,n)/),bitString==1)
+!   write(*,'("empty slots: ",20(i2,1x))') vsLabels
+!   write(*,'("bit string: ",20(i2,1x))') vsBits
+!   write(*,'("pos in labeling: ",20(i2,1x))') vsLabels(vsBits)
+   l(vsLabels(vsBits)) = iK - 1 ! Offset to start labels at zero
+   deallocate(vsBits,vsLabels,bitString)
+   slotsRem = slotsRem - conc(iK)
+enddo
+!write(*,'(20(i1,1x))') l
+END SUBROUTINE generate_labeling_from_index
+
+!***************************************************************************************************
+! This routine takes a labeling and generates the index. 
+SUBROUTINE generate_index_from_labeling(l,conc,idx)
+integer, intent(in)     :: l(:), conc(:)
+integer(li), intent(out) :: idx
+
+integer C(size(conc)), X(size(conc))
+integer iK, n
+integer(li) p
+
+n = size(conc)
+
+!print *,"shape conc",shape(conc)
+!print *,"conc in generate indxe: ",conc
+call get_Cs(conc,C)
+call get_Xs_from_labeling(conc,l,X)
+p = 0
+do iK = n, 1, -1
+   p = p*C(iK)
+   p = p + X(iK)
+enddo
+idx = p + 1
+
+END SUBROUTINE generate_index_from_labeling
+
+!***************************************************************************************************
+! This routine take a list of concentrations and returns the "C" values (see Rod's write-up)--- the
+! divisors that are needed to turn a labeling into an index
+SUBROUTINE get_Cs(conc,C)
+integer, intent(in) :: conc(:)
+integer, intent(out):: C(:)
+integer n, nLeft, iK
+
+nLeft = sum(conc)
+
+n = size(conc)
+do iK = 1, n
+   C(iK) = binomial(nLeft,conc(iK)) 
+   nLeft = nLeft - conc(iK)
+enddo
+END SUBROUTINE get_Cs
+
+!***************************************************************************************************
+! 
+SUBROUTINE get_Xs_from_labeling(conc,l,X)
+integer, intent(in) :: conc(:)
+integer, intent(in) :: l(:) ! the current labeling
+integer, intent(out):: X(:)
+
+integer n, iK, xTemp, iM, nLeft
+integer, allocatable :: mask(:)
+
+n = size(conc)
+nLeft = sum(conc)
+
+do iK = 1, n
+!   print *,"nLeft: ",nLeft
+   allocate(mask(nLeft))
+   mask = 0
+!   write(*,'("pack l: ",20(i2,1x))') pack(l,l>=iK-1)
+   where(pack(l,l>=iK-1)==iK-1)
+!   where(l==iK-1)
+      mask = 1
+   end where
+!   write(*,'(20(i1,1x))') mask
+   xTemp = 0
+   do iM = 1, nLeft
+      if (mask(iM)==0) then!&
+         xTemp = xTemp + binomial(nLeft - iM, count(mask(iM:)==1)-1) 
+!         write(*,'("top ",i5)')nLeft - iM
+!         write(*,'("bot ",i5)') count(mask(iM:)==1)-1
+!         write(*,'("binm ",i5)') binomial(nLeft - iM, count(mask(iM:)==1)-1)
+      endif
+   enddo
+   X(iK) = xTemp
+   nLeft = nLeft - conc(iK)
+   deallocate(mask)
+enddo
+!write(*,'("Xs: ",20(i5,1x))') X
+END SUBROUTINE get_Xs_from_labeling
+
+!***************************************************************************************************
+! Generate the bit-string equivalent of the matches and non-matches in a labeling for a given
+! label. This creates a "mask" that is used to populate the labeling with the given label, placing
+! the labels in the appropriate locations.
+SUBROUTINE generate_BitStringEqv(idx,m,j,mask)
+integer(li),intent(in):: idx
+integer, intent(in)   :: m, j
+integer, intent(out)  :: mask(m)
+
+integer i,t,x,bnml
+mask = -1
+x = idx
+i = m
+t = j
+do while (i>=1)
+   bnml = binomial(i-1,t-1)
+   if (bnml <= x) then
+      mask(m-i+1) = 0
+      x = x - bnml
+   else
+      mask(m-i+1) = 1
+      t = t - 1
+   endif
+   i = i - 1
+enddo
+if(any(mask==-1)) stop "routine generate_BitStringEqv has a bug. Not all slots filled"
+END SUBROUTINE generate_BitStringEqv
+
+!***************************************************************************************************
+! This routine generates the X's, m's, and j's for a labeling (see Rod's write-up) but the labeling
+! specified by its index, not one given explicitly. These three things are passed into
+! generate_BitStringEqv for each label. The latter returns a mask for each label that can be used to 
+! populate the labeling for a given index.
+SUBROUTINE get_Xmj_for_labeling(idx,conc,x,m,j)
+integer(li), intent(in) :: idx
+integer, intent(in)     :: conc(:)
+integer(li), intent(out):: x(:)
+integer,     intent(out):: m(:), j(:)
+! x is the index of the i-th label among the remaining slots as we loop over labels
+! m is the number of remaining slots (slots for i-th label and > i-th labels)
+! j is the number of the current label
+
+integer k, n, iL
+integer(li) :: quot
+integer c
+
+quot = idx
+j = conc
+k = size(conc)
+n = sum(conc)
+do iL = 1, k
+   m(iL) = n
+   n = n - conc(iL)
+   c = binomial(m(iL),j(iL))
+   x(iL) = mod(quot,c)
+   quot = quot/c
+enddo
+
+END SUBROUTINE get_Xmj_for_labeling
 !***************************************************************************************************
 ! This routine takes in a list of HNFs and a list of rotations (orthogonal transformations) and
 ! computes the permutations of the labels effected by the rotation. Then the HNFs are grouped into
@@ -528,6 +764,7 @@ do; ic = ic + 1
             write(*,'("Multiplier: ",20(i3,1x))') multiplier
             stop
          endif
+
          if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
       enddo
       if (.not. full) then ! loop over the label-exchange duplicates and mark them off.
