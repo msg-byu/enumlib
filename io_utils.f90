@@ -101,15 +101,15 @@ subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full&
      &,label,digit,fname,cRange,conc_check)
 character(80) :: title, pLatTyp, fullpart
 character(80), optional :: fname
-integer,intent(out):: Nmin, Nmax, k, LatDim, nD, cRange(3)
+integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
 integer, pointer :: label(:,:), digit(:)
-integer, pointer :: eq(:)
+integer, pointer :: eq(:), cRange(:,:)
 logical, intent(out):: conc_check
 
 logical full, err
-integer iD, i, status
+integer iD, i, status, n
 character(100) line
 
 open(99,file="readcheck_enum.out")
@@ -222,13 +222,26 @@ if (fullpart(1:4).eq.'FULL') then; full = .true.
 else if(fullpart(1:4).eq.'PART') then; full = .false.
 else; stop 'Specify "full" or "part" in the input file';endif
 call co_ca(10,err)
-read(10,*,iostat=status) cRange
-conc_check = .true.
-if (status/=0) then ! concentration is not specificed specified
-   cRange = 0 
-   conc_check = .false.
-endif
+
+allocate(cRange(k,3))
+cRange = 0
+do i = 1, k-1
+   read(10,*,iostat=status) cRange(i,:)
+   conc_check = .true.
+   if (status/=0) then ! concentration is not specificed specified
+      cRange = 0 
+      conc_check = .false.
+      exit
+   endif
+enddo
 close(10)
+n = cRange(1,3)
+cRange(k,1) = n - sum(cRange(1:k-1,1))
+cRange(k,2) = n - sum(cRange(1:k-1,2))
+cRange(k,3) = n
+if (any(cRange<0)) stop "Bad input on concentrations in read_input"
+if (any(cRange>n)) stop "Bad input #2 on concentrations in read_input"
+if (any(cRange(:,3)/=n)) stop "Inconsistent cell sizes in input in read_input"
 end subroutine read_input
 
 subroutine co_ca(unit,error)

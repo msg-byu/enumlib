@@ -1,6 +1,7 @@
 ! Generate all derivative structures of a parent structure
 ! Gus L. W. Hart BYU July 2007
 MODULE derivative_structure_generator
+use utilities_module
 use io_utils
 use num_types
 use enumeration_types
@@ -16,8 +17,94 @@ implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      &  gen_multilattice_derivatives, find_permutation_of_group,&
-     get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups, mixed_radix_counter
+     get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups,&
+     & mixed_radix_counter
+
 CONTAINS
+
+!***************************************************************************************************
+! This routine builds a concentration table like cTable in get_concentration_list but for a
+! different cell size. It takes 
+SUBROUTINE get_list_at_this_size(n,cTable,cList,eps)
+integer, intent(in) :: n
+integer, intent(in) :: cTable(:,:)
+integer, pointer    :: cList(:,:)
+real(dp), intent(in):: eps
+
+integer nTable(size(cTable,1),size(cTable,2))
+integer i, denom, minv, maxv
+
+denom = cTable(1,3) ! Cell size of input concentration ranges
+do i = 1, size(cTable,1)
+   minv = minval(cTable(i,1:2)); maxv = maxval(cTable(i,1:2))
+   nTable(i,1:2) = (/ floor(real(minv,dp)/denom*n), ceiling(real(maxv,dp)/denom*n) /) 
+   nTable(i,3) = n
+!   write(*,'(6(i2,1x))') nTable(i,:)
+enddo
+
+call get_concentration_list(cTable,nTable,cList,eps)
+
+END SUBROUTINE get_list_at_this_size
+
+!***************************************************************************************************
+! This routine takes the concentration "table" from lat.in or struct_enum.in and generates a list of
+! concentration vectors that are consistent with the ranges in the input file
+SUBROUTINE get_concentration_list(oTable,cTable,cList,eps)
+integer, intent(in) :: oTable(:,:) ! concentration ranges specified in the input
+integer, intent(in) :: cTable(:,:) ! concentration ranges specified for current unit cell sizes
+integer, pointer    :: cList(:,:)  ! List of concentration vectors that are within the ranges
+real(dp), intent(in):: eps
+
+integer j, k, i, n, cc
+integer, dimension(size(cTable,1)) :: digCnt, digit
+integer, allocatable :: label(:,:), a(:)
+real(dp), dimension(size(cTable,1)) :: minv, maxv, conc
+
+!print *,"ctable",ctable
+n = cTable(1,3) ! Total number of slots in the labeling
+digit = cTable(:,2) - cTable(:,1) + 1  ! Number of "labels" on each "wheel" of the odometer
+digCnt = 1 ! Start each wheel of the odometer at the first position
+k = size(cTable,1) ! Number of labels, i.e., number of wheels on the odometer (i.e, the number of atom types)
+allocate(cList(product(digit),k))
+allocate(a(k))  ! The reading on the "odometer"
+
+!print *,"digit",digit
+! Define a table that stores the possible labels for each wheel
+allocate(label(size(cTable,1),maxval(digit)))
+label = -1 ! Ends of the rows in this ragged list
+do j = 1, k 
+   label(j,:) = (/(i,i=cTable(j,1),cTable(j,2))/)
+   minv(j) = real(minval((/oTable(j,1),oTable(j,2)/)),dp)/oTable(j,3)
+   maxv(j) = real(maxval((/oTable(j,1),oTable(j,2)/)),dp)/oTable(j,3)
+enddo
+forall(j=1:k);a(j)=label(j,1);endforall
+
+cc = 0 ! number of valid concentrations
+do
+   if (sum(a)==n) then ! This "reading" is a valid partition, i.e., cell size is correct
+      conc = (/(count(a==i),i=1,k)/)
+      if (.not. ( any(conc<minv) .or. any(conc>maxv) )) then 
+         cc = cc + 1 ! Keep track of the number of valid concentration vectors
+         cList(cc,:) = a ! Store this in the list
+      endif
+!      print *,"clist inner",cList(cc,:)
+   endif
+   j = k  ! Start at the right end of the digit list, j is the digit pointer
+   do
+      if (digCnt(j) /= digit(j)) exit ! Is this wheel ready to roll over? No then exit
+      a(j) = label(j,1) ! Reset this wheel to the first label
+      digCnt(j) = 1     ! Reset the counter for this wheel
+      j = j - 1         ! Look to the next wheel to the left
+      if (j < 1) exit   ! If the whole odometer is ready to roll over the we are done
+   enddo
+   if (j < 1) exit ! All the numbers have been visited
+   digCnt(j) = digCnt(j) + 1 ! Advance this wheel
+   a(j) = label(j,digCnt(j)) ! Put the appropriate label in the j-th spot
+enddo
+!print *,"clist_get",cList
+cList => ralloc(cList,cc,k) ! Reallocate the list to be the proper size
+
+END SUBROUTINE get_concentration_list
 
 !***************************************************************************************************
 ! Just a test routine for expanding the code to treat different label sets on different sites
@@ -758,10 +845,10 @@ END SUBROUTINE get_HNF_2D_diagonals
 ! implemented here has been slightly reordered from the original routine and that discussed in the
 ! first paper.
 ! 
-! GH 2010 This routine has long since replaced the original
-!
+! GH Oct 2010  This routine has long since replaced the original
+! GH Oct 2010  Adding the ability to enumerate for a fixed concentration
 SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
-    & labelFull,digitFull,equivalencies,conc_check,conc_ElementN, conc_Range)
+    & labelFull,digitFull,equivalencies,cRange)
 integer, intent(in) :: k, nMin, nMax, nDFull
 integer             :: nD
 character(10), intent(in) :: title
@@ -773,14 +860,10 @@ integer, intent(inout) :: labelFull(:,:) ! A list of the labels (index 1) allowe
 integer, intent(inout) :: digitFull(:)   ! A list of the *number* of labels on each site 
 integer, allocatable    :: label(:,:), digit(:)
 integer, intent(in) :: equivalencies(:)
-logical, intent(in)            :: conc_check
-integer , optional             :: conc_ElementN
-integer, optional              :: conc_Range(3)
-integer                        :: cElementN
-integer                        :: cRange(3)
+integer, optional,intent(in)   :: cRange(:,:)
 
 
-integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status
+integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC
 integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
 integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -795,6 +878,9 @@ character, pointer :: lm(:) ! labeling markers (use to generate the labelings wh
 character(80) filename ! String to pass filenames into output writing routines
 character(80) formatstring
 logical fixed_cells ! This is set to true if we are giving a list of cells from a fil instead of generating them all
+logical conc_check ! this is true if cRange is present in the call to the routine
+integer, pointer :: iRange(:,:), cList(:,:)
+
 
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
@@ -816,14 +902,15 @@ enddo
 
 
 ! Concentration check settings
-if (.not. conc_check) then
-  cElementN = 1
-stop "does cRange need to be initialized?"
-  !cRange    = (/0._dp,1._dp/)
-else
-  cElementN = conc_ElementN
-  cRange    = conc_Range
-endif
+!!GHif (.not. conc_check) then
+!!GH  cElementN = 1
+!!GHstop "does cRange need to be initialized?"
+!!GH  !cRange    = (/0._dp,1._dp/)
+!!GHelse
+!!GH!!GH  cElementN = conc_ElementN
+!!GH  cRange    = conc_Range
+!!GHendif
+
 ! Are we going to use a set of fixed cells? Or loop over all possible cells?
 fixed_cells = .false.
 open(43,file="fixed_cells.in",status="old",iostat=status)
@@ -837,12 +924,19 @@ close(43)
 write(*,'(A)') "---------------------------------------------------------------------------------------------"
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 
+if(present(cRange)) then 
+   conc_check=.true.
+!   call get_concentration_list(cRange,cList)
+!   print *,"crange",crange
+!   print *,"clist",clist
+endif
+
 if (conc_check) then
-  write(*,'(A)') "Including only structures of which the concentration of"
-  write(*,'(A,I6)') "   element             ", cElementN
-  write(*,'(A)') "is in the"
-  write(*,'(A,1x,2(i2,"/",i2,3x))')   "* Allowed concentration range &
-       &   : ", cRange(1),cRange(3),cRange(2),cRange(3)
+  write(*,'(A)') "Including only structures of which the concentration &
+&  of each atom is in the range:"
+  do i = 1, k
+     write(*,'("Type ",i1": ",i2,"/",i2," -- ",i2,"/",i2)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+  enddo
 endif
 
 write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
@@ -875,9 +969,11 @@ write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
 write(14,'(A)') "Concentration check:"
 write(14,'(L5)') conc_check
 if (conc_check) then
-  write(14,'(A,1x,I6,1x,A,I6,A)') "* Check concentration of element : ", cElementN, "(denoted by ", cElementN-1,")"
-  write(14,'(A,1x,2(i2,"/",i2,3x))')   "* Allowed concentration range &
-       &   : ", cRange(1),cRange(3),cRange(2),cRange(3)
+  write(14,'(A)') "Including only structures of which the concentration &
+&  of each atom is in the range:"
+  do i = 1, k
+     write(14,'("Type ",i1": ",i2,"/",i2," -- ",i2,"/",i2)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+  enddo
 endif
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
 else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
@@ -905,9 +1001,15 @@ call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging
 ! This part generates all the derivative structures. Results are written to unit 14.
 Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
-do ivol = nMin, nMax !max(k,nMin),nMax
-   if (.not. is_a_rational_in_range(cRange,ivol,eps)) cycle
-!!GH   icRange = nint(ivol*nDFull*cRange)
+do ivol = nMin, nMax
+   if (conc_check) then
+!      print *,ivol
+!      write(*,'("crange",20(i2,1x))') cRange
+      call get_list_at_this_size(ivol,cRange,iRange,eps)
+!      write(*,'("irange",20(i2,1x))') iRange
+      !print *,"irange",irange
+      if (size(iRange,1)==0) cycle
+   endif
    call cpu_time(tstart)
    if (fixed_cells) then
       call read_in_cells_from_file(ivol,HNF,parLV,eps)
@@ -942,28 +1044,35 @@ do ivol = nMin, nMax !max(k,nMin),nMax
    ! This next if statement makes the run-time horrible (N^3 scaling) if enabled. (only used for checking once.)
    !if (.not. do_rotperms_form_groups(rdRPList)) print *, "Rotperm list doesn't form group"
    !call cpu_time(groupcheck)
-   Scnt = 0 ! Keep track of the number of structures at this size
+   Scnt = 0 ! Keep track of the number of structures at this size   
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
-      if (fixed_cells) then
-         call generate_permutation_labelings()
+      if (conc_check) then
+         do iC = 1, size(iRange,1) ! loop over each concentration in the range
+!            write( *,'("iRange: ",20(i2,1x))')iRange(iC,:)
+            call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,lm,iRange(iC,:))
+!            print *,count(lm=='U')
+!            print *,"hash tabel",size(lm)
+             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
+                  &,RPLindx,lm,equivalencies,iRange(iC,:))
+         enddo
       else
-         call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
+      	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
+      	filename = "temp_perms.out"
+      	call write_rotperms_list(rdRPList(iBlock),filename)
+      	!stop "debugging"
+      	!call cpu_time(genlabels)
+      	!print *, "block",iBlock
+      	!print *, shape(rdRPList(iBlock)%perm), "shape"
+      	!do i = 1,size(rdRPList(iBlock)%perm,1)
+      	!   write(*,'(8i1)') rdRPList(iBlock)%perm(i,:)
+      	!enddo
+      	!write(*,'(256a1)') lm(1:150)
+      	! Now that we have the labeling marker, we can write the output.
+      	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies)
+      	!call cpu_time(endwrite)
+      	!write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
       endif
-      filename = "temp_perms.out"
-      call write_rotperms_list(rdRPList(iBlock),filename)
-      !stop "debugging"
-      !call cpu_time(genlabels)
-      !print *, "block",iBlock
-      !print *, shape(rdRPList(iBlock)%perm), "shape"
-      !do i = 1,size(rdRPList(iBlock)%perm,1)
-      !   write(*,'(8i1)') rdRPList(iBlock)%perm(i,:)
-      !enddo
-      !write(*,'(256a1)') lm(1:150)
-      ! Now that we have the labeling marker, we can write the output.
-      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,cElementN,cRange)
-      !call cpu_time(endwrite)
-      !write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
    enddo! iBlock
    !call cpu_time(writetime)
    call cpu_time(tend)
