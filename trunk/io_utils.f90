@@ -229,6 +229,7 @@ do i = 1, k-1
    read(10,*,iostat=status) cRange(i,:)
    conc_check = .true.
    if (status/=0) then ! concentration is not specificed specified
+      print *,"conc check is false"
       cRange = 0 
       conc_check = .false.
       exit

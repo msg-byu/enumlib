@@ -307,27 +307,16 @@ n = sum(conc)
 !conc = (/4,1,2,4/)
 slotsRem = n
 l = -1
-!print *, k,n
-!print *, "generate labeling routine"
-!write(*,'("indx: ",20(i10,1x))') indx
-!write(*,'("conc: ",20(i10,1x))') conc
 
 call get_Xmj_for_labeling(indx,conc,x,m,j)
 
 do iK = 1, k
-!   print *,"iK",iK
-!   write(*,'("x,m,j: ",20(i4,1x))') x(iK),m(iK),j(iK)
    allocate(bitString(m(iK)))
    call generate_BitStringEqv(x(iK),m(iK),j(iK),bitString)
    allocate(vsBits(j(iK)),vsLabels(slotsRem))
-!write(*,'("x,m,j: ",20(i2,1x))') x(iK),m(iK),j(iK)
-!write(*,'("l: ",20(i2,1x))') l
-!write(*,'("bits: ",20(i2,1x))') bitString
+   print *,j(iK),slotsRem
    vsLabels = pack((/(ij,ij=1,n)/),l==-1)
    vsBits   = pack((/(ij,ij=1,n)/),bitString==1)
-!   write(*,'("empty slots: ",20(i2,1x))') vsLabels
-!   write(*,'("bit string: ",20(i2,1x))') vsBits
-!   write(*,'("pos in labeling: ",20(i2,1x))') vsLabels(vsBits)
    l(vsLabels(vsBits)) = iK - 1 ! Offset to start labels at zero
    deallocate(vsBits,vsLabels,bitString)
    slotsRem = slotsRem - conc(iK)
