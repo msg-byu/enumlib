@@ -37,6 +37,6 @@ if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
 !!call mixed_radix_counter(label,digit)
 !!
 call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,&
-         label,digit,equivalencies,cRange)
+         label,digit,equivalencies,concCheck,cRange)
 
 END PROGRAM driver

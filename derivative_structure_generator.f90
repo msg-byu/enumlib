@@ -82,8 +82,8 @@ forall(j=1:k);a(j)=label(j,1);endforall
 cc = 0 ! number of valid concentrations
 do
    if (sum(a)==n) then ! This "reading" is a valid partition, i.e., cell size is correct
-      conc = (/(count(a==i),i=1,k)/)
-      if (.not. ( any(conc<minv) .or. any(conc>maxv) )) then 
+      conc = a/real(n,dp)
+      if (.not. ( any(conc<minv-eps) .or. any(conc>maxv+eps) )) then 
          cc = cc + 1 ! Keep track of the number of valid concentration vectors
          cList(cc,:) = a ! Store this in the list
       endif
@@ -848,7 +848,7 @@ END SUBROUTINE get_HNF_2D_diagonals
 ! GH Oct 2010  This routine has long since replaced the original
 ! GH Oct 2010  Adding the ability to enumerate for a fixed concentration
 SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
-    & labelFull,digitFull,equivalencies,cRange)
+    & labelFull,digitFull,equivalencies, conc_check,cRange)
 integer, intent(in) :: k, nMin, nMax, nDFull
 integer             :: nD
 character(10), intent(in) :: title
@@ -860,6 +860,7 @@ integer, intent(inout) :: labelFull(:,:) ! A list of the labels (index 1) allowe
 integer, intent(inout) :: digitFull(:)   ! A list of the *number* of labels on each site 
 integer, allocatable    :: label(:,:), digit(:)
 integer, intent(in) :: equivalencies(:)
+logical, intent(in) :: conc_check
 integer, optional,intent(in)   :: cRange(:,:)
 
 
@@ -878,7 +879,6 @@ character, pointer :: lm(:) ! labeling markers (use to generate the labelings wh
 character(80) filename ! String to pass filenames into output writing routines
 character(80) formatstring
 logical fixed_cells ! This is set to true if we are giving a list of cells from a fil instead of generating them all
-logical conc_check ! this is true if cRange is present in the call to the routine
 integer, pointer :: iRange(:,:), cList(:,:)
 
 
@@ -923,13 +923,6 @@ close(43)
 
 write(*,'(A)') "---------------------------------------------------------------------------------------------"
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
-
-if(present(cRange)) then 
-   conc_check=.true.
-!   call get_concentration_list(cRange,cList)
-!   print *,"crange",crange
-!   print *,"clist",clist
-endif
 
 if (conc_check) then
   write(*,'(A)') "Including only structures of which the concentration &
