@@ -291,9 +291,8 @@ integer,intent(out)   :: l(:)
 integer(li),intent(in):: INindx
 
 integer(li)               :: indx
-integer(li), dimension(4) :: x
-integer,     dimension(4) :: m, j
-
+integer(li), dimension(size(conc)) :: x
+integer,     dimension(size(conc)) :: m, j
 integer  iK, k, ij, n, slotsRem
 integer, allocatable :: vsBits(:), vsLabels(:) ! Vector subscripts for masking elements to be updated
 integer, allocatable :: bitString(:)
@@ -302,19 +301,21 @@ integer, allocatable :: bitString(:)
 indx = INindx - 1 ! The algorithm uses a 0..N-1 indexing so shift by one 
 k = size(conc)
 n = sum(conc)
-!k = 4
-!n = 11
-!conc = (/4,1,2,4/)
 slotsRem = n
 l = -1
 
 call get_Xmj_for_labeling(indx,conc,x,m,j)
-
+!print *,"calling generate labeling"
 do iK = 1, k
    allocate(bitString(m(iK)))
+   if (m(iK)==0) cycle  ! If there aren't any slots occupied by this label then cycle (avoid segfault in vsBits)
    call generate_BitStringEqv(x(iK),m(iK),j(iK),bitString)
    allocate(vsBits(j(iK)),vsLabels(slotsRem))
-   print *,j(iK),slotsRem
+!   write(*,'("ik,x,m,j   ",20(i3,1x))') iK,x(iK),m(iK),j(iK)
+!   write(*,'("labeling   ",20(i2,1x))') l
+!   write(*,'("bitstring  ",20(i2,1x))') bitstring
+!   write(*,'("shape      ",20(i2,1x))') bitstring
+   
    vsLabels = pack((/(ij,ij=1,n)/),l==-1)
    vsBits   = pack((/(ij,ij=1,n)/),bitString==1)
    l(vsLabels(vsBits)) = iK - 1 ! Offset to start labels at zero
