@@ -6,8 +6,8 @@ bulk
  2 -nary case
     1 # Number of points in the multilattice
  0.0000000      0.0000000      0.0000000    0/1    # d01 d-vector
-   32 32 # Starting and ending cell sizes for search
+    32  32 # Starting and ending cell sizes for search
 0.10000000E-03 # Epsilon (finite precision parameter)
 full list of labelings
 # Concentration ranges?
-15 15 32
+15 17 32
