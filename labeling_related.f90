@@ -151,11 +151,14 @@ call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 write(dummy,'(I3)') n*nAllD
 struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
-   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
+!   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
+!   print *, labIndx, "CHECK THIS NUMBER-----------------------------------------------------------------------------------------------"
    if(conc_check) then
+      labIndx = vsL(il)
       call generate_labeling_from_index(labIndx,concVect,labeling)
    else
+      labIndx = vsL(il)-1
       do ilab=1,n*nD
         quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
         labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
@@ -239,6 +242,7 @@ integer a(n*nD) ! The current labeling depicted as a list of integers
 ! testing, debugging
 !integer, dimension(4) :: x, m, j
 
+print *, iConc
 nL = multinomial(iConc)
 allocate(lab(nL),STAT=status)
 if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
@@ -305,19 +309,20 @@ slotsRem = n
 l = -1
 
 call get_Xmj_for_labeling(indx,conc,x,m,j)
-!print *,"calling generate labeling"
+!print *, "INDEX................", indx
+!print *, "CONC...................", conc
+!write(*,'("X...............   ",20(i4,1x))') x
+!write(*,'("M..................  ",20(i2,1x))') m
+!write(*,'("J.................      ",20(i2,1x))') j
+   !print *,"calling generate labeling"
 do iK = 1, k
    allocate(bitString(m(iK)))
    if (m(iK)==0) cycle  ! If there aren't any slots occupied by this label then cycle (avoid segfault in vsBits)
    call generate_BitStringEqv(x(iK),m(iK),j(iK),bitString)
    allocate(vsBits(j(iK)),vsLabels(slotsRem))
-!   write(*,'("ik,x,m,j   ",20(i3,1x))') iK,x(iK),m(iK),j(iK)
-!   write(*,'("labeling   ",20(i2,1x))') l
-!   write(*,'("bitstring  ",20(i2,1x))') bitstring
-!   write(*,'("shape      ",20(i2,1x))') bitstring
    
    vsLabels = pack((/(ij,ij=1,n)/),l==-1)
-   vsBits   = pack((/(ij,ij=1,n)/),bitString==1)
+   vsBits   = pack((/(ij,ij=1,m(iK))/),bitString==1)
    l(vsLabels(vsBits)) = iK - 1 ! Offset to start labels at zero
    deallocate(vsBits,vsLabels,bitString)
    slotsRem = slotsRem - conc(iK)
