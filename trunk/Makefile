@@ -72,7 +72,7 @@ libenum.a: ${OBJS}
 	ranlib  $@
 
 all: libenum.a multienum.x find_structure_in_list.x 2Dplot.x \
-     compare_two_enum_files.x
+     compare_two_enum_files.x  
 multienum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
@@ -82,11 +82,12 @@ multienum.x: ${OBJS} driver.o
 makestr.x: makeStr.o
 	${F90} ${LDFLAGS} -o $@ makeStr.o libenum.a ${LIBS} 
 
-find_structure_in_list.x: find_structure_in_list.o
-	${F90} ${LDFLAGS} -o $@ find_structure_in_list.o libenum.a ${LIBS}
-compare_two_enum_files.x: compare_two_enum_files.o
-	${F90} ${LDFLAGS} -o $@ compare_two_enum_files.o libenum.a ${LIBS}
-
+find_structure_in_list.x: ${OBJS} find_structure_in_list.o
+	${F90} ${LDFLAGS} -o $@ enumeration_utilities.o find_structure_in_list.o libenum.a ${LIBS}
+compare_two_enum_files.x: ${OBJS} compare_two_enum_files.o
+	${F90} ${LDFLAGS} -o $@ ${OBJS} compare_two_enum_files.o libenum.a ${LIBS}
+convert_structures_to_enumformat.x: ${OBJS} convert_structures_to_enumformat.o
+	${F90} ${LDFLAGS} -o $@  enumeration_utilities.o convert_structures_to_enumformat.o libenum.a ${LIBS}
 
 makestr.2d: makeStr2d.o
 	${F90} ${LDFLAGS} -o $@ makeStr2d.o libenum.a ${LIBS} 

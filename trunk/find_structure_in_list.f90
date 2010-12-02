@@ -19,7 +19,7 @@ read(dummy,'(a80)') sfname
 if(iargc()/=2) stop "Need two arguments: poscar and struct_enum.out-type file"
 !sfname = "struct_enum.out"
 call read_poscar(fname,title,sLV,aBas,aTyp)
-call get_HNF_of_derivative_structure(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+call get_HNF_of_derivative_structure_old(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
 call get_gspace_representation(pLV,dset,sLV,aBas,aTyp,HNF,LatDim,pLabel,eps)
 call find_match_in_structenumout(sfname,pLV,dset,HNF,SNF,LatDim,pLabel,match,eps) 
 if(match/=0) then
