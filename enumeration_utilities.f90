@@ -1166,7 +1166,7 @@ enddo
 
 if (foundHNF .and. foundLab) match = .true.
 return
-End SUBROUTINE compare_two_structures
+End SUBROUTINE compare_two_gstructures
 
 
 
