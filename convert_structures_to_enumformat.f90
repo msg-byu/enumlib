@@ -1,6 +1,20 @@
+! 
+! THIS IS ONLY A TEST PROGRAM
+! for converting a structures.in file to structures.enum.out or sth like that
+!
+! this file is quick and dirty. Copied lots of code from uncle since the steps that the
+! actual program takes will eventually be moved to figure_enumeration
+!
+!
+
 MODULE ce_types
-use num_types
+!use num_types
 implicit none
+
+integer, parameter:: dp=selected_real_kind(15,307)
+integer, parameter:: sp=selected_real_kind(6,37)
+integer, parameter:: si=selected_int_kind(1) ! very short integer -10..10 range                                                   
+integer, parameter:: li=selected_int_kind(18) ! Big integer -10^18..10^18 range   
 
 type label_pt ! A structure for defining points that become vertices in a figure
    integer  :: label  ! basis point of the parent lattice for this R
@@ -97,6 +111,9 @@ type crystal
 
    type(crystal), pointer :: reference(:)
    logical                :: automaticReference
+
+   integer, pointer :: HNFlist(:,:,:) ! { entry, entry, HNF# }
+   integer, pointer :: pLabel(:,:)    ! { labeling#, entry }
 
 endtype crystal
 
@@ -484,7 +501,7 @@ END MODULE
 
 
 program convert_structures_to_enumformat
-use num_types
+!use num_types
 use enumeration_utilities
 use ce_types
 use vector_matrix_utilities
@@ -503,14 +520,12 @@ implicit none
 
 type(CE_variables) :: CE
 type(crystal), pointer :: str(:)
-
+logical :: match
 character(80) POSCAR, LATIN, dummy, title
-integer, pointer :: aTyp(:)
-real(dp), dimension(3,3) :: pLV, sLV
-real(dp), pointer :: aBas(:,:), dset(:,:)
 
+integer :: SNF(3,3), L(3,3), LatDim ! L is the left transform for SNF
 
-integer iStr, nStr
+integer iStr, nStr, jStr
 
 call getarg(1,dummy)
 read(dummy,'(a80)') LATIN
@@ -522,12 +537,27 @@ print *, "POSCAR=", POSCAR
 
 CE%lat_file = LATIN
 call read_lattdef(CE,0)
+if (CE%surface%isSurf) then; LatDim=2; else; LatDim=3; endif;
 
 call read_input_structures(POSCAR,str,CE)
+call check_input_structures(str, CE)
 nStr = size(str)
 
 do iStr=1,nStr
-  call get_HNF_of_derivative_structure(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+  print *, "get HNF of structure #",istr
+  call get_HNF_of_derivative_structure(str(iStr)%title,str(iStr)%LV,str(iStr)%pos,str(iStr)%aTyp-1,CE%pLV,CE%pBas,str(iStr)%HNFlist,SNF,L,CE%eps)
+  call get_gspace_representation(CE%pLV,CE%pBas,str(iStr)%LV,str(iStr)%pos,str(iStr)%aTyp-1,str(iStr)%HNFlist,LatDim,str(iStr)%pLabel,CE%eps)
+enddo
+
+do iStr=1,nStr
+do jStr=iStr+1,nStr
+  write(*,'(A,I4,I4)',advance='no'), "comparing strucs", istr, jstr
+  call compare_two_gstructures(LatDim,CE%pLV,CE%pBas,CE%eps, &
+       str(iStr)%HNFlist(:,:,1), str(iStr)%pLabel(1,:), &
+       str(jStr)%HNFlist(:,:,:), str(jStr)%pLabel(:,:), &
+       match) 
+  write(*,'(5x,L)') match
+enddo
 enddo
 
 contains
@@ -1569,6 +1599,374 @@ do iD=1,nD
 enddo
 end function isThereAtom
 
+
+
+
+
+
+
+
+
+
+recursive SUBROUTINE check_input_structures(str, CE, thisRef)
+use compare_structures
+type(crystal), pointer :: str(:), currstr, refstr(:)
+type(crystal)          :: mirrorstr
+type(CE_variables), intent(in) :: CE
+integer, optional :: thisRef
+integer :: iRef, nRef
+logical :: isReference
+
+real(dp) :: conVec(3), pVol, currD(3), currPos(3), invLV(3,3)
+integer sVol
+integer iStr, jStr, iAt, jAt, iuq, dlabel, c, iC, nC, iD, nD
+integer nStr, nPar, nAt, x, y, z
+integer, allocatable :: uqlist(:)
+logical checkPoint, equivalent, found, mapped, err, performedReconstruction
+
+integer idx1, idx2, idxoff, ik, iat1, iat2, i
+integer, pointer :: gettype(:), rankSpace(:), missingD(:)
+
+character(80) :: header(4), filename
+
+call get_SpinRank_mapping(CE%CErank, gettype, rankSpace)
+
+
+nC = CE%ncouplings
+
+if (present(thisRef)) then; isReference=.true.; else; isReference=.false.; endif
+if (.not. isReference) then
+  write(*,'(A)') "Checking input structures"
+endif
+
+nStr = size(str)
+if (nStr==0) stop "ERROR: check_input_structures: No input structures" 
+nPar = size(CE%pBas,2)
+
+do iStr = 1, nStr
+
+   currStr => str(iStr)
+   
+   if (currStr%isHelpStructure) cycle  ! do not check mere help structures
+
+   if (.not. isReference) then
+     write(*,'(A,1x,I5)') "Checking structure #", iStr
+   else
+     write(*,'(A,1x,I5,1x,A,1x,I5)') "Checking Structure #", iStr, " Reference #", thisRef
+   endif
+
+
+   ! Is each structure a derivative superlattice of the parent lattice?
+   if (.not. is_derivative(CE%pLV,currStr%LV,CE%eps)) then
+     if (.not. isReference) then
+       write(*,'("ERROR: Structure #: ",i4," is not a derivative superlattice.")') iStr
+       write(*,'(A,A)') "ERROR:    struc title: ", trim(currStr%title)
+       stop
+     else
+       write(*,'(A,I5,A)') "ERROR: the reference #",iRef," structure is not a derivative superlattice."
+       stop
+     endif
+   endif
+
+   nAt     = size(currStr%spin) ! total number of atoms
+   nD      = CE%nBas  ! number of dvectors
+   sVol    = nAt / nD ! volume of this structure in terms of unit cells
+   
+
+   currStr%xnTyp = 0
+
+   allocate(currStr%pBVlab(nAt))  ; currStr%pBVlab = -1
+
+   ! Do all the interior points of the input structure correspond to points of the parent?
+   do iAt = 1, nAt-currStr%missingN
+
+      ! get the dset label of that atom
+!      dlabel = get_dset_label( CE%pLV, currStr%pos(:,iAt), CE%pBas(:,:), CE%eps )
+      currStr%pBVlab(iAt)=dlabel
+
+      ! this atom of this structure does not lie on a lattice point:
+      if(dlabel<0) then
+        if (.not. isReference) then
+          write(*,'(A,I4,A)') "ERROR: in input structure #", iStr
+        else
+          write(*,'(A,I4,A)') "ERROR: the reference #",iRef," structure"
+        endif
+        write(*,'(A,A80)')    "ERROR: name:  ",  adjustl(currStr%title)
+        write(*,'(A,I4,A)')   "ERROR:   atom ", iAt, " is not on the parent lattice."
+        write(*,'(A,3F5.2)')  "ERROR:   cartesian coordinates of atom: ", currStr%pos(:,iAt)
+        stop
+      endif
+
+      ! 
+      ! if we are here: this atom lies on a lattice point, all is ok (up to now at least...)
+      !
+
+   enddo ! loop over all atoms in this structure
+
+   ! now reconstruct missing atoms:
+   ! (note: this is a brute force method, not really elegant, but works...)
+   performedReconstruction=.false.
+   if (currStr%missingN>0) then
+      performedReconstruction=.true.
+      if (currStr%missingN>50) then
+        write(*,'(A)')   "    ... reconstructing atoms: this can take a while for >50 atoms"
+      else
+        write(*,'(A)')   "    ... reconstructing atoms"
+      endif
+      
+      allocate(missingD( currStr%missingN )) ! allocating an array that is going to held the missing dvectors.
+                                             ! If a dvector is missed more than once, it appears more than once!
+      missingD = 0
+      
+      idx1=1
+      do iD=1,nD ! loop through the dset
+        idx2 = idx1 + (sVol - count(currStr%pBVlab==iD)) -1
+                      ! <----------------------------> !
+                              ! this expression tells you how often a specific dvector is missing. It should be
+                              ! there the same number of times as we have unit cells (sVol = structure volume).
+        if (idx2>=idx1) then  ! If it is missing, we ...
+          missingD(idx1:idx2) = iD   ! ... add the dvector the correct number of times to the array
+          idx1 = idx2+1
+        endif
+      enddo
+      iAt = nAt-currStr%missingN
+      do c=1,currStr%missingN  ! loop through all missing atoms. The following is not really elegant, but works.
+
+        if (currStr%missingN > 50) write(*,'(I5,1x)',advance='no') c
+   
+        shiftloop: do x=0,sVol; do y=0,sVol; do z=0,sVol;
+          currD = CE%pBas(:, missingD(c)) ! take the dvector...
+          currD = currD + x*CE%pLV(:,1) + y*CE%pLV(:,2) + z*CE%pLV(:,3) ! ... and shift it by parent lattice vectors
+          currStr%pos(:,iAt+c)  = currD         ! add the current dvector coordinate to the structure
+          currStr%pBVlab(iAt+c) = missingD(c)   ! and set the label correctly
+!          call check_for_duplicate_atoms(currStr, iat1, iat2, CE%eps, limit=iAt+c)   ! check if added basis point
+                                                ! collides with an already existing point. If yes, the two integers
+                                                ! iat1 and iat2 provide the ID numbers of the atoms that collide
+          if (iat1==0 .and. iat2==0) then  ! if no collision: both iat1 and iat2 == 0 and ...
+            exit shiftloop ! ... we can go on with the next missing atom.
+          endif
+        enddo; enddo; enddo shiftloop;
+
+        ! failsafe check:
+        if (x==sVol .and. y==sVol .and. z==sVol) stop "ERROR: bad programming in the reconstruction loop"
+      enddo
+   
+   endif ! reconstructing
+   if (currStr%missingN > 50) write(*,*)
+
+   ! Determine atom types and spins for the structure
+   if (.not. isReference) then ! for references this is done during the buildup of the reference structure itself
+     do iAt=1,nAt
+       currStr%atyp = 1              ! setu: all atoms have the same type...
+       currStr%spin = gettype(1)     ! ... and the respective spin
+       do iC = 1, CE%ncouplings
+         do ik = 2, CE%CErank       ! now: for all other types...
+           
+           idxoff = sum(currStr%nTyp(:,:iC-1))                    ! all the atoms that were already counted
+           idx1   = sum(currStr%nTyp(1:ik-1,iC))+1  + idxoff 
+           idx2   = sum(currStr%nTyp(1:ik,iC))      + idxoff
+           
+           currStr%atyp( idx1 : idx2 ) = ik            ! ... set the type
+           currStr%spin( idx1 : idx2 ) = gettype(ik)   ! ... and spin of those atoms
+         enddo
+       enddo
+     enddo
+   endif
+
+
+
+   do iAt=1,nAt
+
+      ! check if the occupation of every site is ok with the possible occupations in lat.in
+      ! CE%label(:,iD) has the possible occupations labels (rank space) for dset member iD.
+      ! Thus, the following checks if any one of the possible labels fits to the structure's occupation.
+      ! Careful: %label = 0,1,2,3...,k-1 like in enumlib
+      !          %aTyp  = 1,2,3,...k
+!      dlabel = currStr%pBVlab(iAt)
+!      if (.not. any(CE%label(:,dlabel)==currStr%ATyp(iAt)-1)) then
+!        if (.not. isReference) then
+!          write(*,'(A,I4,A)')   "ERROR: in input structure #", iStr
+!        else
+!          write(*,'(A,I4,A)')   "ERROR: in reference #",iRef," structure"
+!        endif
+!        write(*,'(A,A80)')      "ERROR: name:  ", currStr%title
+!        write(*,'(A)')          "ERROR:   the structure's occupation does not fit the occupation in lat.in."
+!        write(*,'(A,I3,A,I2)')  "ERROR:   structures.in: structure atom        ", iAt,  " has type  ", currStr%ATyp(iAt)-1
+!        write(*,'(A,I3,A,10(I2,1x))') &
+!                                "ERROR:   lat.in       : equivalent basis atom ", dlabel," has types ", &
+!                                                              CE%label(:CE%digit(iAt),dlabel)
+!        stop 
+!      endif
+            
+      ! update xnTyp, which stores the total number of atoms of a certain kind, but only
+      ! counts x-relevant (i.e. concentration-relevant) structures
+!      if (CE%xRelevant(dlabel)) then ! if this is a concentration-relevant dset member
+!        currStr%xnTyp(currStr%ATyp(iAt),CE%CEBas(dlabel))=currStr%xnTyp(currStr%ATyp(iAt),CE%CEBas(dlabel)) + 1
+!      endif
+   enddo
+
+!OLD>   !____________________________________________________________
+!OLD>   ! is this a surface CE with symmetric slab?
+!OLD>   if (CE%surface%isSurf) then
+!OLD>      if (CE%surface%isSymmetric) then
+!OLD>
+!OLD>        if (.not. structure_is_symmetric(currStr%pos, currStr%spin, CE%surface, CE%eps)) then
+!OLD>          write(*,'(A,I4,A)')     "ERROR: in surface input structure #", iStr
+!OLD>          write(*,'(A,A80)')      "ERROR: name:  ", currStr%title
+!OLD>          write(*,'(A)')          "ERROR:     the structure is not symmetric"
+!OLD>          stop
+!OLD>        endif
+!OLD>
+!OLD>      endif ! symmetric slab
+!OLD>    endif ! surface CE
+!OLD>   !____________________________________________________________
+
+
+   ! Store parent lattice information for each input structure
+   currStr%pLV = CE%pLV 
+   allocate(currStr%intPt(3,size(CE%pBas,2)))
+   currStr%intPt = CE%pBas
+   currStr%eps = CE%eps
+
+   ! update concentration
+   !    calculate the concentration from xnTyp, which contains the number of concentration-relevant
+   !    atoms in this structure. So, %x contains as many components as there are atom types.
+   do iC=1,nC
+     currStr%x(:,iC) = currStr%xnTyp(:,iC) * 1.d0 / sum(currStr%xnTyp(:,iC))
+   end do
+   !    for compatibility reasons: %conc is the quasi-binary concentration.
+   currStr%conc = currStr%x(1,1)  
+
+enddo ! loop over all structures, iStr
+
+
+if (.not. isReference .and. performedReconstruction) then
+   filename  = "structures.out"
+   header(1) = "# Postprocessed structures.in file"
+   header(2) = "#    This file is only written if some of the original atoms were marked"
+   header(3) = "#    missing by the use of -n in structures.in, where n is the number of"
+   header(4) = "#    missing atoms"
+!   call write_InpStrucList(filename,str,header)
+endif
+
+
+!--------------------------------------------------------------------------------
+! (in routine: check_input_structures)
+! References:
+! Now setup the reference structure for the current input structures, check if
+! they are ok with the lattice definition (etc.)
+if (.not. isReference) then
+  nRef=CE%nreferences
+!  if (associated(refStr)) deallocate(refStr)
+  allocate(refStr(nStr))
+  do iRef=1,nRef ! setup all references...
+    do iStr=1,nStr ! ... for all input structures
+      if (str(iStr)%reference(iRef)%automaticReference) then
+        write(*,'(A,1x,I5,1x,A,1x,I5)') "Setting up automatic reference #", iRef, " for structure #", iStr
+!        call setup_reference_structure(str(iStr),refStr(iStr),CE,iRef)
+        allocate(refStr(iStr)%nTyp(CE%CErank,CE%ncouplings))   ! don't want to do these allocs in the
+        allocate(refStr(iStr)%xnTyp(CE%CErank,CE%ncouplings))  ! setup_reference_structure routine, since it is
+        allocate(refStr(iStr)%x(CE%CErank,CE%ncouplings))      ! also going to be used during gss
+      else
+        write(*,'(A,1x,I5,1x,A,1x,I5)') "Setting up user-input reference #", iRef, " for structure #", iStr
+        refStr(iStr) = str(iStr)%reference(iRef)  
+      endif
+    enddo ! end: setup 1 reference (iRef) for all input structures
+
+    ! check the reference structures for reference iRef:
+    call check_input_structures(refStr, CE%reference(iRef),iRef)
+
+    do iStr=1,nStr
+      str(iStr)%reference(iRef)=refStr(iStr)
+    enddo
+  enddo ! iRef
+  deallocate(refStr)
+endif
+
+
+! Check that each input structure is unique from every other
+if (.not. isReference) then
+open(100,file='duplicate_structures.out',status='replace')
+write(*,'("Checking the uinqueness of the input structures")')
+write(*,'(i4," structures in the input list")') nStr
+do iStr = 1, nStr-1
+   write (*,'("Checking uniqueness of Str. #",I4,"  ",A50)') iStr, adjustl(str(iStr)%title)
+   do jStr = iStr+1, nStr
+!      write(*,'("Comparing strs. #: ",2(i3,1x))') iStr, jStr
+
+      equivalent=.false.  ! tk: actually, shouldn't need this, but somethings going wrong in 
+                          !     compare_arbitrary_structures, where it is set =.false. if
+                          !     this optional argument is present. But it fails quite often. 
+                          !     Don't ask ME about it...
+      call compare_arbitrary_structures(str(iStr)%LV,str(iStr)%spin,str(iStr)%pos,&
+                                        str(jStr)%LV,str(jStr)%spin,str(jStr)%pos,&
+                                          CE%eps,mapped,identical=equivalent)
+      if (equivalent) then ! The structures are equivalent *and* have exactly the same concentration
+         write(*,'("WARNING: *** In the input list, structures ",i4," and ",i4," appear to be the same.")') iStr, jStr
+         write(*,'("WARNING:    Structure title: ",a80)') adjustl(str(iStr)%title)
+         write(*,'("WARNING:    Structure title: ",a80)') adjustl(str(jStr)%title)
+         write(100,'(I5,1x,I5,5x,A1,A,A,A,A1)') iStr, jStr, """", trim(adjustl(str(iStr)%title)),""" <--> """,trim(adjustl(str(jStr)%title)),""""
+         !stop
+      endif
+   enddo
+enddo
+close(100)
+endif ! is no Reference
+
+!! Check that each structure doesn't have two atoms on the same site
+!do iStr = 1, nStr ! Loop over each structures
+!!  call check_for_duplicate_atoms(str(iStr),iAt,jAt,CE%eps)
+!  
+!  if (iAt/=0 .or. jAt/=0) then
+!    if (.not. isReference) then
+!      write(*,'(A,I4,A)') "ERROR: in input structure #", iStr
+!    else
+!      write(*,'(A,I4,A,I4,A)') "ERROR: in reference #",iRef," structure #",istr
+!    endif
+!    write(*,'("ERROR:   Structure has duplicate atoms on one site.")') 
+!    write(*,'("ERROR:   Duplicate atoms are numbers ",i3," and ",i3)') iAt, jAt
+!    write(*,'("ERROR:   Structure title: ",a80)') adjustl(str(iStr)%title)
+!    stop
+!  endif
+!
+!enddo
+
+! Last check is to see if each structure has the correct volume/atom. If it does, and 
+! it passed the checks above then all the atomic sites in the cell must be occupied.
+pVol = abs(determinant(CE%pLV)) ! Volume of the parent cell
+do iStr = 1, nStr ! Loop over each structure
+   ! Check the volume/atom ratio of each structures with the volume of the parent cell
+   ! This will not work as coded if the parent cell has more than one site/cell
+!   if (.not.(equal(nPar*abs(determinant(str(iStr)%LV))/size(str(iStr)%spin,1),pVol,CE%eps))) then
+!      write(*,'("There is a problem with the volume/atom ratio input structure ",i4)') iStr
+!      write(*,'("Structure title: ",a80)') adjustl(str(iStr)%title)
+!      stop
+!   endif
+enddo
+
+! Last check. Is the number of types in the input structure consistent with the CE rank from lat.in?
+! This routine won't win any elegance awards but it seems to do the trick.
+allocate(uqlist(CE%CErank))
+uqlist = -99  ! set it to something very unlikely
+do iStr = 1, nStr ! Loop over each structure
+   nAt = size(str(iStr)%pos,2)
+   do iAt = 1, nAt ! Loop over each atom in the current structure
+      found = .false.
+      do iuq = 1, count(uqlist/=-99) ! Loop over every known (so far) atom type
+         if (iuq>CE%CErank) then
+            write(*,'("More atom types in input structures than in lat.in file")')
+            write(*,'("Structure title: ",a80)') adjustl(str(iStr)%title)
+            stop
+         endif
+!         write(*,'("iuq",i3,"  rank",i3,"  str",i3,"  iAt",i3," uqlist",i3,"  spin",i3)') &
+!                       iuq,CE%CErank,istr,iAt,uqlist(iuq),str(iStr)%spin(iAt)
+         if (uqlist(iuq)==str(iStr)%spin(iAt)) found = .true.
+      enddo ! End loop over unique types found so far
+      if (.not. found) uqlist(iuq) = str(iStr)%spin(iAt)
+   enddo
+enddo
+! I don't think there are any other possibilities of bad input if all these tests pass...
+ENDSUBROUTINE check_input_structures
 
 
 

@@ -10,7 +10,9 @@ use derivative_structure_generator
 use labeling_related
 implicit none
 private
-public  map_enumStr_to_real_space, cartesian2direct, read_poscar, get_HNF_of_derivative_structure, &
+public  map_enumStr_to_real_space, cartesian2direct, read_poscar, &
+        get_HNF_of_derivative_structure,get_HNF_of_derivative_structure_old, &
+        compare_two_gstructures, &
         get_gspace_representation, find_match_in_structenumout, find_equivalent_labelings
 
 CONTAINS
@@ -217,7 +219,238 @@ END SUBROUTINE read_poscar
 ! This subroutine takes a structure defined in real space (atomic basis vectors in Cartesian 
 ! coordinates) and checks whether or not it is a derivative structure of a parent lattice. If it is,
 ! the parent lattice, d-set, and HNF/SNF are returned
-SUBROUTINE get_HNF_of_derivative_structure(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+SUBROUTINE get_HNF_of_derivative_structure(title,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+character(80), intent(in) :: title
+real(dp), intent(in) :: sLV(3,3)    ! Input lattice vectors
+real(dp), intent(inout):: aBas(:,:) ! Input atomic coordinates (only changed if a shift is needed*) 
+integer, intent(in) :: aTyp(:) ! Type of each atom
+real(dp), intent(out):: pLV(:,:) ! lattice vectors of the parent lattice
+real(dp), pointer    :: dset(:,:) ! (intent(in)) d-set of the parent lattice
+real(dp), pointer    :: dsetStruc(:,:) ! d-set of structure (is determined from the structure, should in the end be equivalent to dset)
+integer              :: nD, nDStruc
+real(dp), intent(in):: eps
+integer, pointer :: HNF(:,:,:) ! (out) List of (rotationally-) equivalent HNFs
+integer, intent(out) :: SNF(3,3), L(3,3) ! L is the left transform for SNF
+
+integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i, iE, iP
+integer, pointer :: aTypTemp(:)
+real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:)
+real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest, sLVinv
+integer,dimension(3,3) :: S, R, tempH, newH
+logical err, unique, mapped
+integer, allocatable :: trow(:,:), vs(:), idx(:)
+real(dp) :: testsite(3), diff(3)
+
+nAt = size(aBas,2)
+
+if(nAt/=size(aTyp)) stop "Input to get_HNF_of_derivative_structure is inconsistent"
+
+nD = size(dset,2)
+
+open(17,file="debug_get_HNF.out")
+write(17,'(3/,"<<< Finding the g-space representation >>>",2/)')
+
+do iAt = 1, nAt
+   write(17,'("Atom #: ",i2," position: ",3(f7.3,1x))') iAt, aBas(:,iAt)
+enddo
+
+! Need to read in the parent lattice from struct_enum.out. The parent lattice of struct_enum.out and
+! the parent lattice of the structure to be checked must, of course, be equivalent. But for checking
+! the structures via the HNF, the same parent lattice representation must be used for both. (That
+! is, the bases for the parent lattice must not only be equivalent, but identical.) This is because,
+! if A_1!=A_2 (the two bases for the parent lattice), then A_1*H!=A_2*H. We need to use the same
+! parent basis when extracting the HNF of a superlattice.
+!open(18,file=sfname,status="old")
+!read(18,*); read(18,*) ! Skip the first two lines
+!do i = 1, 3; read(18,*) pLV(:,i); enddo
+!write(17,'("parent lattice vectors (columns) from ",a80)') adjustl(sfname)
+write(17,'(3(3f8.4,1x,/))') transpose(pLV)
+
+! Need to make sure that the interior points of the parent lattice are also equivalent
+! so read them in as well.
+!read(18,*) nEnumBas
+!allocate(EnumBas(3,nEnumBas))
+!write(17,'("Interior points of the parent (multi)lattice: ")')
+!do iAt = 1, nEnumBas
+!   read(18,*) EnumBas(:,iAt)
+!   write(17,'("pBas: ",3(f8.4,1x))') EnumBas(:,iAt)
+!enddo
+
+allocate(aTypTemp(nAt),aBasTemp(3,nAt))
+aTypTemp = aTyp; aBasTemp = aBas
+pLVtemp = sLV 
+call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
+if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
+   write(17,'(/,"ERROR: The input structure wasn''t primitive")')
+   write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
+   write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
+   stop "ERROR: input structure for get_HNF_of_derivative_structure was not primitive";endif
+
+! Now make every atom the same and apply make_primitive to find the parent cell
+aTypTemp = 1; pLVtemp = sLV
+call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
+write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
+
+call matrix_inverse(pLVtemp,parLattTest,err)
+if(err) stop "Problem inverting parent lattice basis"
+if (nD/=size(aTypTemp))then;print*,"Number of parent lattice sites in " !//trim(adjustl(sfname))
+   print *,"isn't the same as the structure being checked";
+   print *,"size(aTypTemp)",size(aTypTemp),"nD",nD;stop;endif
+! If we pass this test, the two cell bases are equivalent even if not equal. From this point on, use
+! the one from the struct_enum.out file. (that one is pLV, not pLVtemp)
+
+
+allocate(dsetStruc(3,size(aTypTemp))); dsetStruc = aBasTemp
+call matrix_inverse(pLV,pLVinv,err) 
+if(err) stop "matrix inverse failed in get_HNF_of_derivative_structure"
+write(17,'("d-set: ",/,200(3(f8.4,1x),/))') (dsetStruc(:,iAt),iAt=1,size(dsetStruc,2))
+write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
+
+! I think that both of the d-sets (one from struct_enum.out and one from POSCAR) should be brought
+! the unit cell (if they aren't already) and it should be the *same* unit cell
+write(17,'("After bringing into common unit cell:")')
+do iAt = 1, nD
+   call bring_into_cell(dsetStruc(:,iAt),pLVinv,pLV,eps) 
+   call bring_into_cell(dset     (:,iAt),pLVinv,pLV,eps) 
+   write(17,'("  dset struc: ",3(F8.4,1x))') dsetStruc(:,iAt)
+   write(17,'("  dset      : ",3(F8.4,1x))') dset(:,iAt)   
+end do; write(17,*)
+
+!* Check that the site basis for both the enum file and POSCAR are consistent.
+!  They might not have the same origin so try all distinct origin shifts and see if there is any
+!  shift that maps all of the sites in one case to all of the sites in the other
+do iAt = 1, nD
+   !write(*,'("iAt:",i3,"  EnumBas ",3(F8.4,1x))') iAt,EnumBas(:,iAt)
+   !write(*,'("iAt:",i3,"  dset ",3(F8.4,1x))') iAt,dset(:,iAt)
+   diff = dsetStruc(:,iAt)-dset(:,1)
+   !write(*,'("iAt:",i3,"  diff ",3(F8.4,1x))') iAt,dset(:,iAt)-EnumBas(:,1)
+   do iE = 1, nD
+      mapped=.false.
+      do iP = 1, nD
+         testsite = dset(:,iP)-diff
+         !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+         call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell        
+         !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+         if (equal(testsite,dset(:,iE),eps)) then ! this site maps to one in other lattice
+            mapped=.true.;!print *,"mapped" 
+            exit
+         endif
+      enddo
+      if(.not. mapped) exit
+   enddo
+   ! If we get to here and mapped is true, then the iE loop concluded without mapped ever coming up
+   ! false in the iP loop. If that is the case, then the sites in EnumBas all had coincident sites
+   ! in aBas. That means that the parent lattices (POSCAR and enum) are equivalent even if they
+   ! don't have the same origin.
+   if (mapped) exit
+enddo
+if (.not. mapped) stop "The lattice sites of the two parent lattices are not coincident"
+if (.not. equal(diff,0._dp,eps)) then
+   write(17,'("The atomic sites of the parent lattice of the input structure have been shifted by")')
+   write(17,'(3(f8.4,1x),/)') diff
+   dset = dset - spread(diff,2,size(aBas(:,2)))
+   do iAt = 1, nD
+      call bring_into_cell(dset(:,iAt),pLVinv,pLV,eps)
+      write(17,'("new pBas: ",3(f8.4,1x))') dset(:,iAt)
+   enddo
+   write(17,'(/)')
+   call matrix_inverse(sLV,sLVinv,err)
+   if(err) stop "Superlattice vectors are co-planar in routine ""get_HNF_of_derivative_superstructure"""
+   do iAt = 1, size(aBas,2)
+      aBas(:,iAt) = aBas(:,iAt) - diff
+      call bring_into_cell(aBas(:,iAt),sLVinv,sLV,eps)
+      write(17,'("new sLV bas: ",i2,3x,3(f8.4,1x))') iAt, aBas(:,iAt)
+   enddo
+   write(17,'(//)')
+endif
+
+if(.not. equal(determinant(sLV)/determinant(pLV),nint(determinant(sLV)/determinant(pLV)),eps)) stop &
+     "The superlattice in not an integer multiple of the primitive"
+if(.not. equal(matmul(pLVinv,sLV),nint(matmul(pLVinv,sLV)),eps)) stop &
+     "ERROR: HNF was non-integer"
+S = nint(matmul(pLVinv,sLV))
+
+call get_spaceGroup(pLV,aTypTemp,dset,sgrot,sgshift,.false.,eps)
+! I think it's OK here not to pass in labels for the types (aTypTemp=1). If we 
+! pick up extra symmetries from d-set permutations, these will not be effective
+! if the allowed labels are different. In other words, it can't hurt anything.     
+
+write(17,'("After get_spaceGroup:")')
+do iAt = 1, nD
+   call bring_into_cell(dsetStruc(:,iAt),pLVinv,pLV,eps) 
+   call bring_into_cell(dset     (:,iAt),pLVinv,pLV,eps) 
+   write(17,'("  dset struc: ",3(F8.4,1x))') dsetStruc(:,iAt)
+   write(17,'("  dset      : ",3(F8.4,1x))') dset(:,iAt)   
+end do; print *
+
+nOp = size(sgrot,3)
+allocate(trow(nOp,6),vs(nOp),idx(nOp))
+open(16,file="debug_get_spacegroup.out")
+do iOp = 1, nOp
+   do i = 1, 3
+      write(16,'("Op#: ",i2,3x,3(f8.4,1x))') iOp,sgrot(i,:,iOp)
+   end do
+   write(16,'("Shift#: ",3(f8.4,1x),/)') sgshift(:,iOp)
+end do
+
+! Find the unrotated form of this structure's HNF. We'll need this later to get the SNF's left
+! transform matrix, L, to map atom postions into the group. The find_gspace_representation routine
+! will assume that the *first* HNF in the list in the unrotated one. 
+call HermiteNormalForm(S,newH,R)
+trow(1,:) = (/newH(1,1),newH(2,1),newH(2,2),newH(3,1),newH(3,2),newH(3,3)/)
+
+idx = (/(i,i=1,nOp)/)
+nuq = 1
+do iOp = 1, nOp
+   ! Under the current rotation, what HNF does the current HNF turn into?
+   tempH = nint(matmul(pLVinv,matmul(sgrot(:,:,iOp),matmul(pLV,S))))
+   call HermiteNormalForm(tempH,newH,R)
+   unique = .true.
+   row = (/newH(1,1),newH(2,1),newH(2,2),newH(3,1),newH(3,2),newH(3,3)/)
+   write(17,'("HNF (rot #):",i3,3x,6(i2,1x))') iOp,row
+   do iuq = 1, nuq
+      if (all(row == trow(iuq,:))) then
+         unique = .false.
+         exit
+      endif
+   enddo
+   if (unique) then
+      nuq = nuq + 1
+      trow(nuq,:) = row
+   endif
+enddo
+write(17,'("Unique HNF entries after rotations:")')
+do i = 1,nuq
+   write(17,'("row #:",i3,3x,6(i2,1x))') i,trow(i,:)
+enddo
+allocate(HNF(3,3,nuq))
+HNF = 0
+do iuq = 1,nuq
+   HNF(1,1,iuq) = trow(iuq,1); HNF(2,1,iuq) = trow(iuq,2); HNF(2,2,iuq) = trow(iuq,3)
+   HNF(3,1,iuq) = trow(iuq,4); HNF(3,2,iuq) = trow(iuq,5); HNF(3,3,iuq) = trow(iuq,6)
+   write(17,'("HNF #: ",i3,/,3(3(i2,1x),/))') iuq,(HNF(iAt,:,iuq),iAt=1,3)
+enddo
+
+call SmithNormalForm(S,L,SNF,R)
+write(17,'("Integer transform of superlattice: ",/,3(3(i2,1x),/))') (S(iAt,:),iAt=1,3)
+write(17,'("SNF: ",/,3(3(i2,1x),/))') (SNF(iAt,:),iAt=1,3)
+close(17)
+END SUBROUTINE get_HNF_of_derivative_structure
+
+
+
+
+
+
+!***************************************************************************************************
+! This subroutine takes a structure defined in real space (atomic basis vectors in Cartesian 
+! coordinates) and checks whether or not it is a derivative structure of a parent lattice. If it is,
+! the parent lattice, d-set, and HNF/SNF are returned
+!
+! THIS IS GUS'S ORIGINAL. tk HAS MODIFIED IT IN ORDER TO GET THE STRUCTURE COMPARISON
+! THIS ROUTINE IS ONLY NEEDED IN THE DRIVER ROUTINE FIND_STRUCTURE_IN_LIST.X
+!
+SUBROUTINE get_HNF_of_derivative_structure_old(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
 character(80), intent(in) :: sfname ! Name of file to be searched for target structure
 real(dp), intent(in) :: sLV(3,3)    ! Input lattice vectors
 real(dp), intent(inout):: aBas(:,:) ! Input atomic coordinates (only changed if a shift is needed*) 
@@ -426,7 +659,8 @@ call SmithNormalForm(S,L,SNF,R)
 write(17,'("Integer transform of superlattice: ",/,3(3(i2,1x),/))') (S(iAt,:),iAt=1,3)
 write(17,'("SNF: ",/,3(3(i2,1x),/))') (SNF(iAt,:),iAt=1,3)
 close(17)
-END SUBROUTINE get_HNF_of_derivative_structure
+END SUBROUTINE get_HNF_of_derivative_structure_old
+
 
 
 !***************************************************************************************************
@@ -598,6 +832,7 @@ logical err
 !integer diag(3)
 ! debug
 
+
 allocate(label(1,size(dset,2)))
 allocate(digit(size(dset,2)))
 label = 1
@@ -608,6 +843,7 @@ open(17,file="debug_gspace_rep.out")
 nAt = size(aBas,2)
 write(17,'("Number of atoms: ",i3)') nAt
 if(nAt/=size(aTyp)) stop "Input to get_gspace_representation is inconsistent: nAt"
+
 
 allocate(HNFin(3,3,1))
 HNFin(:,:,1) = HNF(:,:,1) ! The first HNF in the list is the one that is unrotated
@@ -636,7 +872,7 @@ write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
   ! This call generates a list of permutations for the d-set under symmetry operations
   ! of the parent lattice (need this for d-g table permutations)
 call get_dvector_permutations(pLV,dset,dRotList,LatDim,eps)
-write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
+!write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: This throws a "bad type" error !?!?!
   ! This call returns a list of operations that fix the superlattice. The routine expects a *list* of
   ! HNF matrices, but here we only need to pass in one because every one in the list is
   ! rotationally-equivalent. So the input and output lists are only one element
@@ -872,4 +1108,66 @@ close(13)
 deallocate(ilabeling)
 
 End SUBROUTINE find_match_in_structenumout
+
+
+
+
+
+
+!***************************************************************************************************
+! This routine is based on find_match_in_structenumout but relies on the supply of two structures only
+!
+SUBROUTINE compare_two_gstructures(LatDim,pLV,dset,eps, A_HNF, A_labeling, B_HNFlist, B_labelingList, match) 
+real(dp), intent(in), dimension(3,3) :: pLV
+integer, intent(in)                  :: LatDim
+real(dp), pointer                    :: dset(:,:)     ! (in)
+! "original" structure A:
+integer, intent(in) :: A_HNF(:,:)          ! (in) HNF
+integer, intent(in) :: A_labeling(:)       ! (in) labeling
+! structure B that is to be compared to the "original" structure:
+integer, intent(in) :: B_labelingList(:,:) ! (in) { labeling#, entry   } permuted labelings
+integer, intent(in) :: B_HNFlist(:,:,:)    ! (in) { entry, entry, HNF# } List of HNFs (all equivalent)
+! do both structures match?
+logical, intent(out) :: match
+
+real(dp) :: eps
+
+character(80) title, bulksurf, dummy
+character(maxLabLength) :: labeling
+real(dp) :: p(3,3), Ainv(3,3)
+real(dp), allocatable :: dvec(:,:)
+integer, allocatable :: ilabeling(:)
+integer iStr, iLab, nLab, ioerr, i, nD, k, strN, hnfN, sizeN
+integer a, b, c, d, e, f, pgOps, diag(3), L(3,3), n, iHNF, nHNF
+logical foundLab, foundHNF
+
+call matrix_inverse(p,Ainv)
+
+nHNF = size(B_HNFlist,3)
+nLab = size(B_labelingList,1)
+
+match = .false.
+
+foundHNF = .false.
+do iHNF = 1, nHNF
+  if(.not. all(A_HNF==B_HNFlist(:,:,iHNF))) cycle
+  foundHNF = .true.
+  exit
+enddo
+if(.not. foundHNF) then  
+  return
+endif
+foundLab = .false.
+do iLab = 1, nLab
+  if(.not. all(A_labeling==B_labelingList(iLab,:))) cycle
+  foundLab = .true.
+  exit
+enddo
+
+if (foundHNF .and. foundLab) match = .true.
+return
+End SUBROUTINE compare_two_structures
+
+
+
 END MODULE enumeration_utilities
