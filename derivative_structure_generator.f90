@@ -356,7 +356,7 @@ type(RotPermList) :: RPlist(:) ! A list of lists of permutations effected by the
 type(RotPermList), intent(in) :: dperms
 real(dp), intent(in) :: eps ! finite precision tolerance
 type(RotPermList) :: rperms, tperms
-integer, pointer :: g(:,:)
+integer, pointer :: g(:,:) => null()
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated"  table
 integer, allocatable :: tg(:,:), perm(:), ident(:,:) ! translated group, translation permutation of the group members
 integer iH, nH, diag(3), iD, nD, iOp, nOp, n, ig, it, status, im, jm
@@ -553,7 +553,7 @@ integer, intent(in) :: volume
 integer, pointer:: hnf(:,:,:)
 
 integer, pointer    :: d(:,:) => null()
-integer             :: i, j, k, l!,m    ! Loop counters
+integer             :: i, j, k, l, m    ! Loop counters
 integer             :: N, Nhnf, ihnf ! # of triplets, # of HNF matrices, HNF counter
 integer status
 call get_HNF_diagonals(volume,d)
@@ -573,12 +573,15 @@ do i = 1,N ! Loop over the permutations of the diagonal elements of the HFNs
    do k = 0,d(3,i)-1  ! Ditto for row 3, element 1
    do l = 0,d(3,i)-1  ! Ditto for row 3, element 2
       ihnf = ihnf+1 ! Count the HNFs and construct the next one
+      !write(*,'(i5,1x,20(i1,1x))') ihnf,j,k,l
+      !write(*,'(3(i2,1x))') (hnf(m,:,ihnf),m=1,3); print *
       hnf(:,:,ihnf) = reshape((/ d(1,i),      0,     0,        &   
                                       j, d(2,i),     0,        &   
                                       k,      l, d(3,i)  /), (/3,3/))
+      !write(*,'(3(i2,1x))') (hnf(m,:,ihnf),m=1,3); print *
       hnf(:,:,ihnf) = transpose(hnf(:,:,ihnf))
+      !write(*,'(3(i2,1x))') (hnf(m,:,ihnf),m=1,3); print *
    enddo;enddo;enddo  ! End loops over values for off-diagonal elements
-!write(*,'(3(i2,1x))') (hnf(m,:,i),m=1,3); print *
 enddo ! End loop over all unique triplets of target determinant (volume)
 if (ihnf /= Nhnf) stop "HNF: not all the matrices were generated...(bug!)"
 END SUBROUTINE get_all_HNFs
@@ -1014,6 +1017,9 @@ do ivol = nMin, nMax
          call get_all_2D_HNFs(ivol,HNF) ! 2D
       endif
    endif
+   !do i = 1, size(hnf,3)
+   !   write(*,'(3(i2,1x))') (HNF(iD,:,i),iD=1,3); print *
+   !enddo
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
