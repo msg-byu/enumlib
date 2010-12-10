@@ -25,7 +25,11 @@ integer, pointer:: multiplier(:)
 integer i,j, nD, istat, ic
 
 nD = size(parDigit) ! Size of the d-set n*nD is the total length of a labeling
-if (associated(label)) deallocate(label,digit,multiplier)
+
+!print *,associated(label),associated(digit),associated(multiplier)
+if (associated(label)) deallocate(label)
+if (associated(digit)) deallocate(digit)
+if (associated(multiplier)) deallocate(multiplier)
 allocate(label(k,n*nD),digit(n*nD),multiplier(n*nD),STAT=istat)
 if (istat/=0) stop "Allocation failed in setup_mixed_radix_multiplier"
 
@@ -68,7 +72,7 @@ integer :: labeling(n*nD) ! base-k, n-digit number representing the labeling
 integer(li) :: labIndx ! base-10 form of the labeling
 integer status ! Allocation exit flag
 integer ivsL
-integer, pointer :: label(:,:), digit(:), multiplier(:) ! Need to convert base-10 back to labeling
+integer, pointer :: label(:,:)=>null(), digit(:)=>null(), multiplier(:)=>null() ! Need to convert base-10 back to labeling
 logical conc_check
 character(3) :: dummy
 character(80) :: struct_enum_out_formatstring 
