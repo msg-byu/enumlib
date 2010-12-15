@@ -573,16 +573,12 @@ do i = 1,N ! Loop over the permutations of the diagonal elements of the HFNs
    do k = 0,d(3,i)-1  ! Ditto for row 3, element 1
    do l = 0,d(3,i)-1  ! Ditto for row 3, element 2
       ihnf = ihnf+1 ! Count the HNFs and construct the next one
-      !write(*,'(i5,1x,20(i1,1x))') ihnf,j,k,l
-      !write(*,'(3(i2,1x))') (hnf(m,:,ihnf),m=1,3); print *
-      hnf(:,:,ihnf) = reshape((/ d(1,i),      0,     0,        &   
-                                      j, d(2,i),     0,        &   
-                                      k,      l, d(3,i)  /), (/3,3/))
-      !write(*,'(3(i2,1x))') (hnf(m,:,ihnf),m=1,3); print *
-      hnf(:,:,ihnf) = transpose(hnf(:,:,ihnf))
-      !write(*,'(3(i2,1x))') (hnf(m,:,ihnf),m=1,3); print *
+      hnf(:,:,ihnf) = reshape((/ d(1,i),      j,     k,        &   
+                                      0, d(2,i),     l,        &   
+                                      0,      0, d(3,i)  /), (/3,3/))
    enddo;enddo;enddo  ! End loops over values for off-diagonal elements
 enddo ! End loop over all unique triplets of target determinant (volume)
+
 if (ihnf /= Nhnf) stop "HNF: not all the matrices were generated...(bug!)"
 END SUBROUTINE get_all_HNFs
 
@@ -711,6 +707,7 @@ do i = 2,Nhnf  ! Loop over each matrix in the original list
                        ! the original (otherwise necessarily unique)
          test_latticei = matmul(sgrots(:,:,irot),matmul(parent_lattice,hnf(:,:,i)))
          test_latticej = matmul(parent_lattice,temp_hnf(:,:,j))
+         
          if (is_equiv_lattice(test_latticei,test_latticej,eps)) then
             duplicate = .true.;exit;endif
       enddo
@@ -1017,9 +1014,9 @@ do ivol = nMin, nMax
          call get_all_2D_HNFs(ivol,HNF) ! 2D
       endif
    endif
-   !do i = 1, size(hnf,3)
-   !   write(*,'(3(i2,1x))') (HNF(iD,:,i),iD=1,3); print *
-   !enddo
+!   do i = 1, size(hnf,3)
+!      write(*,'(3(i2,1x))') (HNF(iD,:,i),iD=1,3); print *
+!   enddo
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
@@ -1077,8 +1074,6 @@ do ivol = nMin, nMax
    call cpu_time(tend)
    write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
         size(uqSNF,3),size(rdHNF,3),1-size(rdHNF,3)/real(size(HNF,3)),Scnt, Tcnt
-   !write(12,'(i3,1x,8(f9.4,1x))') ivol,HNFtime-tstart, removetime-HNFtime, SNFtime-removetime,permtime-SNFtime&
-   !     &,organizetime-permtime,groupcheck-organizetime,writetime-groupcheck,tend-tstart
 enddo ! loop over cell sizes (ivol)
 close(14)
 write(*,'(A)') "---------------------------------------------------------------------------------------------"
