@@ -809,9 +809,8 @@ do i = 1,N ! Loop over the permutations of the diagonal elements of the HFNs
    do j = 0,d(3,i)-1  ! Look over possible values of row 2, element 1
       ihnf = ihnf+1 ! Count the HNFs and construct the next one
       hnf(:,:,ihnf) = reshape((/ d(1,i),      0,     0,        &   
-                                      0, d(2,i),     0,        &   
-                                      0,      j, d(3,i)  /), (/3,3/))
-      hnf(:,:,ihnf) = transpose(hnf(:,:,ihnf))
+                                      0, d(2,i),     j,        &   
+                                      0,      0, d(3,i)  /), (/3,3/))
    enddo  ! End loops over values for off-diagonal elements
 enddo ! End loop over all unique triplets of target determinant (volume)
 if (ihnf /= Nhnf) stop "HNF: not all the matrices were generated...(bug!)"
