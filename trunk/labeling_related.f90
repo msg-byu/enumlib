@@ -246,25 +246,24 @@ integer a(n*nD) ! The current labeling depicted as a list of integers
 ! testing, debugging
 !integer, dimension(4) :: x, m, j
 
-print *, iConc
 nL = multinomial(iConc)
 allocate(lab(nL),STAT=status)
 if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
 lab = ""
 nPerm = size(perm,1)
 a = -1
-!print *,"iConc",iConc
-do iP = 1, nL ! Loop over each possible permutation (later generalize this for k-nary case)
+do iP = 1, nL  ! Loop over each possible permutation (later generalize this for k-nary case)
    if(lab(iP)=='') then ! this labeling is unique. Keep it and cross off the duplicates
       lab(iP) = 'U'
       ! Get the labeling so we can apply the permutations
 !      call generate_labeling_from_index(32520,iConc,a)
       call generate_labeling_from_index(iP,iConc,a)
-      !write(*,'(20(i1,1x))') a
+!      write(*,'(20(i1,1x))') a
       do q = 2, nPerm
          !write(*,'(20(i1,1x))') a(perm(q,:))
          ! Add a check for legal labelings later
          call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
+
          if (idx==iP .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
          ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
          ! "translation" permutation and not a rotation permutation (they're ordered in the
@@ -315,7 +314,7 @@ l = -1
 call get_Xmj_for_labeling(indx,conc,x,m,j)
 !print *, "INDEX................", indx
 !print *, "CONC...................", conc
-!write(*,'("X...............   ",20(i4,1x))') x
+!write(*,'("X...............   ",20(i9,1x))') x
 !write(*,'("M..................  ",20(i2,1x))') m
 !write(*,'("J.................      ",20(i2,1x))') j
    !print *,"calling generate labeling"
@@ -349,7 +348,9 @@ n = size(conc)
 !print *,"shape conc",shape(conc)
 !print *,"conc in generate indxe: ",conc
 call get_Cs(conc,C)
+!print *, C, "Cs<<<-------------"
 call get_Xs_from_labeling(conc,l,X)
+!print *, X, "Xs.................."
 p = 0
 do iK = n, 1, -1
    p = p*C(iK)
@@ -405,7 +406,7 @@ do iK = 1, n
          xTemp = xTemp + binomial(nLeft - iM, count(mask(iM:)==1)-1) 
 !         write(*,'("top ",i5)')nLeft - iM
 !         write(*,'("bot ",i5)') count(mask(iM:)==1)-1
-!         write(*,'("binm ",i5)') binomial(nLeft - iM, count(mask(iM:)==1)-1)
+!         write(*,'("binm ",i9)') binomial(nLeft - iM, count(mask(iM:)==1)-1)
       endif
    enddo
    X(iK) = xTemp
@@ -653,8 +654,9 @@ integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector 
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 
 integer j ! Index variable (place index) for the k-ary counter
-integer ic, i, q ! loop counters, index variables
-integer nexp ! number of raw labelings that the k-ary counter should generate
+integer(li) ic
+integer i, q ! loop counters, index variables
+integer(li) nexp ! number of raw labelings that the k-ary counter should generate
 integer nl ! number of labels in each labeling (i.e., determinant size*d-set size)
 integer(li) idx ! the base 10 equivalent of the current base k labeling
 integer a(n*nD), b(n*nD) ! the "odometer"; label-permuted odometer
@@ -662,7 +664,7 @@ integer il ! loop counter over each digit in a labeling
 integer digCnt(n*nD) ! Ordinal counter for each place in the labeling (a mixed-radix number)
 integer digit(n*nD) ! Each entry is the number of labels in each place
 integer label(k,n*nD) ! Same as parLabel but repeated n times
-integer multiplier(n*nD) ! place values for each digit. k^(i-1) for the i-th digit for "normal"
+integer(li) multiplier(n*nD) ! place values for each digit. k^(i-1) for the i-th digit for "normal"
 !  base-k numbers. More complicated for mixed radix case.
 integer c(0:k-1) ! running sum (count) of the number of each label type 
 integer id, iq ! Counter for labels that are duplicates, for those unique
@@ -673,7 +675,8 @@ nl = n*nD
 nexp = k**nl  ! Number of digits in k-ary counter; upper limit of k-ary counter
 
 !!< Set up the number of expected labelings
-nexp = product(parDigit)**n  ! should be the same as k**nl when all labels are on all sites
+nexp = product(parDigit)**int(n,li)  ! should be the same as k**nl when all labels are on all sites
+
 if (associated(lab)) deallocate(lab)
 allocate(lab(nexp),STAT=status)
 if(status/=0) stop "Failed to allocate memory for 'lab' in generate_unique_labelings"
@@ -832,7 +835,11 @@ do; ic = ic + 1
 enddo
 !!!write(*,'(i3,1x,a1)') (i,lab(i),i=1,nexp)
 !!!print *,size(lab)
-if (ic /= nexp) stop 'Bug: Found the wrong number of labels!'
+if (ic /= nexp) then
+   print *, 'number of permutations counted', iC
+   print *, 'number expected', nexp
+   stop 'Bug: Found the wrong number of labels!'
+endif
 if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
 END SUBROUTINE generate_unique_labelings
 
