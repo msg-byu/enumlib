@@ -664,8 +664,8 @@ integer :: i, iAt, nAt, iD, nD, pLindx, n
 real(dp) :: Ainv(3,3), T(3,3), gtemp(3)
 logical err, mapped
 
-open(18,file="debug_find_labeling.out")
-write(18,'(3/,"Takes a list of vectors, maps them into the group, determines the labeling",2/)')
+!open(18,file="debug_find_labeling.out")
+!write(18,'(3/,"Takes a list of vectors, maps them into the group, determines the labeling",2/)')
 
 call matrix_inverse(A,Ainv,err)
 if(err) stop "Coplanar vectors in find_labeling_from_atom_basis"
@@ -674,13 +674,13 @@ diag(1) = SNF(1,1); diag(2) = SNF(2,2); diag(3) = SNF(3,3)
 nAt = size(aBas,2)
 nD = size(dset,2) ! Number of d-vectors in the dset
 
-write(18,'("Diagonal entries of HNF: ",3(i3,1x))') diag
-write(18,'("Left transform:",/,3(3i3,1x,/),/)') transpose(L)
-write(18,'("parent lattice vectors (columns):",/,3(3(f7.3,1x),/),/)') transpose(A)
-write(18,'("parLatt inverse (columns):",/,3(3(f7.3,1x),/),/)') transpose(Ainv)
-do iAt = 1, nAt
-   write(18,'("Atom #: ",i3,"   position: ",3(f7.3,1x))') iAt,aBas(:,iAt)
-enddo
+!write(18,'("Diagonal entries of HNF: ",3(i3,1x))') diag
+!write(18,'("Left transform:",/,3(3i3,1x,/),/)') transpose(L)
+!write(18,'("parent lattice vectors (columns):",/,3(3(f7.3,1x),/),/)') transpose(A)
+!write(18,'("parLatt inverse (columns):",/,3(3(f7.3,1x),/),/)') transpose(Ainv)
+!do iAt = 1, nAt
+!   write(18,'("Atom #: ",i3,"   position: ",3(f7.3,1x))') iAt,aBas(:,iAt)
+!enddo
 
 g = 0
 do iAt = 1, nAt ! Map each real space vector (atom position) into the group
@@ -701,18 +701,18 @@ do iAt = 1, nAt ! Map each real space vector (atom position) into the group
 enddo
 
 ! Print out g-space representation of each vector
-write(18,'("group list:")')
-do i = 1, 3
-   write(18,'(5x,200(i2,1x))') g(i,:)
-enddo
-write(18,'(5x,200(i2,1x))') dmember
+!write(18,'("group list:")')
+!do i = 1, 3
+!   write(18,'(5x,200(i2,1x))') g(i,:)
+!enddo
+!write(18,'(5x,200(i2,1x))') dmember
 
 ! Find the original (unpermuted) group
 call make_member_list(diag,p)
-write(18,'("original member list:")')
-do i = 1, 3
-   write(18,'(200(i2,1x))') p(i,:)
-enddo
+!write(18,'("original member list:")')
+!do i = 1, 3
+!   write(18,'(200(i2,1x))') p(i,:)
+!enddo
 allocate(p_with_d(4,nAt))
 
 ! Load up a 4xn*nD list of the group members
@@ -723,12 +723,12 @@ do iD = 1, nD ! Loop over each d-vector
    p_with_d(1:3,pLindx:pLindx+n-1) = p
    p_with_d(4,  pLindx:pLindx+n-1) = iD
 enddo
-do i = 1, 4
-   write(17,'(400(i2,1x))') p_with_d(i,:)
-enddo
+!do i = 1, 4
+!   write(17,'(400(i2,1x))') p_with_d(i,:)
+!enddo
 
 call matrix_inverse(matmul(L,Ainv),T)
-write(18,'("Map from group:",/,3(3(f7.3,1x),/),/)') transpose(T)
+!write(18,'("Map from group:",/,3(3(f7.3,1x),/),/)') transpose(T)
 
 ! If we want to do this, we need the supercell vectors
 !do iAt = 1, nAt
@@ -742,9 +742,9 @@ write(18,'("Map from group:",/,3(3(f7.3,1x),/),/)') transpose(T)
 call find_permutation_of_group_and_dset(p_with_d,g,dmember,perm)
 allocate(labeling(nAt))
 labeling = aTyp(perm)
-write(18,'("Input atom labels: ",200(i2,1x))') aTyp
-write(18,'("Group order:       ",200(i2,1x))') perm
-write(18,'("Labeling:          ",200(i2,1x))') labeling
+!write(18,'("Input atom labels: ",200(i2,1x))') aTyp
+!write(18,'("Group order:       ",200(i2,1x))') perm
+!write(18,'("Labeling:          ",200(i2,1x))') labeling
 
 ENDSUBROUTINE find_labeling_from_atom_basis
 
