@@ -219,16 +219,20 @@ END SUBROUTINE read_poscar
 ! This subroutine takes a structure defined in real space (atomic basis vectors in Cartesian 
 ! coordinates) and checks whether or not it is a derivative structure of a parent lattice. If it is,
 ! the parent lattice, d-set, and HNF/SNF are returned
-SUBROUTINE get_HNF_of_derivative_structure(title,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
+SUBROUTINE get_HNF_of_derivative_structure(title,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps,fixedOcc)
 character(80), intent(in) :: title
-real(dp), intent(in) :: sLV(3,3)    ! Input lattice vectors
-real(dp), intent(inout):: aBas(:,:) ! Input atomic coordinates (only changed if a shift is needed*) 
-integer, intent(in) :: aTyp(:) ! Type of each atom
-real(dp), intent(in):: pLV(:,:) ! lattice vectors of the parent lattice
-real(dp), pointer    :: dset(:,:) ! (intent(in)) d-set of the parent lattice
-real(dp), pointer    :: dsetStruc(:,:) ! d-set of structure (is determined from the structure, should in the end be equivalent to dset)
-integer              :: nD, nDStruc
-real(dp), intent(in):: eps
+real(dp), intent(in)      :: sLV(3,3)       ! Input lattice vectors
+real(dp), intent(inout)   :: aBas(:,:)      ! Input atomic coordinates (only changed if a shift is needed*) 
+integer, intent(in)       :: aTyp(:)        ! Type of each atom
+real(dp), intent(in)      :: pLV(:,:)       ! lattice vectors of the parent lattice
+real(dp), pointer         :: dset(:,:)      ! (intent(in)) d-set of the parent lattice
+real(dp), pointer         :: dsetStruc(:,:) ! d-set of structure (is determined from the structure, should in the end be equivalent to dset)
+integer                   :: nD, nDStruc
+real(dp), intent(in)      :: eps
+integer, intent(in), target, optional :: fixedOcc(:)  ! list of the atoms with fixed occupation. This is important for the symmetry and
+                                                      ! to determine whether a cell is primitive
+integer, pointer                      :: fixedOcc_(:) ! internal variable for fixedOcc
+integer, pointer                      :: removedAtoms(:)  ! indices of those atoms that were removed by make_primitive
 integer, pointer :: HNF(:,:,:) ! (out) List of (rotationally-) equivalent HNFs
 integer, intent(out) :: SNF(3,3), L(3,3) ! L is the left transform for SNF
 
@@ -242,10 +246,13 @@ integer, allocatable :: trow(:,:), vs(:), idx(:)
 real(dp) :: testsite(3), diff(3)
 
 nAt = size(aBas,2)
-
 if(nAt/=size(aTyp)) stop "Input to get_HNF_of_derivative_structure is inconsistent"
 
 nD = size(dset,2)
+
+if (present(fixedOcc)) then; fixedOcc_ => fixedOcc
+                       else; allocate(fixedOcc_(0))
+                       endif
 
 ! open(17,file="debug_get_HNF.out")
 ! write(17,'(3/,"<<< Finding the g-space representation >>>",2/)')
@@ -257,28 +264,35 @@ nD = size(dset,2)
 allocate(aTypTemp(nAt),aBasTemp(3,nAt))
 aTypTemp = aTyp; aBasTemp = aBas
 pLVtemp = sLV 
-call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
+call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps,removed_=removedAtoms)
 if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
    ! write(17,'(/,"ERROR: The input structure wasn''t primitive")')
    ! write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
    ! write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
-   stop "ERROR: input structure for get_HNF_of_derivative_structure was not primitive";endif
+   !stop "ERROR: input structure for get_HNF_of_derivative_structure was not primitive";endif
+  write(*,'(/,A)') "WARNING: input structure for get_HNF_of_derivative_structure was not primitive"; 
+  allocate(hnf(1,1,1)); HNF = 0
+  return
+endif
 
 ! Now make every atom the same and apply make_primitive to find the parent cell
-aTypTemp = 1; pLVtemp = sLV
+! (but don't change the labeling of fixed occupation sites)
+aTypTemp = 1
+aTypTemp(fixedOcc_) = aTyp(fixedOcc_)
+pLVtemp = sLV
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 ! write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
 
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
-if (nD/=size(aTypTemp))then;print*,"Number of parent lattice sites in " !//trim(adjustl(sfname))
+if (nD/=size(aTypTemp))then;print*,"Number of parent lattice sites" !in " //trim(adjustl(sfname))
    print *,"isn't the same as the structure being checked";
    print *,"size(aTypTemp)",size(aTypTemp),"nD",nD;stop;endif
 ! If we pass this test, the two cell bases are equivalent even if not equal. From this point on, use
 ! the one from the struct_enum.out file. (that one is pLV, not pLVtemp)
 
 
-allocate(dsetStruc(3,size(aTypTemp))); dsetStruc = aBasTemp
+allocate(dsetStruc(3,nD)); dsetStruc = aBasTemp
 call matrix_inverse(pLV,pLVinv,err) 
 if(err) stop "matrix inverse failed in get_HNF_of_derivative_structure"
 ! write(17,'("d-set: ",/,200(3(f8.4,1x),/))') (dsetStruc(:,iAt),iAt=1,size(dsetStruc,2))
@@ -298,36 +312,64 @@ end do;
 !* Check that the site basis for both the enum file and POSCAR are consistent.
 !  They might not have the same origin so try all distinct origin shifts and see if there is any
 !  shift that maps all of the sites in one case to all of the sites in the other
-do iAt = 1, nD
-   !write(*,'("iAt:",i3,"  EnumBas ",3(F8.4,1x))') iAt,EnumBas(:,iAt)
-   !write(*,'("iAt:",i3,"  dset ",3(F8.4,1x))') iAt,dset(:,iAt)
-   diff = dsetStruc(:,iAt)-dset(:,1)
-   !write(*,'("iAt:",i3,"  diff ",3(F8.4,1x))') iAt,dset(:,iAt)-EnumBas(:,1)
-   do iE = 1, nD
-      mapped=.false.
-      do iP = 1, nD
-         testsite = dset(:,iP)-diff
-         !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
-         call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell        
-         !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
-         if (equal(testsite,dset(:,iE),eps)) then ! this site maps to one in other lattice
-            mapped=.true.;!print *,"mapped" 
-            exit
-         endif
-      enddo
-      if(.not. mapped) exit
-   enddo
-   ! If we get to here and mapped is true, then the iE loop concluded without mapped ever coming up
-   ! false in the iP loop. If that is the case, then the sites in EnumBas all had coincident sites
-   ! in aBas. That means that the parent lattices (POSCAR and enum) are equivalent even if they
-   ! don't have the same origin.
-   if (mapped) exit
+! a) always start with 0 shift first
+!    (note: Gus's original version started with part b below. For surfaces it produced incorrect
+!    shifts, though. This is probably due to another fixed occupation issue, but tk decided
+!    not to digg to deep into it for the time being. After all, the input structures that are
+!    compared have already been checked for occupying the lattice, so a shift should not be 
+!    necessary in UNCLE.)
+diff = 0._dp
+do iE = 1, nD
+  mapped=.false.
+  do iP = 1, nD
+    testsite = dset(:,iP)-diff
+    call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell        
+    if (equal(testsite,dset(:,iE),eps)) then ! this site maps to one in other lattice
+      mapped=.true.;!print *,"mapped" 
+      exit
+    endif
+  enddo
+  if(.not. mapped) exit
 enddo
+! b) if the 0 shift was not successfull, try everything:
+if (.not. mapped) then
+   do iAt = 1, nD
+      !write(*,'("iAt:",i3,"  EnumBas ",3(F8.4,1x))') iAt,EnumBas(:,iAt)
+      !write(*,'("iAt:",i3,"  dset ",3(F8.4,1x))') iAt,dset(:,iAt)
+      diff = dsetStruc(:,iAt)-dset(:,1)
+      !write(*,'("iAt:",i3,"  diff ",3(F8.4,1x))') iAt,dset(:,iAt)-EnumBas(:,1)
+      do iE = 1, nD
+         mapped=.false.
+         do iP = 1, nD
+            testsite = dset(:,iP)-diff
+            !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+            call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell        
+            !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
+            if (equal(testsite,dset(:,iE),eps)) then ! this site maps to one in other lattice
+               mapped=.true.;!print *,"mapped" 
+               exit
+            endif
+         enddo
+         if(.not. mapped) exit
+      enddo
+      ! If we get to here and mapped is true, then the iE loop concluded without mapped ever coming up
+      ! false in the iP loop. If that is the case, then the sites in EnumBas all had coincident sites
+      ! in aBas. That means that the parent lattices (POSCAR and enum) are equivalent even if they
+      ! don't have the same origin.
+      if (mapped) exit
+   enddo
+endif
+
 if (.not. mapped) stop "The lattice sites of the two parent lattices are not coincident"
 if (.not. equal(diff,0._dp,eps)) then
    ! write(17,'("The atomic sites of the parent lattice of the input structure have been shifted by")')
    ! write(17,'(3(f8.4,1x),/)') diff
-   dset = dset - spread(diff,2,size(aBas(:,2)))
+   ! write(*,'("DEBUG: The atomic sites of the parent lattice of the input structure have been shifted by")')
+   ! write(*,'("DEBUG: ",3(f8.4,1x),/)') diff
+
+!Gus>   dset = dset - spread(diff,2,size(aBas(:,2)))
+   dset = dset - spread(diff,2,size(aBas,2))
+
    do iAt = 1, nD
       call bring_into_cell(dset(:,iAt),pLVinv,pLV,eps)
       ! write(17,'("new pBas: ",3(f8.4,1x))') dset(:,iAt)
@@ -430,6 +472,10 @@ END SUBROUTINE get_HNF_of_derivative_structure
 ! THIS IS GUS'S ORIGINAL. tk HAS MODIFIED IT IN ORDER TO GET THE STRUCTURE COMPARISON
 ! THIS ROUTINE IS ONLY NEEDED IN THE DRIVER ROUTINE FIND_STRUCTURE_IN_LIST.X, and this
 ! modified version is in GET_HNF_OF_DERIATIVE_STRUCTURE above.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! PLEASE: Don't change anything here that could as well be of importance to get_hnf_of_derivative_structure above.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE get_HNF_of_derivative_structure_old(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
 character(80), intent(in) :: sfname ! Name of file to be searched for target structure
@@ -682,6 +728,14 @@ nD = size(dset,2) ! Number of d-vectors in the dset
 !   write(18,'("Atom #: ",i3,"   position: ",3(f7.3,1x))') iAt,aBas(:,iAt)
 !enddo
 
+!write(*,'("Diagonal entries of HNF: ",3(i3,1x))') diag
+!write(*,'("Left transform:",/,3(3i3,1x,/),/)') transpose(L)
+!write(*,'("parent lattice vectors (columns):",/,3(3(f7.3,1x),/),/)') transpose(A)
+!write(*,'("parLatt inverse (columns):",/,3(3(f7.3,1x),/),/)') transpose(Ainv)
+!do iAt = 1, nAt
+!   write(*,'("Atom #: ",i3,"   position: ",3(f7.3,1x))') iAt,aBas(:,iAt)
+!enddo
+
 g = 0
 do iAt = 1, nAt ! Map each real space vector (atom position) into the group
    ! We need to account for the fact that some of the atomic positions are offset by one of the
@@ -813,6 +867,8 @@ logical err
 !integer diag(3)
 ! debug
 
+!write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+
 allocate(label(1,size(dset,2)))
 allocate(digit(size(dset,2)))
 label = 1
@@ -835,7 +891,8 @@ if(nAt/=size(aTypTemp)) then;
    ! write(17,'(/,"ERROR: The input structure wasn''t primitive")')
    ! write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
    ! write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
-   stop "ERROR: input structure for get_gspace_representation was not primitive";endif
+   !stop "ERROR: input structure for get_gspace_representation was not primitive";endif
+  write(*,'(A)') "WARNING: input structure for get_gspace_representation was not primitive";endif
 aTypTemp = 1; pLVtemp = sLV
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 ! write(17,'("Parent lattice (columns): ",/,3(3(f7.3,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
@@ -847,6 +904,7 @@ T = matmul(parLattTest,pLV)
 if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
 ! write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
 ! write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+! write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
 !** Calls to enumlib routines **
   ! This call generates a list of permutations for the d-set under symmetry operations
   ! of the parent lattice (need this for d-g table permutations)
