@@ -69,9 +69,6 @@ if(iargc()>=6) then
   read(dummy,*)spotsize
 endif
 
-
-
-
 call init(scale,-10.0,20.0)
 call init_colors
 
