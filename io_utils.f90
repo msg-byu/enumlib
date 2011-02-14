@@ -292,8 +292,8 @@ integer iOp, nOp,i
 twoDkey = "3D"
 if (present(key)) then; if(key=="2D") twoDkey = "2D"; endif
 
-if(twoDkey=="2D") then; open(11,file="symops_enum_2D.out",status="unknown"); else
-open(11,file="symops_enum.out",status="unknown");endif
+if(twoDkey=="2D") then; open(11,file="symops_enum_2D_parent_lattice.out",status="unknown"); else
+open(11,file="symops_enum_parent_lattice.out",status="unknown");endif
 nOp = size(rot,3)
 write(11,'("Number of symmetry operations: ",i2)') nOp
 do iOp = 1,nOp
