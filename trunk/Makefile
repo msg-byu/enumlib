@@ -98,6 +98,9 @@ makeperovstr.x: makePerovStr.o
 makestructin.x: makeStrIn.o
 	${F90} ${LDFLAGS} -o $@ makeStrIn.o libenum.a ${LIBS}
 
+randReduceTest.x: random_lattice_driver.o
+	${F90} ${LDFLAGS} -o $@ random_lattice_driver.o libenum.a ${LIBS}
+
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
