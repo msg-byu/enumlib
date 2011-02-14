@@ -646,7 +646,7 @@ integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
 integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
-character, pointer :: lab(:) ! Array to store markers for every raw labeling
+character, pointer :: lab(:) => null() ! Array to store markers for every raw labeling
 ! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
 ! Need to pass lab out to write out the labelings
 logical, intent(in) :: full ! specify whether the full labelings list should be used or not
