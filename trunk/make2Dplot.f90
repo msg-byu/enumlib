@@ -42,11 +42,36 @@ do ;read(11,*) dummy
    if(dummy(1:5)=="start") exit
 enddo 
 
-scale = .10
-Nspots = 12
-rows = 19
-cols = 6
-spotsize = .40
+scale = .025*1.5
+Nspots = 14
+rows = 49
+cols = 8*7/1.5
+spotsize = .48
+
+if (iargc()>=2) then
+  call getarg(2,dummy)
+  read(dummy,*)scale
+endif
+if(iargc()>=3) then
+  call getarg(3,dummy)
+  read(dummy,*)Nspots
+endif
+if(iargc()>=4) then
+  call getarg(4,dummy)
+  read(dummy,*)rows
+endif
+if(iargc()>=5) then
+  call getarg(5,dummy)
+  read(dummy,*)cols
+endif
+if(iargc()>=6) then
+  call getarg(6,dummy)
+  read(dummy,*)spotsize
+endif
+
+
+
+
 call init(scale,-10.0,20.0)
 call init_colors
 
@@ -54,8 +79,8 @@ xorig = 0.; yorig = 0
 ! Need to add a loop over each structure
 outer: do js = 1,rows
    do is = 1,cols
-      xoff = 2*(is-1)*Nspots
-      yoff = 28/scale - (js-1)*(Nspots+3)
+      xoff = 1.05*(is-1)*Nspots
+      yoff = 28/scale - (js-1)*(Nspots+1)
       !if ((js-1)*cols+is>160) exit outer ! Ternary
       !if ((js-1)*cols+is>155) exit outer ! binary
       if (yoff < 0) exit outer
@@ -71,12 +96,13 @@ outer: do js = 1,rows
       do i = 0,Nspots-2
          do j = 0,Nspots-2
             do iD = 1, nD
+            !   print *,iD,dvec(2:3,iD)
             ! point is a 2-vector, Cartesian coordinates of the point
             point = i*parLat(:,1)+j*parLat(:,2)+(/xoff,yoff/)+dvec(2:3,iD)
             ! i, j are the parent lattice direct coordinates of a point 
             ! (not including the d-vector index). In other words, (i,j)=A^-1.r
             ! So temp is (LA^-1)r which maps the vector into the group
-            temp = modulo(matmul(L,((/i,j/))),&
+            temp = modulo(matmul(L,((/i-1,j-1/))),&
                  ((/diag(2),diag(3)/)))
             !write(*,'("i,j: ",2(i2,1x))') i,j
             ! temp will now contain the "group member index" of the point (i,j)
@@ -89,10 +115,10 @@ outer: do js = 1,rows
             label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
             !write(*,'("i,j:",2(1x,i2),5x,"g coords:",2(1x,i1),5x,"label:",i1)') i,j,temp,label
             if (labeling(label:label)=='1') then
-                call color('green')
+                call color('yellow')
                 call bullet(point(1),point(2),spotsize)
             else if (labeling(label:label)=='2') then
-                  call color('blue')
+                  call color('cyan')
                   call bullet(point(1),point(2),spotsize)
             else
                if (diag(2)==1) then; call color('red');
