@@ -1042,6 +1042,8 @@ do ivol = nMin, nMax
    Scnt = 0 ! Keep track of the number of structures at this size   
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
+      filename = "temp_perms.out"
+      call write_rotperms_list(rdRPList(iBlock),filename)
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
 !            write( *,'("iRange: ",20(i2,1x))')iRange(iC,:)
@@ -1050,18 +1052,16 @@ do ivol = nMin, nMax
 !            print *,"hash tabel",size(lm)
              call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
                   &,RPLindx,lm,equivalencies,iRange(iC,:))
+             ! These next two are useful for debugging and checking
          enddo
       else
       	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
-      	filename = "temp_perms.out"
-      	call write_rotperms_list(rdRPList(iBlock),filename)
-      	!stop "debugging"
       	!call cpu_time(genlabels)
       	!print *, "block",iBlock
       	!print *, shape(rdRPList(iBlock)%perm), "shape"
       	!do i = 1,size(rdRPList(iBlock)%perm,1)
       	!   write(*,'(8i1)') rdRPList(iBlock)%perm(i,:)
-      	!enddo
+        !enddo
       	!write(*,'(256a1)') lm(1:150)
       	! Now that we have the labeling marker, we can write the output.
       	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies)

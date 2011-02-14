@@ -1,9 +1,13 @@
 hex
-1 0 0
-.5 0.86602540378444 0
-0 0  1.63299316185545
-1
-0 0 0
-2
-2 12
-.01
+surf
+1 0 0                         # a1 parent lattice vector
+0 .5 0.86602540378444 	      # a2 parent lattice vector
+0 1 0              	      # a3 parent lattice vector
+ 2 -nary case
+    1 # Number of points in the multilattice
+ 0.0000000      0.0000000      0.0000000    0/1   # d01 d-vector
+    16 16   # Starting and ending cell sizes for search
+0.10000000E-06 # Epsilon (finite precision parameter)
+full list of labelings
+# Concentration ranges?
+1 1 16
