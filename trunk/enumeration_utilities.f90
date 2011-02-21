@@ -285,9 +285,19 @@ call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
-if (nD/=size(aTypTemp))then;print*,"Number of parent lattice sites" !in " //trim(adjustl(sfname))
-   print *,"isn't the same as the structure being checked";
-   print *,"size(aTypTemp)",size(aTypTemp),"nD",nD;stop;endif
+if (nD/=size(aTypTemp))then;
+! Note: we should try to find a better solution here. The problem here is that we
+! can define a lattice with >1 dvector that can be effectively reduced to a 
+! different lattice with only 1 dvector. If this happens, all structures
+! end up in this "if" statement with aTypTemp<nD.
+  write(*,'(/,A)') "WARNING: parent lattice does not seem to be primitive"
+  allocate(hnf(1,1,1)); HNF = 0
+  return
+!  print*,"Number of parent lattice sites" !in " //trim(adjustl(sfname))
+!  print *,"isn't the same as the structure being checked";
+!  print *,"size(aTypTemp)",size(aTypTemp),"nD",nD;
+!  stop;
+endif
 ! If we pass this test, the two cell bases are equivalent even if not equal. From this point on, use
 ! the one from the struct_enum.out file. (that one is pLV, not pLVtemp)
 
