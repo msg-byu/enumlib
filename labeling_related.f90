@@ -646,7 +646,7 @@ integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
 integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
-character, pointer :: lab(:) => null() ! Array to store markers for every raw labeling
+character, pointer :: lab(:)     ! Array to store markers for every raw labeling
 ! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
 ! Need to pass lab out to write out the labelings
 logical, intent(in) :: full ! specify whether the full labelings list should be used or not
@@ -670,6 +670,8 @@ integer c(0:k-1) ! running sum (count) of the number of each label type
 integer id, iq ! Counter for labels that are duplicates, for those unique
 integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
 integer :: np, ip, nPerm, status ! Loops over label exchang permutations, number of labeling permutatations, allocate error flag
+
+lab => null()
 
 nl = n*nD
 nexp = k**nl  ! Number of digits in k-ary counter; upper limit of k-ary counter
