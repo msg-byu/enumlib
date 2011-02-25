@@ -358,7 +358,7 @@ real(dp), intent(in) :: eps ! finite precision tolerance
 type(RotPermList) :: rperms, tperms
 integer, pointer :: g(:,:) => null()
 integer, allocatable :: gp(:,:), dgp(:,:) ! G prime; the "rotated" group, (d',g') "rotated"  table
-integer, allocatable :: tg(:,:), perm(:), ident(:,:) ! translated group, translation permutation of the group members
+integer, allocatable :: tg(:,:), perm(:), ident(:,:), identT(:,:) ! translated group, translation permutation of the group members
 integer iH, nH, diag(3), iD, nD, iOp, nOp, n, ig, it, status, im, jm
 real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
@@ -369,10 +369,11 @@ logical, allocatable :: skip(:)
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2) 
 allocate(gp(3,n), dgp(nD,n), rgp(3,n),skip(n),STAT=status)
 if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
-allocate(tg(3,n),perm(n),ident(nD,n),STAT=status)
+allocate(tg(3,n),perm(n),ident(nD,n),identT(n,nD),STAT=status)
 if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident"
 allocate(tperms%perm(n,n*nD)) 
-ident = transpose(reshape((/(ig,ig=1,n*nD)/),(/n,nD/)))
+identT = reshape((/(ig,ig=1,n*nD)/),(/n,nD/))  ! we could combine those two lines, but gfortran
+ident  = transpose(identT)                     ! does some strange things then.
 forall(iH = 1:nH); RPlist(iH)%nL=0; end forall ! initialize the number in each list
 
 ! Make the group member list for the first SNF
@@ -470,6 +471,7 @@ integer, intent(out) :: perm(:) ! permutation of gp
 integer n ! number of elements in the group (index of the superlattice)
 logical skip(size(g,2))
 integer im, jm
+
 n = size(g,2); perm = 0
 skip = .false. ! This is just for efficiency
 do im = 1, n
