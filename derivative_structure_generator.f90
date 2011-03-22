@@ -929,7 +929,7 @@ if (conc_check) then
   write(*,'(A)') "Including only structures of which the concentration &
 &  of each atom is in the range:"
   do i = 1, k
-     write(*,'("Type ",i1": ",i2,"/",i2," -- ",i2,"/",i2)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+     write(*,'("Type ",i1": ",i3,"/",i3," -- ",i3,"/",i3)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
   enddo
 endif
 
@@ -966,7 +966,7 @@ if (conc_check) then
   write(14,'(A)') "Including only structures of which the concentration &
 &  of each atom is in the range:"
   do i = 1, k
-     write(14,'("Type ",i1": ",i2,"/",i2," -- ",i2,"/",i2)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+     write(14,'("Type ",i1": ",i3,"/",i3," -- ",i3,"/",i3)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
   enddo
 endif
 if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
