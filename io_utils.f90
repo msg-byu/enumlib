@@ -225,7 +225,7 @@ call co_ca(10,err)
 
 allocate(cRange(k,3))
 cRange = 0
-do i = 1, k-1
+do i = 1, k
    read(10,*,iostat=status) cRange(i,:)
    conc_check = .true.
    if (status/=0) then ! concentration is not specificed specified
@@ -236,13 +236,15 @@ do i = 1, k-1
    endif
 enddo
 close(10)
-n = cRange(1,3)
-cRange(k,1) = n - sum(cRange(1:k-1,1))
-cRange(k,2) = n - sum(cRange(1:k-1,2))
-cRange(k,3) = n
-if (any(cRange<0)) stop "Bad input on concentrations in read_input"
-if (any(cRange>n)) stop "Bad input #2 on concentrations in read_input"
-if (any(cRange(:,3)/=n)) stop "Inconsistent cell sizes in input in read_input"
+
+if (any(cRange<0)) stop "ERROR: negative input on concentrations in read_input"
+do i = 1, k
+   if (maxval(cRange(i,1:2))>cRange(i,3)) then
+      write(*,'("ERROR: Numerator is larger than denominator.")')
+      write(*,'("ERROR: Check the concentration input for element #:",i2)') i
+      stop
+   endif
+enddo
 end subroutine read_input
 
 subroutine co_ca(unit,error)

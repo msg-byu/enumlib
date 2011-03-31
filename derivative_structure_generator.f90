@@ -23,59 +23,65 @@ public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
 CONTAINS
 
 !***************************************************************************************************
-! This routine builds a concentration table like cTable in get_concentration_list but for a
-! different cell size. It takes 
-SUBROUTINE get_list_at_this_size(n,cTable,cList,eps)
-integer, intent(in) :: n
-integer, intent(in) :: cTable(:,:)
-integer, pointer    :: cList(:,:)
+! This routine builds a concentration table with numerators and
+! denominators for the given cell size subject to the concentration
+! constraints specified in cTable
+SUBROUTINE get_list_at_this_size(vol,concTable,cList,eps)
+integer, intent(in) :: vol ! Current size of cells in the enumeration loops
+integer, intent(in) :: concTable(:,:) ! Table of desired concentration ranges
+integer, pointer    :: cList(:,:) ! List of fractions that are within the ranges
 real(dp), intent(in):: eps
 
-integer nTable(size(cTable,1),size(cTable,2))
+integer volTable(size(concTable,1),size(concTable,2))
 integer i, denom, minv, maxv
 
-denom = cTable(1,3) ! Cell size of input concentration ranges
-do i = 1, size(cTable,1)
-   minv = minval(cTable(i,1:2)); maxv = maxval(cTable(i,1:2))
-   nTable(i,1:2) = (/ floor(real(minv,dp)/denom*n), ceiling(real(maxv,dp)/denom*n) /) 
-   nTable(i,3) = n
-!   write(*,'(6(i2,1x))') nTable(i,:)
+do i = 1, size(concTable,1) ! Loop over the rows in the table. There are k rows (number of "colors")
+   denom = concTable(i,3) ! Cell size of input concentration ranges
+   minv = minval(concTable(i,1:2)); maxv = maxval(concTable(i,1:2))
+   ! Use floor on the bottom of the range and ceiling at the top so
+   ! that the resulting integers must necessarily straddle the desired
+   ! concentration range. Concentrations outside ther range will be
+   ! eliminated by get_concentration_list
+   volTable(i,1:2) = (/ floor(real(minv,dp)/denom*vol), ceiling(real(maxv,dp)/denom*vol) /) 
+   volTable(i,3) = vol ! Set the denominator  of the fractions listed
+   ! in the volume table to be the current size of unit cells (i.e.,
+   ! the volume) being enumerated.
 enddo
 
-call get_concentration_list(cTable,nTable,cList,eps)
+call get_concentration_list(concTable,volTable,cList,eps)
 
 END SUBROUTINE get_list_at_this_size
 
 !***************************************************************************************************
 ! This routine takes the concentration "table" from lat.in or struct_enum.in and generates a list of
 ! concentration vectors that are consistent with the ranges in the input file
-SUBROUTINE get_concentration_list(oTable,cTable,cList,eps)
-integer, intent(in) :: oTable(:,:) ! concentration ranges specified in the input
-integer, intent(in) :: cTable(:,:) ! concentration ranges specified for current unit cell sizes
+SUBROUTINE get_concentration_list(concTable,volTable,cList,eps)
+integer, intent(in) :: concTable(:,:) ! concentration ranges specified in the input (original)
+integer, intent(in) :: volTable(:,:) ! concentration ranges specified for current unit cell sizes
 integer, pointer    :: cList(:,:)  ! List of concentration vectors that are within the ranges
 real(dp), intent(in):: eps
 
 integer j, k, i, n, cc
-integer, dimension(size(cTable,1)) :: digCnt, digit
+integer, dimension(size(volTable,1)) :: digCnt, digit
 integer, allocatable :: label(:,:), a(:)
-real(dp), dimension(size(cTable,1)) :: minv, maxv, conc
+real(dp), dimension(size(volTable,1)) :: minv, maxv, conc
 
 !print *,"ctable",ctable
-n = cTable(1,3) ! Total number of slots in the labeling
-digit = cTable(:,2) - cTable(:,1) + 1  ! Number of "labels" on each "wheel" of the odometer
+n = volTable(1,3) ! Total number of slots in the labeling
+digit = volTable(:,2) - volTable(:,1) + 1  ! Number of "labels" on each "wheel" of the odometer
 digCnt = 1 ! Start each wheel of the odometer at the first position
-k = size(cTable,1) ! Number of labels, i.e., number of wheels on the odometer (i.e, the number of atom types)
+k = size(volTable,1) ! Number of labels, i.e., number of wheels on the odometer (i.e, the number of atom types)
 allocate(cList(product(digit),k))
 allocate(a(k))  ! The reading on the "odometer"
 
 !print *,"digit",digit
 ! Define a table that stores the possible labels for each wheel
-allocate(label(size(cTable,1),maxval(digit)))
+allocate(label(size(volTable,1),maxval(digit)))
 label = -1 ! Ends of the rows in this ragged list
 do j = 1, k 
-   label(j,:) = (/(i,i=cTable(j,1),cTable(j,2))/)
-   minv(j) = real(minval((/oTable(j,1),oTable(j,2)/)),dp)/oTable(j,3)
-   maxv(j) = real(maxval((/oTable(j,1),oTable(j,2)/)),dp)/oTable(j,3)
+   label(j,:) = (/(i,i=volTable(j,1),volTable(j,2))/)
+   minv(j) = real(minval((/concTable(j,1),concTable(j,2)/)),dp)/concTable(j,3)
+   maxv(j) = real(maxval((/concTable(j,1),concTable(j,2)/)),dp)/concTable(j,3)
 enddo
 forall(j=1:k);a(j)=label(j,1);endforall
 
@@ -590,8 +596,8 @@ END SUBROUTINE get_all_HNFs
 ! corresponds to each HNF. The transformations, SNFs, and labels are ordered on output
 ! into blocks of identical SNFs.
 SUBROUTINE get_SNF(HNF,A,SNF,B,RPList,F,SNF_label,fixing_op)
-integer, pointer :: HNF(:,:,:), SNF_label(:)
-integer, pointer, dimension(:,:,:) :: A, SNF, B, F
+integer, pointer :: HNF(:,:,:), SNF_label(:) ! HNF is an input list
+integer, pointer, dimension(:,:,:) :: A, SNF, B, F ! All these are output lists
 type(opList) :: fixing_op(:) ! List of operations that fix each HNF
 type(RotPermList) :: RPList(:) ! List of rotation permutations for each HNF
 
@@ -639,10 +645,13 @@ RPList = RPList(indx) ! Reorders the permutations lists
 
 ! Fail safe trigger and storage of unique SNFs
 if (ic/=nHNF+1) stop "SNF sort in get_SNF didn't work"
-if (associated(F)) deallocate(F)
+!if (associated(F)) deallocate(F) !! This is unnecessary because F
+!should only be allocated here and it only happens once in each call
+!to gen_multilattice_derivatives
 allocate(F(3,3,nfound),STAT=status)
 if(status/=0) stop "Failed to allocate memory in get_SNF for array F"
 F = tF(:,:,1:nfound)
+
 ENDSUBROUTINE get_SNF
 
 !*******************************************************************************
@@ -901,17 +910,6 @@ do iD=1,nDFull
   endif
 enddo
 
-
-! Concentration check settings
-!!GHif (.not. conc_check) then
-!!GH  cElementN = 1
-!!GHstop "does cRange need to be initialized?"
-!!GH  !cRange    = (/0._dp,1._dp/)
-!!GHelse
-!!GH!!GH  cElementN = conc_ElementN
-!!GH  cRange    = conc_Range
-!!GHendif
-
 ! Are we going to use a set of fixed cells? Or loop over all possible cells?
 fixed_cells = .false.
 open(43,file="fixed_cells.in",status="old",iostat=status)
@@ -997,11 +995,7 @@ Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax
    if (conc_check) then
-!      print *,ivol
-!      write(*,'("crange",20(i2,1x))') cRange
       call get_list_at_this_size(ivol,cRange,iRange,eps)
-!      write(*,'("irange",20(i2,1x))') iRange
-      !print *,"irange",irange
       if (size(iRange,1)==0) cycle
    endif
    call cpu_time(tstart)
@@ -1015,9 +1009,6 @@ do ivol = nMin, nMax
          call get_all_2D_HNFs(ivol,HNF) ! 2D
       endif
    endif
-!   do i = 1, size(hnf,3)
-!      write(*,'(3(i2,1x))') (HNF(iD,:,i),iD=1,3); print *
-!   enddo
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
