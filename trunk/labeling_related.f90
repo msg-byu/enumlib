@@ -851,11 +851,13 @@ END SUBROUTINE generate_unique_labelings
 ! the permutations can be determined. Each member has three components, corresponding to the
 ! entries for each of the three cyclic groups. 
 SUBROUTINE make_member_list(n,p)
+! INPUT
 integer, intent(in)  :: n(3)! Diagonal elements of the SNF
+! OUTPUT
 integer, pointer :: p(:,:)  ! List of members of the translation group
 
 integer im, status  ! loop over members, allocate status flag
-if (associated(p)) deallocate(p)
+!if (associated(p)) deallocate(p)
 allocate(p(3,product(n)),STAT=status)
 if(status/=0) stop "Allocation of 'p' failed in make_member_list"
 p = 0

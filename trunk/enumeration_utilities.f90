@@ -803,6 +803,7 @@ call matrix_inverse(matmul(L,Ainv),T)
 !enddo
 
 ! Find the permutation of the original group that gives the input atom types
+
 call find_permutation_of_group_and_dset(p_with_d,g,dmember,perm)
 allocate(labeling(nAt))
 labeling = aTyp(perm)
@@ -884,6 +885,7 @@ allocate(digit(size(dset,2)))
 label = 1
 digit = 1
 
+!if (strNumber >1) stop "made it to here"
 ! open(17,file="debug_gspace_rep.out")
 nAt = size(aBas,2)
 ! write(17,'("Number of atoms: ",i3)') nAt
@@ -893,9 +895,11 @@ if(nAt/=size(aTyp)) stop "Input to get_gspace_representation is inconsistent: nA
 allocate(HNFin(3,3,1))
 HNFin(:,:,1) = HNF(:,:,1) ! The first HNF in the list is the one that is unrotated
 
+
 allocate(aTypTemp(nAt),aBasTemp(3,nAt))
 aTypTemp = aTyp; aBasTemp = aBas
 sLVtemp = sLV 
+
 call make_primitive(sLVtemp,aTypTemp,aBasTemp,.false.,eps)
 if(nAt/=size(aTypTemp)) then;
    ! write(17,'(/,"ERROR: The input structure wasn''t primitive")')
@@ -918,18 +922,21 @@ if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inco
 !** Calls to enumlib routines **
   ! This call generates a list of permutations for the d-set under symmetry operations
   ! of the parent lattice (need this for d-g table permutations)
+
 call get_dvector_permutations(pLV,dset,dRotList,LatDim,eps)
 !write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: This throws a "bad type" error !?!?!
   ! This call returns a list of operations that fix the superlattice. The routine expects a *list* of
   ! HNF matrices, but here we only need to pass in one because every one in the list is
   ! rotationally-equivalent. So the input and output lists are only one element
   ! long (in the last index). E.g., HNFin is a 3x3x1 array of integers (original lattice HNF)
+
 call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,label,digit,eps)
 ! write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
 ! write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
 !     ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
   ! This routine gets the SNF form of the HNF, returns a list of permutations effected by the
   ! rotation symmetries,
+
 call get_SNF(HNFout,L,SNFlist,R,LattRotList,uqSNF,SNFlabel,fixOp)
 !!! Debug
 !print *,"HNF check",all(HNFin(:,:,1)==HNFout(:,:,1))
@@ -945,6 +952,7 @@ call get_SNF(HNFout,L,SNFlist,R,LattRotList,uqSNF,SNFlabel,fixOp)
 ! write(17,'("Left transform:",/,3(3i2,1x,/))') transpose(L(:,:,1))
 ! write(17,'("Smith Normal form:",/,3(3i2,1x,/))') transpose(SNFlist(:,:,1))
 ! write(17,'("Permutations:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
+
 SNF = SNFlist(:,:,1)
 
 ! This loads up the "perm" element of LattRotList

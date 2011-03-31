@@ -18,8 +18,7 @@ for n in range(1,1300):
 print "\n Read in a total of "+str(n-1)+" stuctures from "+sys.argv[1]
 system("perl -pi -e 's/scale factor/1.0/g' vasp.*")
 unclefile = open("structures.in",'w')
-unclefile.write("peratom\n")
-unclefile.write("noweights\n")
+unclefile.write("scalar\nperatom\nnoweights\n")
 vnum =glob.glob('vasp.*')
 for i in vnum:
     f = open(i)

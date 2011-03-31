@@ -14,7 +14,7 @@ real(sp) :: p(3,3),  scale, spotsize
 real(sp) :: xorig, yorig, parLat(2,2),point(2),yoff,xoff
 real(dp), allocatable :: dvec(:,:)
 
-if(iargc()/=1) stop "2Dplot.x requires as an argument &
+if(iargc()<1) stop "2Dplot.x requires as an argument &
      & the filename to read from"
 call getarg(1,dummy)
 read(dummy,*) fname
@@ -112,7 +112,7 @@ outer: do js = 1,rows
             label = (iD-1)*indx+(temp(2)+temp(1)*diag(3))+1  
             !write(*,'("i,j:",2(1x,i2),5x,"g coords:",2(1x,i1),5x,"label:",i1)') i,j,temp,label
             if (labeling(label:label)=='1') then
-                call color('yellow')
+                call color('green')
                 call bullet(point(1),point(2),spotsize)
             else if (labeling(label:label)=='2') then
                   call color('cyan')
