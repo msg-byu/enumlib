@@ -1,13 +1,15 @@
-2D square 
-surf       # Surface case (instead of bulk)
-1. 0. 0.   # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used)
-0. 1. 0.   # Second lattice vector
-0. 0. 1.   # Third lattice vector
+FCC interstitials
+bulk       # 3-D case (not 2-D---surf)
+.5  .5   0
+.5   0  .5
+0   .5  .5
 2          # binary case
-1          # One lattice point/unit cell
- 0 0 0 0/1    # That lattice point is at the origin
-1 6        # Cell sizes to enumerate
+3          # three lattice points/unit cell
+ 0.5  0.5  0.5  0/1 # octaeder
+ 0.75 0.75 0.75 0/1 # tetraeder
+ 0.25 0.25 0.25 0/1 # tetraeder
+1 2        # Cell sizes to enumerate
 .0001      # Finite precision parameter
-part       # Only generate a partial listing (e.g. consider AAAB==BBBA)
-0 2 3
+full       # generate a full listing (e.g., consider AAAB!=BBBA)
+0 1 2
 0 1 2

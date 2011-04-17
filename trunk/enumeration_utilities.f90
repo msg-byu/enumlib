@@ -39,7 +39,6 @@ integer ic, z1, z2, z3 ! Counter over number of interior points, steps in the g 
 integer iAt, i, iD, nD
 real(dp) :: greal(3)   ! Floating point representation of the group element components (g-vector)
 integer  :: g(3)       ! Integer version of greal
-logical, pointer  :: gotAtomFromLabPos(:)
 
 nD = size(pBas,2)
 !allocate(gotAtomFromLabPos(n*nD)); gotAtomFromLabPos = .false.
@@ -227,7 +226,7 @@ integer, intent(in)       :: aTyp(:)        ! Type of each atom
 real(dp), intent(in)      :: pLV(:,:)       ! lattice vectors of the parent lattice
 real(dp), pointer         :: dset(:,:)      ! (intent(in)) d-set of the parent lattice
 real(dp), pointer         :: dsetStruc(:,:) ! d-set of structure (is determined from the structure, should in the end be equivalent to dset)
-integer                   :: nD, nDStruc
+integer                   :: nD
 real(dp), intent(in)      :: eps
 integer, intent(in), target, optional :: fixedOcc(:)  ! list of the atoms with fixed occupation. This is important for the symmetry and
                                                       ! to determine whether a cell is primitive
@@ -716,7 +715,7 @@ integer, pointer                    :: labeling(:) ! out
 integer, dimension(3,size(aBas,2)) :: g
 integer, pointer :: p(:,:), p_with_d(:,:)
 integer :: diag(3), perm(size(aBas,2)), dmember(size(aBas,2))
-integer :: i, iAt, nAt, iD, nD, pLindx, n
+integer :: iAt, nAt, iD, nD, pLindx, n
 real(dp) :: Ainv(3,3), T(3,3), gtemp(3)
 logical err, mapped
 
@@ -863,7 +862,7 @@ integer, pointer :: pLabel(:,:)  ! The list of permuted labels (all equivalent)
 integer, pointer :: aTypTemp(:), SNFlabel(:)
 real(dp), pointer :: aBasTemp(:,:), sLVlist(:,:,:)
 real(dp), dimension(3,3) :: pLVtemp, sLVtemp, parLattTest, T
-integer iAt, nAt, iOp, j, ip, iuq, nuq, nP, SNF(3,3)
+integer nAt, nuq, nP, SNF(3,3)
 integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
 type(RotPermList) :: dRotList ! This is a list of permutations for the d-set 
                               ! (needed as in put for several routines)
@@ -1188,13 +1187,9 @@ logical, intent(out) :: match
 
 real(dp) :: eps
 
-character(80) title, bulksurf, dummy
-character(maxLabLength) :: labeling
 real(dp) :: p(3,3), Ainv(3,3)
-real(dp), allocatable :: dvec(:,:)
-integer, allocatable :: ilabeling(:)
-integer iStr, iLab, nLab, ioerr, i, nD, k, strN, hnfN, sizeN
-integer a, b, c, d, e, f, pgOps, diag(3), L(3,3), n, iHNF, nHNF
+integer iLab, nLab
+integer iHNF, nHNF
 logical foundLab, foundHNF
 
 call matrix_inverse(p,Ainv)

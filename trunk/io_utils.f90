@@ -109,7 +109,7 @@ integer, pointer :: eq(:), cRange(:,:)
 logical, intent(out):: conc_check
 
 logical full, err
-integer iD, i, status, n
+integer iD, i, status
 character(100) line
 
 open(99,file="readcheck_enum.out")
@@ -223,18 +223,34 @@ else if(fullpart(1:4).eq.'PART') then; full = .false.
 else; stop 'Specify "full" or "part" in the input file';endif
 call co_ca(10,err)
 
+! Read in the concentration ranges
 allocate(cRange(k,3))
 cRange = 0
 do i = 1, k
    read(10,*,iostat=status) cRange(i,:)
    conc_check = .true.
-   if (status/=0) then ! concentration is not specificed specified
-      print *,"conc check is false"
+   if (status/=0) then ! concentration is not specificed
+      write(*,'("Concentration ranges are not specified")')
       cRange = 0 
       conc_check = .false.
+      if (i>1) then
+         write(*,'(//,"--<< WARNING: Concentration ranges are partially specified   >>--")')
+         write(*,'(   "--<< WARNING: If you intended to specify them, fix the input >>--",//)')
+      endif
       exit
    endif
 enddo
+! Write to the debug file
+if (conc_check) then
+   write(99,'("Concentration ranges are specified. Will run with using &
+   & the fixed-concentration algorithm.")')
+   do i = 1, k
+      write(99,'("Type",i2," conc:",i2,"/",i2,"--",i2,"/",i2)') i,cRange(i,1:2),cRange(i,(/1,3/))
+   enddo
+else
+   write(99,'("Concentration ranges are *not* specified. Using &
+   & the full-conc-range algorithm (original enum algorithm).")')
+endif
 close(10)
 
 if (any(cRange<0)) stop "ERROR: negative input on concentrations in read_input"
@@ -245,6 +261,9 @@ do i = 1, k
       stop
    endif
 enddo
+
+write(99,'(/,"--<< Successfully read the struct_enum.in file >>--",/)')
+close(99)
 end subroutine read_input
 
 subroutine co_ca(unit,error)

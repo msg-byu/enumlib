@@ -25,9 +25,10 @@ CONTAINS
 !***************************************************************************************************
 ! This routine builds a concentration table with numerators and
 ! denominators for the given cell size subject to the concentration
-! constraints specified in cTable
-SUBROUTINE get_list_at_this_size(vol,concTable,cList,eps)
-integer, intent(in) :: vol ! Current size of cells in the enumeration loops
+! constraints specified in cTable.
+! GH Apr 2011 -- extended the routine for multilattices
+SUBROUTINE get_list_at_this_size(vol,nD,concTable,cList,eps)
+integer, intent(in) :: vol, nD ! Current size of cells in the enumeration loops, number of d-vectors
 integer, intent(in) :: concTable(:,:) ! Table of desired concentration ranges
 integer, pointer    :: cList(:,:) ! List of fractions that are within the ranges
 real(dp), intent(in):: eps
@@ -40,10 +41,10 @@ do i = 1, size(concTable,1) ! Loop over the rows in the table. There are k rows 
    minv = minval(concTable(i,1:2)); maxv = maxval(concTable(i,1:2))
    ! Use floor on the bottom of the range and ceiling at the top so
    ! that the resulting integers must necessarily straddle the desired
-   ! concentration range. Concentrations outside ther range will be
+   ! concentration range. Concentrations outside the range will be
    ! eliminated by get_concentration_list
-   volTable(i,1:2) = (/ floor(real(minv,dp)/denom*vol), ceiling(real(maxv,dp)/denom*vol) /) 
-   volTable(i,3) = vol ! Set the denominator  of the fractions listed
+   volTable(i,1:2) = (/ floor(real(minv,dp)/denom*vol*nD), ceiling(real(maxv,dp)/denom*vol*nD) /) 
+   volTable(i,3) = vol*nD ! Set the denominator  of the fractions listed
    ! in the volume table to be the current size of unit cells (i.e.,
    ! the volume) being enumerated.
 enddo
@@ -280,6 +281,10 @@ enddo
 ENDSUBROUTINE organize_rotperm_lists
 
 !***************************************************************************************************
+! This routine applies the symmetry operations of the parent lattice to the interior points (i.e.,
+! the d-set) to see which ones are equivalent. Labelings of the lattice points that are contain
+! permutations only of labels on equivalant sites are physically equivalent and therefore
+! redundant. We use these permutations to eliminate those duplicate labelings.
 SUBROUTINE get_dvector_permutations(pLV,pd,dRPList,LatDim,eps)
 real(dp) :: pLV(3,3) ! Lattice vectors of the primary lattice (parent lattice)
 real(dp), pointer :: pd(:,:) ! d-vectors defining the multilattice (primary lattice only)
@@ -287,7 +292,7 @@ type(RotPermList), intent(out) :: dRPList ! Output. A list permutations effected
 integer, intent(in) :: LatDim ! 2 or 3 dimensional case?
 real(dp), intent(in) :: eps ! finite precision tolerance
 
-integer nD, iD, nOp, iOp, status, ix
+integer nD, iD, nOp, iOp, status
 integer, pointer :: aTyp(:), tList(:,:)
 real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
 real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
@@ -496,8 +501,8 @@ ENDSUBROUTINE find_permutation_of_group
 
 !***************************************************************************************************
 SUBROUTINE map_dvector_permutation(rd,d,RP,eps)
-real(dp), dimension(:,:) :: rd, d
-integer :: RP(:)
+real(dp), dimension(:,:) :: rd, d ! Rotated d's, original d (both input)
+integer :: RP(:) ! permutation of the quotient group effected by the rotation (output)
 real(dp), intent(in) :: eps
 
 integer iD, jD, nD
@@ -516,7 +521,6 @@ do iD = 1, nD
       if(equal(rd(:,iD),d(:,jD),eps)) then
          RP(iD)=jD
          found(jD) = .true.
-
          exit
       endif
    enddo
@@ -561,7 +565,7 @@ integer, intent(in) :: volume
 integer, pointer:: hnf(:,:,:)
 
 integer, pointer    :: d(:,:) => null()
-integer             :: i, j, k, l, m    ! Loop counters
+integer             :: i, j, k, l    ! Loop counters
 integer             :: N, Nhnf, ihnf ! # of triplets, # of HNF matrices, HNF counter
 integer status
 call get_HNF_diagonals(volume,d)
@@ -672,13 +676,11 @@ type(RotPermList), pointer :: RPList(:)
 integer, intent(in)  :: label(:,:), digit(:)
 
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
-real(dp), dimension(3,3) :: test_latticei, test_latticej, thisRot, rotLat, origLat
-integer i, Nhnf, iuq, irot, j, nRot, Nq, ic, status, nD
-integer, allocatable :: temp_hnf(:,:,:), tIndex(:)
+real(dp), dimension(3,3) :: test_latticei, test_latticej
+integer i, Nhnf, iuq, irot, j, nRot, Nq, status, nD
+integer, allocatable :: temp_hnf(:,:,:)
 real(dp), pointer :: latts(:,:,:)
 logical duplicate
-type(opList), allocatable :: tmpOp(:)
-real(dp), allocatable :: tv(:,:,:)
 integer, pointer :: aTyp(:)
 
 
@@ -738,9 +740,6 @@ forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
 ! duplicates. 
 allocate(fixing_op(Nq),STAT=status)
 if(status/=0) stop "Allocation of fixing_op failed in remove_duplicate_lattices"
-!!allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
-!!do i=1,Nq; allocate(tmpOp(i)%rot(3,3,nRot),tmpOp(i)%shift(3,nRot),STAT=status)
-!!if(status/=0) stop "Allocation failed in remove_duplicate_lattices: tmpOp%rot or shift";enddo
 do iuq = 1, Nq  ! Loop over each unique HNF
    ! Determine which operations in the sym ops of the parent lattice leave the 
    ! superlattice fixed. These operations may permute the labeling so we need them
@@ -850,13 +849,13 @@ END SUBROUTINE get_HNF_2D_diagonals
 
 !***************************************************************************************************
 ! This routine should eventually replace "generate_derivative_structures". The difference with
-! this one is that it applies to superstructures derived from multilattices. This is more general
+! this one is that it applies to superstructures derived from *multilattices.* This is more general
 ! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
-! implemented here has been slightly reordered from the original routine and that discussed in the
-! first paper.
+! implemented here has been slightly reordered from the original routine discussed in the
+! first paper (Hart & Forcade 2008).
 ! 
 ! GH Oct 2010  This routine has long since replaced the original
-! GH Oct 2010  Adding the ability to enumerate for a fixed concentration
+! GH Oct 2010  Added the ability to enumerate for a fixed concentration (EnumIII)
 SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
     & labelFull,digitFull,equivalencies, conc_check,cRange)
 integer, intent(in) :: k, nMin, nMax, nDFull
@@ -879,6 +878,8 @@ integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), 
 integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
 integer, pointer, dimension(:,:,:) :: rdHNF =>null()
 real(dp) tstart, tend!, removetime, organizetime, writetime,hnftime,snftime, permtime
+real(dp), allocatable :: tempD(:,:) ! Temporary list of the d-vectors
+real(dp)              :: inv_parLV(3,3) ! Parent lattice inverse matrix
 type(opList), pointer :: fixOp(:)  ! Symmetry operations that leave a multilattice unchanged
 type(RotPermList), pointer :: RPList(:) ! Master list of the rotation permutation lists
 type(RotPermList), pointer :: rdRPList(:) ! Master list of the *unique* rotation permutation lists
@@ -888,13 +889,13 @@ real(dp), pointer :: uqlatts(:,:,:) => null()
 character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
 character(80) filename ! String to pass filenames into output writing routines
 character(80) formatstring
-logical fixed_cells ! This is set to true if we are giving a list of cells from a fil instead of generating them all
-integer, pointer :: iRange(:,:), cList(:,:)
-
+logical fixed_cells ! This is set to true if we are giving a list of cells from a file instead of generating them all
+integer, pointer :: iRange(:,:)
+logical err
 
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
-allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD))
+allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
 
 nD = 0
 do iD=1,nDFull
@@ -943,13 +944,13 @@ else; print *,"pLatTyp:",pLatTyp
 stop '"pLatTyp" not defined in gen_multilattice_derivs in enumlib'; endif
 
 do i = 1,3
-   write(14,'(3(g14.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
+   write(14,'(3(g15.8,1x),3x,"# a",i1," parent lattice vector")') parLV(:,i),i
 enddo
 write(14, '(i5," # Number of points in the multilattice")') nDFull
 do iD = 1,nDFull
    ! Print out the dset points and their possible labels                                  
    ! (1) setup the format for output                                                      
-   formatstring='(3(g14.8,1x),3x,"# d",i2.2," d-vector, labels: "'
+   formatstring='(3(g15.8,1x),3x,"# d",i2.2," d-vector, labels: "'
    do i=1,digitFull(iD); if (i>1) formatstring=trim(formatstring)//',"/"'; formatstring=trim(formatstring)//',i1'; enddo
    formatstring=trim(formatstring)//")"
    ! (2) print the data                                                                   
@@ -957,7 +958,7 @@ do iD = 1,nDFull
 enddo
 write(14,'(i2,"-nary case")') k
 write(14,'(2i4," # Starting and ending cell sizes for search")') nMin, nMax
-write(14,'(g14.8," # Epsilon (finite precision parameter)")') eps
+write(14,'(g15.8," # Epsilon (finite precision parameter)")') eps
 write(14,'(A)') "Concentration check:"
 write(14,'(L5)') conc_check
 if (conc_check) then
@@ -986,6 +987,16 @@ else; stop 'Specify "surf" or "bulk" in call to "generate_derivative_structures"
 
 ! The permutations of the interior points (d-vectors) under symmetry operations of the parent
 ! multilattice are used later on. Generate them here
+tempD = d ! Make a temporary copy of the d-set members
+call matrix_inverse(parLV,inv_parLV,err); if(err) stop "Inverse failed for d-mapping"
+do iD = 1, nD
+   call bring_into_cell(d(:,iD),inv_parLV,parLV,eps)
+   if(.not. equal(d(:,iD),tempD(:,iD),eps)) then
+      write(*,'("Original d-set member was not inside the unit cell. It has been remapped.")')
+      write(*,'("Original:",3(f7.3,1x))') tempD(:,iD)
+      write(*,'("Remapped:",3(f7.3,1x))') d(:,iD)
+   endif
+enddo
 call get_dvector_permutations(parLV,d,ParRPList,LatDim,eps)
 filename = "d-vector_perms.out"
 call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging, etc.)
@@ -995,7 +1006,7 @@ Tcnt = 0 ! Keep track of the total number of structures generated
 HNFcnt = 0 ! Keep track of the total number of symmetrically-inequivalent HNFs in the output
 do ivol = nMin, nMax
    if (conc_check) then
-      call get_list_at_this_size(ivol,cRange,iRange,eps)
+      call get_list_at_this_size(ivol,nD,cRange,iRange,eps)
       if (size(iRange,1)==0) cycle
    endif
    call cpu_time(tstart)
