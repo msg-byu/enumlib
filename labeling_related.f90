@@ -332,7 +332,7 @@ do iK = 1, k
    deallocate(vsBits,vsLabels,bitString)
    slotsRem = slotsRem - conc(iK)
 enddo
-write(*,'(20(i1,1x))') l
+!write(*,'(20(i1,1x))') l
 if(any(l==-1)) stop "ERROR: Incomplete labeling was generated from the index: generate_labeling_from_index"
 END SUBROUTINE generate_labeling_from_index
 

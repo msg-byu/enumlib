@@ -1,15 +1,15 @@
 FCC interstitials
 bulk       # 3-D case (not 2-D---surf)
-.5  .5   0
-.5   0  .5
-0   .5  .5
+ 0.0000000     0.50000000     0.50000000        # a1 parent lattice vector
+0.50000000      0.0000000     0.50000000        # a2 parent lattice vector
+0.50000000     0.50000000      0.0000000        # a3 parent lattice vector
 2          # binary case
 3          # three lattice points/unit cell
- 0.5  0.5  0.5  0/1 # octaeder
- 0.75 0.75 0.75 0/1 # tetraeder
- 0.25 0.25 0.25 0/1 # tetraeder
-1 2        # Cell sizes to enumerate
+0.50000000     0.50000000     0.50000000     0/1   # d01 d-vector, labels: 0/1
+0.25000000     0.25000000     0.25000000     0/1   # d02 d-vector, labels: 0/1
+0.75000000     0.75000000     0.75000000     0/1   # d03 d-vector, labels: 0/1
+1 30        # Cell sizes to enumerate
 .0001      # Finite precision parameter
 full       # generate a full listing (e.g., consider AAAB!=BBBA)
-0 1 2
-0 1 2
+95 100 100
+0  100 100
