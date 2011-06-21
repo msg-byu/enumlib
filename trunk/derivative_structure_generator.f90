@@ -694,7 +694,7 @@ aTyp = 1
 ! generate any but they may appear after the symmetry has been applied to a legal one). In other
 !  words, don't try and restrict the set of symmetries (at this point) but the set of labels that
 !  can be applied to any particular site.
-call get_spaceGroup_atomTypes(label,digit,aTyp)
+!call get_spaceGroup_atomTypes(label,digit,aTyp)
 call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
 Nhnf = size(hnf,3)

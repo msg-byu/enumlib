@@ -24,7 +24,7 @@ for i in vnum:
     f = open(i)
     str = f.read()
     unclefile.write(str)
-    unclefile.write("0 0 \n #\n")
+    unclefile.write("<insert energy or enthalpy here> \n #\n")
 unclefile.close
 system("rm vasp.*")
 print "\n Structures concatenated into structures.in\n"

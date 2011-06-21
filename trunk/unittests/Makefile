@@ -1,7 +1,7 @@
 LCLB = ./
 LBDR = ../
 FOUND = false
-F90=gfortran
+#F90=gfortran
 
 ifeq (${F90},gfortran)  # gfortran compiler
 	FFLAGS =  -g -fbounds-check -Wall -ffree-line-length-none -I${LCLB} -I${LBDR}
