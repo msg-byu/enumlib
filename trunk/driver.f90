@@ -24,18 +24,6 @@ fname = "struct_enum.in"
 call read_input(title,LatDim,parLV,nD,d,k,equivalencies,nMin,nMax,eps&
      &,fullLab,label,digit,fname,cRange,concCheck) ! Read in parent lattice vectors, etc.
 if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
-! With test case 006 there is a problem with the original code. label rotation fails...
-! call generate_derivative_structures(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab)
-
-!!allocate(label(3,4),digit(4))
-!!label(:,1) = (/3,1,0/)
-!!label(:,2) = (/0,2,0/)
-!!label(:,3) = (/1,4,0/)
-!!label(:,4) = (/0,1,2/)
-!!digit =(/2,2,2,3/)
-!!
-!!call mixed_radix_counter(label,digit)
-!!
 call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,&
          label,digit,equivalencies,concCheck,cRange)
 

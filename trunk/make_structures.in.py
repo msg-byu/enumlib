@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os, subprocess
+from os import path
 import glob
 from os import system
 import string
@@ -11,6 +12,10 @@ import sys
 if len( sys.argv) < 2:
     sys.exit("Script needs an argument---file containing structures")
 #strfile = open(sys.argv[1])
+if(not path.isfile("makestr.x")):
+    print "This script needs 'makestr.x' to run..."
+    print "Try 'make makestr.x'"
+    exit()
 for n in range(1,1300):
     rs=system('./makestr.x '+sys.argv[1]+' '+str(n)+' >& /dev/null')
     if rs!=0:
@@ -24,7 +29,7 @@ for i in vnum:
     f = open(i)
     str = f.read()
     unclefile.write(str)
-    unclefile.write("<insert energy or enthalpy here> \n #\n")
+    unclefile.write("0 0 \n #\n")
 unclefile.close
 system("rm vasp.*")
 print "\n Structures concatenated into structures.in\n"
