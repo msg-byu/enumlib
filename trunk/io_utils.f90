@@ -245,7 +245,7 @@ if (conc_check) then
    write(99,'("Concentration ranges are specified. Will run with using &
    & the fixed-concentration algorithm.")')
    do i = 1, k
-      write(99,'("Type",i2," conc:",i2,"/",i2,"--",i2,"/",i2)') i,cRange(i,1:2),cRange(i,(/1,3/))
+      write(99,'("Type",i2," conc:",i2,"/",i2,"--",i2,"/",i2)') i,cRange(i,(/1,3/)),cRange(i,2:3)
    enddo
 else
    write(99,'("Concentration ranges are *not* specified. Using &
