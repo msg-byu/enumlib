@@ -682,7 +682,7 @@ nexp = k**nl  ! Number of digits in k-ary counter; upper limit of k-ary counter
 !!< Set up the number of expected labelings
 nexp = product(parDigit)**int(n,li)  ! should be the same as k**nl when all labels are on all sites
 
-if (associated(lab)) deallocate(lab)
+!if (associated(lab)) deallocate(lab)
 allocate(lab(nexp),STAT=status)
 if(status/=0) stop "Failed to allocate memory for 'lab' in generate_unique_labelings"
 
@@ -728,6 +728,18 @@ call get_permutations((/(i,i=0,k-1)/),labPerms)
 !call make_translation_group(d,trgrp) ! Find equivalent translations (permutations of labelings)
 
 ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
+! In the recent version of multienum.x, we can assume that the label of the first type appears on
+! all sites. So the naive initialization doesn't work any more. Instead we need to count how many
+! times each label appears in the starting labeling. I think that we can just look through the first
+! row of the parLabel array and count how many times each label shows up.
+do ic = 0, k-1
+   c(ic) = count(parLabel(1,:)==ic)
+enddo
+c = c*n
+
+if (sum(c)/=nl) stop "ERROR: initialization of the 'c' counter failed in generate_unique_labelings"
+
+ic = 0
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
    !!idx = sum(a*multiplier)+1;  ! Index of labeling in base 10
