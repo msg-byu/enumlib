@@ -3,11 +3,13 @@ bulk       # 3-D case (not 2-D---surf)
 .5  .5   0
 .5   0  .5
 0   .5  .5
-4          # <-----
+2          # <-----
 3          # three lattice points/unit cell
  0.5 0.5 0.5 0/1 # octaeder
  0.75 0.75 0.75 0/1 # tetraeder
- 0.25 0.25 0.25 2/3 # <----- tetraeder
+ 0.25 0.25 0.25 0/1 # <----- tetraeder
 1 2        # Cell sizes to enumerate
 .0001      # Finite precision parameter
 full       # generate a full listing (e.g., consider AAAB!=BBBA)
+0 1000 1000
+0 1000 1000
