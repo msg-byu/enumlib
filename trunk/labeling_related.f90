@@ -153,7 +153,7 @@ call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 !print *,lm
 !print *,nL
 write(dummy,'(I3)') n*nAllD
-struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4),2x,'//trim(dummy)//'i1)'
+struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
 !   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
