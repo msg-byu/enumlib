@@ -2,6 +2,10 @@
 # multiple platforms/compilers. Branch according to an environmental
 # variable F90. I wish someone would show me a better way of doing this.
 #
+
+# Shell
+SHELL		= /bin/bash
+
 LBDR = ../../celib/trunk
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
@@ -55,6 +59,8 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
+
+
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
       derivative_structure_generator.f90 enumeration_utilities.f90
 
@@ -64,7 +70,6 @@ LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
 
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
-
 
 
 libenum.a: ${OBJS}
@@ -104,6 +109,8 @@ randReduceTest.x: random_lattice_driver.o
 .f95.o : 
 	${F90} ${FFLAGS} -c $<
 .f90.o : 
+#	bash -c "perl -pi -e 's/write\(21.*/write\(21,\*\) \"SVN revision number:'`svnversion`'\"/' derivative_structure_generator.f90 "
+	bash -c "echo `svnversion` > version.enum"
 	${F90} ${FFLAGS} -c $<
 .f.o : 
 	${F90} -c $<

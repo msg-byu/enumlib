@@ -67,7 +67,16 @@ integer, dimension(size(volTable,1)) :: digCnt, digit
 integer, allocatable :: label(:,:), a(:)
 real(dp), dimension(size(volTable,1)) :: minv, maxv, conc
 
-!print *,"ctable",ctable
+open(98,file="debug_conc_check.out",access="append")
+write(98,'(" Original concentration ranges:")')
+do i = 1, size(concTable,1)
+   write(98,'(90(i4,1x))') concTable(i,:)
+enddo
+write(98,'(/," Numbers for given cell size:")')
+do i = 1, size(volTable,1)
+   write(98,'(90(i4,1x))') volTable(i,:)
+enddo
+
 n = volTable(1,3) ! Total number of slots in the labeling
 digit = volTable(:,2) - volTable(:,1) + 1  ! Number of "labels" on each "wheel" of the odometer
 digCnt = 1 ! Start each wheel of the odometer at the first position
@@ -110,6 +119,12 @@ do
 enddo
 !print *,"clist_get",cList
 cList => ralloc(cList,cc,k) ! Reallocate the list to be the proper size
+write(98,'(/," Number of discrete partition: ",i5)') size(cList,1)
+write(98,'(/," generated list:")')
+do i = 1, size(cList,1)
+   write(98,'(10(i4,1x))') cList(i,:)
+enddo
+close(98)
 
 END SUBROUTINE get_concentration_list
 
@@ -663,7 +678,7 @@ ENDSUBROUTINE get_SNF
 ! rotationally equivalent (under the rotations of the parent lattice). Also
 ! returns all the unique derivative _lattices_ for this parent. Also returns  
 ! a list of rotations that fix each superlattice. 
-SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,label,digit,eps)
+SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,eps)
 integer, pointer :: hnf(:,:,:) ! HNF matrices (input)
 integer :: LatDim ! Is the parent lattice 2D or 3D?
 real(dp), intent(in) :: parent_lattice(3,3) ! parent lattice (input)
@@ -673,7 +688,7 @@ real(dp),intent(in):: eps ! finite precision (input)
 real(dp), pointer :: d(:,:) 
 type(RotPermList), intent(in) :: dperms
 type(RotPermList), pointer :: RPList(:)
-integer, intent(in)  :: label(:,:), digit(:)
+!integer, intent(in)  :: label(:,:), digit(:)
 
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
 real(dp), dimension(3,3) :: test_latticei, test_latticej
@@ -925,14 +940,19 @@ write(*,'(A)') "----------------------------------------------------------------
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
 
 if (conc_check) then
-  write(*,'(A)') "Including only structures of which the concentration &
-&  of each atom is in the range:"
-  do i = 1, k
-     write(*,'("Type ",i1": ",i4,"/",i4," -- ",i4,"/",i4)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
-  enddo
+   write(formatstring,'(A,i1,A,i1,A,i1,A,i1,A)') '"Type:",i2,": ",i',2,',"/",i',2,',"--",i',2,',"/",i',2
+   write(formatstring,'(A,i1)') '"Type:",i',2
+   write(formatstring,'(A)') "'(i2)'"
+   print *,formatstring
+   write(*,'(A)') "Including only structures of which the concentration &
+        &of each atom is in the range:"
+   do i = 1, k
+      write(*,formatstring) i!,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+   enddo
+   stop
 endif
 
-write(*,'("Volume",7x,"CPU",5x,"#HNFs",3x,"#SNFs",&
+write(*,'("Volume",7x,"CPU",8x,"#HNFs",2x,"#SNFs",&
           &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
 
 ! Set up the output file and write the lattice information
@@ -1023,7 +1043,7 @@ do ivol = nMin, nMax
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
-   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,label,digit,eps)
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,eps)
    !call cpu_time(Removetime)
    ! Superlattices with the same SNF will have the same list of translation permutations of the
    ! labelings. So they can all be done at once if we find the SNF. rdHNF is the reduced list.
@@ -1050,27 +1070,16 @@ do ivol = nMin, nMax
       call write_rotperms_list(rdRPList(iBlock),filename)
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
-!            write( *,'("iRange: ",20(i2,1x))')iRange(iC,:)
-            call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,lm,iRange(iC,:))
-!            print *,count(lm=='U')
-!            print *,"hash tabel",size(lm)
-             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
-                  &,RPLindx,lm,equivalencies,iRange(iC,:))
-             ! These next two are useful for debugging and checking
+            call generate_permutation_labelings(k,ivol,nD&
+                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull)
+            call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
+                 &,RPLindx,lm,equivalencies,iRange(iC,:))
          enddo
       else
       	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
-      	!call cpu_time(genlabels)
-      	!print *, "block",iBlock
-      	!print *, shape(rdRPList(iBlock)%perm), "shape"
-      	!do i = 1,size(rdRPList(iBlock)%perm,1)
-      	!   write(*,'(8i1)') rdRPList(iBlock)%perm(i,:)
-        !enddo
-      	!write(*,'(256a1)') lm(1:150)
       	! Now that we have the labeling marker, we can write the output.
       	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies)
       	!call cpu_time(endwrite)
-      	!write(13,'(2(i5,1x),2(f9.4,1x))') iblock,count(RPLindx==iBlock),genlabels-blockstart, endwrite-genlabels
       endif
    enddo! iBlock
    !call cpu_time(writetime)

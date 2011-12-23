@@ -2,6 +2,11 @@ This code generates the "derivative superstructures" of a parent
 lattice. It works for general lattices (including "multilattices" like
 HCP) and can enumerate in a restricted concentration range.
 
+As of Dec. 2011, both modes (all concentrations vs. restricted
+conc. range) can also be used with site restrictions---some atomic
+types can be disallowed on some sites in the parent lattice. 
+
+
 A discussion of the algorithm and its applications can be found in the
 following publications:
 
@@ -15,8 +20,8 @@ Phys. Rev. B80 014120 (July 2009)
 http://msg.byu.edu/papers/multi.pdf
 
 Gus L. W. Hart, Lance J. Nelson, and Rodney W. Forcade, "Generating
-derivative structures at a fixed concentration," (submitted to PRB,
-June 2011)
+derivative structures at a fixed concentration," (submitted to
+Comp. Mat. Sci., Oct. 2011)
 
 If you use this code in a publication, we would appreciate it if you
 would cite these papers. Thank you.
@@ -47,6 +52,9 @@ Example input files are in the "input" directory.
 
 There are also helper programs for making VASP POSCARs, pictures of
 2-D enumerations, etc.
+
+make makestr.x  <-- To make a program for making POSCARs
+make 2dplot.x <-- To make a program that plots 2D enumeration results
 
 If you have questions, email or call gus.hart@byu.edu, 801-422-7444
 
