@@ -135,9 +135,6 @@ if(all(E==1) .and. any(lab=='')) then
    print*,"There are no site restrictions and yet not every labeling was marked in generate_permutation_labelings"
    stop "There is a bug in generate_permutations_labeling in labeling_related.f90"
 endif
-do iD=1,size(lab,1)
-   write(13,'(i5,1x,a1)') iD,lab(iD)
-enddo
 
 CONTAINS
 FUNCTION is_valid_multiplicity(labeling,concList)
@@ -429,9 +426,6 @@ do iP = 1, nL  ! Loop over each possible permutation (later generalize this for 
    endif
 enddo
 if (any(lab=='')) stop "Not every labeling was marked in generate_permutation_labelings"
-do iP=1,size(lab,1)
-   write(15,'(i5,1x,a1)') iP,lab(iP)
-enddo
 
 END SUBROUTINE generate_permutation_labelingsOrig
 

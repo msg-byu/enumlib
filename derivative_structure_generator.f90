@@ -938,18 +938,14 @@ close(43)
 
 write(*,'(A)') "---------------------------------------------------------------------------------------------"
 write(*,'("Calculating derivative structures for index n=",i2," to ",i2)') nMin, nMax
-
 if (conc_check) then
-   write(formatstring,'(A,i1,A,i1,A,i1,A,i1,A)') '"Type:",i2,": ",i',2,',"/",i',2,',"--",i',2,',"/",i',2
-   write(formatstring,'(A,i1)') '"Type:",i',2
-   write(formatstring,'(A)') "'(i2)'"
-   print *,formatstring
    write(*,'(A)') "Including only structures of which the concentration &
         &of each atom is in the range:"
    do i = 1, k
-      write(*,formatstring) i!,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+      write(formatstring,'(A,i1,A,i1,A,i1,A,i1,A)') '("Type:",i2,": ",i',cRange(i,1)/10+1,&
+           &',"/",i',cRange(i,3)/10+1,',"--",i',cRange(i,2)/10+1,',"/",i',cRange(i,3)/10+1,')'
+      write(*,formatstring) i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
    enddo
-   stop
 endif
 
 write(*,'("Volume",7x,"CPU",8x,"#HNFs",2x,"#SNFs",&
