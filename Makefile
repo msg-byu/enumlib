@@ -9,8 +9,14 @@ SHELL		= /bin/bash
 LBDR = ../../celib/trunk
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
-  FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -I${LBDR} 
-  FOUND = true
+  ifeq (${DEBUG},false)
+     FFLAGS = -O3 -ffree-line-length-none -I${LBDR}
+     FOUND = true
+  endif
+  ifeq (${DEBUG},true)
+     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -I${LBDR} 
+     FOUND = true
+  endif
 endif
 
 ifeq (${F90},ifc)  # Intel compiler
