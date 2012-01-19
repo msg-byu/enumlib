@@ -929,7 +929,7 @@ call get_dvector_permutations(pLV,dset,dRotList,LatDim,eps)
   ! rotationally-equivalent. So the input and output lists are only one element
   ! long (in the last index). E.g., HNFin is a 3x3x1 array of integers (original lattice HNF)
 
-call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,label,digit,eps)
+call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,eps)
 ! write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
 ! write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
 !     ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
