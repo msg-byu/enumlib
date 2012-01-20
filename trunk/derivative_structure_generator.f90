@@ -718,7 +718,7 @@ if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp
 temp_hnf = hnf
 call write_lattice_symmetry_ops(sgrots,sgshift)
 
-! For the 2D case, eliminate the "3D" operations.
+! for the 2D case, eliminate the "3D" operations.
 if (LatDim==2) then
    call rm_3d_operations(parent_lattice,sgrots,sgshift,eps)
    nRot = size(sgrots,3)
@@ -942,8 +942,11 @@ if (conc_check) then
    write(*,'(A)') "Including only structures of which the concentration &
         &of each atom is in the range:"
    do i = 1, k
-      write(formatstring,'(A,i1,A,i1,A,i1,A,i1,A)') '("Type:",i2,": ",i',cRange(i,1)/10+1,&
-           &',"/",i',cRange(i,3)/10+1,',"--",i',cRange(i,2)/10+1,',"/",i',cRange(i,3)/10+1,')'
+      write(formatstring,'(A,i1,A,i1,A,i1,A,i1,A)') '("Type:",i2,": ",&
+           &i',int(log10(real(cRange(i,1))+1))+1,&
+           &',"/",i',int(log10(real(cRange(i,3))+1))+1,',"--",i'&
+           &,int(log10(real(cRange(i,2))+1))+1,',"/",i'&
+           &,int(log10(real(cRange(i,3))+1))+1,')'
       write(*,formatstring) i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
    enddo
 endif
