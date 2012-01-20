@@ -1,12 +1,14 @@
-fcc       
+hcp
 bulk
-0.50000000     0.50000000      0.0000000        # a1 parent lattice vector
-0.50000000      0.0000000     0.50000000        # a2 parent lattice vector
- 0.0000000     0.50000000     0.50000000        # a3 parent lattice vector
- 2 -nary case
-    1 # Number of points in the multilattice
- 0.0000000      0.0000000      0.0000000    0/1   # d01 d-vector
-    1 8   # Starting and ending cell sizes for search
-0.10000000E-06 # Epsilon (finite precision parameter)
-full list of labelings
-# Concentration ranges?
+1 0 0
+.5 0.866025403784439 0
+0 0 1.63
+2
+2
+0 0 0 0/1
+.5 0.28867513459  .815 0/1
+1 4
+.0001
+full
+0 50 100
+0 50 100
