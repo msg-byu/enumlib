@@ -4,12 +4,11 @@ surf       # Surface case (instead of bulk)
 0. 1. 0.   # Second lattice vector
 0. 0. 1.   # Third lattice vector
 2          # binary case
-2          # One lattice point/unit cell
+1          # One lattice point/unit cell
  0 0 0 0/1    # That lattice point is at the origin
-.3 .3 .3 0/1
-4 4        # Cell sizes to enumerate
+1 15        # Cell sizes to enumerate
 .0001      # Finite precision parameter
 full       # generate a complete listing (e.g., don't consider AAAB==BBBA)
 #part       # generate a partial listing (e.g., consider AAAB==BBBA)
-1 1 2
-1 1 2
+#1 1 2
+#1 1 2
