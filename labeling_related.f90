@@ -8,7 +8,7 @@ use rational_mathematics, only: gcd
 use combinatorics
 implicit none
 private
-public  get_permutations, count_full_colorings, &
+public  count_full_colorings, &
         make_member_list, make_label_rotation_table, generate_unique_labelings, &
         write_labelings, generate_permutation_labelings, generate_permutation_labelingsOrig
 CONTAINS
