@@ -28,8 +28,9 @@ CONTAINS
 ! looping over every index in the hash table (in order, as it did
 ! originally), the labelings are generated from a "tree structure,"
 ! avoiding "branches" of the tree that violate site-restrictions. It also skips
-! labelings that violate multiplicity restrictions.
-! GLWH
+! labelings that violate multiplicity restrictions. (See enum III paper.)
+! 
+! GLWH Dec. 2011
 
 SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit)
 integer, intent(in) :: k ! Number of colors/labels

@@ -1,14 +1,14 @@
-hcp
-bulk
-1 0 0
-.5 0.866025403784439 0
-0 0 1.63
-2
-2
-0 0 0 0/1
-.5 0.28867513459  .815 0/1
-1 4
-.0001
-full
-0 50 100
-0 50 100
+2D square 
+surf       # Surface case (instead of bulk)
+1. 0. 0.   # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used)
+0. 1. 0.   # Second lattice vector
+0. 0. 1.   # Third lattice vector
+2          # binary case
+1          # One lattice point/unit cell
+ 0 0 0 0/1    # That lattice point is at the origin
+1 15        # Cell sizes to enumerate
+.0001      # Finite precision parameter
+full       # generate a complete listing (e.g., don't consider AAAB==BBBA)
+#part       # generate a partial listing (e.g., consider AAAB==BBBA)
+#1 1 2
+#1 1 2
