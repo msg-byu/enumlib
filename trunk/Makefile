@@ -12,7 +12,7 @@ ifeq (${F90},gfortran)  # gfortran compiler
   ifeq (${DEBUG},false)
      FFLAGS = -O3 -ffree-line-length-none -I${LBDR}
      FOUND = true
-else
+  else
      FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -I${LBDR} 
      FOUND = true
   endif
@@ -27,10 +27,11 @@ ifeq (${F90},ifort)  # Intel compiler
   ifeq (${DEBUG},false)
      FFLAGS =  -fPIC -O3 -I${LBDR} 
      FOUND = true
-else
+  else
 #  F90 =  /opt/intel/fc/10.0.016/bin/ifort
      FFLAGS =  -fPIC -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBDR} 
 #-prof-use -prof-dir .
+   endif
 endif
 
 
