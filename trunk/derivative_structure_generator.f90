@@ -994,7 +994,7 @@ write(14,'("Equivalency list:" ,40(I2,1x))') equivalencies(:)
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 
 
-write(14,'("start",3x,"#tot",6x,"HNF",5x,"#size",1x,"idx",3x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
+write(14,'("start",3x,"#tot",6x,"HNF",5x,"#size",1x,"idx",4x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",17x,"labeling")')
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
