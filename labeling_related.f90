@@ -292,7 +292,7 @@ call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 !print *,lm
 !print *,nL
 write(dummy,'(I3)') n*nAllD
-struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i3,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
+struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
 !   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
@@ -811,6 +811,7 @@ integer(li) multiplier(n*nD) ! place values for each digit. k^(i-1) for the i-th
 integer c(0:k-1) ! running sum (count) of the number of each label type 
 integer id, iq ! Counter for labels that are duplicates, for those unique
 integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
+integer :: nsp ! Number of superperiodic labelings
 integer :: np, ip, nPerm, status ! Loops over label exchang permutations, number of labeling permutatations, allocate error flag
 
 lab => null()
@@ -961,6 +962,8 @@ if (ic /= nexp) then
    stop 'Bug: Found the wrong number of labels!'
 endif
 if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
+nsp = count(lab=="N") 
+write(87,'(i3,2x,i10,2x,i10,2x,f9.6)') n,nsp,ic,nsp/real(ic,dp)
 END SUBROUTINE generate_unique_labelings
 
  
