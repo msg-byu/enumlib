@@ -8,7 +8,7 @@ use enumeration_utilities
 
 implicit none
 private
-public Ccall2_reduce
+public aflow_reduce_to_shortest_basis
 
 CONTAINS
 
