@@ -22,7 +22,8 @@ call reduce_to_shortest_basis(A,B,eps)
 END SUBROUTINE aflow_reduce_to_shortest_basis
 
 SUBROUTINE aflow_reduce_to_shortest_basis2(rA,cA,A,rB,cB,B,eps)
-real(dp) :: A(rA,cA), eps, B(:,:)
+real(dp) :: A(rA,cA), eps,
+real(dp), pointer :: B(:,:)
 !real(dp), intent(out) ::  B(:,:)
 integer  :: rA, cA, rB, cB, i
 print*,"eps",eps
