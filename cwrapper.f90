@@ -27,7 +27,7 @@ real(dp), pointer :: B(:,:)
 !real(dp), intent(out) ::  B(:,:)
 integer  :: rA, cA, rB, cB, i
 print*,"eps",eps
-allocate(B(30,30))
+allocate(B(2000,2000))
 write(*,'("A",/,3(f7.4,1x))') (A(:,i),i=1,3)
 !B = reshape((/1,2,3,4,5,6,7,8,9/),(/3,3/))
 B = 1
