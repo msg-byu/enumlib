@@ -10,10 +10,10 @@ LBDR = ../../celib/trunk
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
   ifeq (${DEBUG},false)
-     FFLAGS = -O3 -ffree-line-length-none -I${LBDR}
+     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBDR}
      FOUND = true
   else
-     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -I${LBDR} 
+     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBDR} 
      FOUND = true
   endif
 endif
@@ -60,7 +60,7 @@ endif
 
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
-      derivative_structure_generator.f90 enumeration_utilities.f90
+      derivative_structure_generator.f90 enumeration_utilities.f90 cwrapper.f90
 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
