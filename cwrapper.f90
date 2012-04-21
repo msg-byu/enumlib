@@ -28,6 +28,7 @@ real(dp), pointer :: B(:,:)
 integer  :: rA, cA, rB, cB, i
 print*,"eps",eps
 allocate(B(3,3))
+A = transpose(A)
 write(*,'("A",/,3(f7.4,1x))') (A(:,i),i=1,3)
 write(*,'("B",/,3(f7.4,1x))') (BB(:,i),i=1,3)
 !B = reshape((/1,2,3,4,5,6,7,8,9/),(/3,3/))
