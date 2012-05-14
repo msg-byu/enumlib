@@ -56,7 +56,7 @@ gIndx=-1
 
 !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
 ! Let's get the fattest basis (Minkowski reduction)
-call reduce_to_shortest_basis(sLV,sLV,eps)
+call minkowski_reduce_basis(sLV,sLV,eps)
 !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
 
 
