@@ -1,12 +1,15 @@
-simple cubic example for partial occupancies
+test
 bulk
-  0.50000000  0.00000000 -0.50000000
-  0.00000000  0.50000000 -0.50000000
-  0.50000000  0.50000000  0.00000000
-2 -nary case
-   1 # Number of points in the multilattice
- 0.0  0.0  0.0    0/1   # d01 d-vector
-    1 8   # Starting and ending cell sizes for search
-0.001
-full list of labelings
-# Concentration ranges?
+0.5 0.5 0.   # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used)
+0.5 0  0.5   # Second lattice vector
+0. 0.5 0.5   # Third lattice vector
+3          # binary case
+1          # One lattice point/unit cell
+ 0 0 0 0/1/2    # That lattice point is at the origin
+1 10        # Cell sizes to enumerate
+.0001      # Finite precision parameter
+full       # generate a complete listing (e.g., don't consider AAAB==BBBA)
+#part       # generate a partial listing (e.g., consider AAAB==BBBA)
+20 30 100
+0 100 100
+50 60 100

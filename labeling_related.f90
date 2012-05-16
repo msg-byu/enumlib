@@ -460,11 +460,11 @@ call get_Xmj_for_labeling(indx,conc,x,m,j)
 !write(*,'("J.................      ",20(i2,1x))') j
    !print *,"calling generate labeling"
 do iK = 1, k
-   allocate(bitString(m(iK)))
    if (m(iK)==0) cycle  ! If there aren't any slots occupied by this label then cycle (avoid segfault in vsBits)
+   allocate(bitString(m(iK)))
    call generate_BitStringEqv(x(iK),m(iK),j(iK),bitString)
    allocate(vsBits(j(iK)),vsLabels(slotsRem))
-   
+  
    vsLabels = pack((/(ij,ij=1,n)/),l==-1)
    vsBits   = pack((/(ij,ij=1,m(iK))/),bitString==1)
    l(vsLabels(vsBits)) = iK - 1 ! Offset to start labels at zero
