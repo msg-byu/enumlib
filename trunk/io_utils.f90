@@ -221,12 +221,12 @@ else; stop 'Specify "surf" or "bulk" in input file';endif
 if (fullpart(1:4).eq.'FULL') then; full = .true.
 else if(fullpart(1:4).eq.'PART') then; full = .false.
 else; stop 'Specify "full" or "part" in the input file';endif
-call co_ca(10,err)
 
 ! Read in the concentration ranges
 allocate(cRange(k,3))
 cRange = 0
 do i = 1, k
+   call co_ca(10,err)
    read(10,*,iostat=status) cRange(i,:)
    conc_check = .true.
    if (status/=0) then ! concentration is not specificed
