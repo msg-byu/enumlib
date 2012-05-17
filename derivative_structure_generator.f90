@@ -30,7 +30,7 @@ CONTAINS
 SUBROUTINE get_list_at_this_size(vol,nD,concTable,cList,eps)
 integer, intent(in) :: vol, nD ! Current size of cells in the enumeration loops, number of d-vectors
 integer, intent(in) :: concTable(:,:) ! Table of desired concentration ranges
-integer, pointer    :: cList(:,:) ! List of fractions that are within the ranges
+integer, pointer    :: cList(:,:) ! INTENT(OUT): List of fractions that are within the ranges
 real(dp), intent(in):: eps
 
 integer volTable(size(concTable,1),size(concTable,2))
@@ -262,7 +262,7 @@ logical unique
 
 nL = size(RPlist) ! Number of lists (including duplicates)
 allocate(tList(nL),RPLindx(nL),STAT=status)
-if(status/=0) stop "Allocation failed in organize_rotperm_lists: tList, RPLindx,"
+if(status/=0) stop "Allocation failed in organize_rotperm_lists: tList, RPLindx"
 
 cnt = 0
 do iL = 1, nL ! Loop over each loop in the list
@@ -457,6 +457,10 @@ do iH = 1,nH ! loop over each superlattice
       !write(*,'("nL",1x,20i2)')rperms%nL
    enddo ! loop over rotations 
 
+   ! nomenclature:
+   ! N+t = rotation (N) + fractional translation (t)  (me bethinks....)
+   !   r = lattice translation
+
    ! Now that we have the permutations that are effected by N+t type of rotations (for each N in the
    ! point group), we need to compose them with the permutations effected by lattice translations,
    ! (parent) lattice translations contained inside the supercell (N+t+r, in Rod's
@@ -484,6 +488,12 @@ do iH = 1,nH ! loop over each superlattice
       do iOp = 1,size(rperms%perm,1) ! Loop over unique rotation perms (N+t type)
          ! Form the permutation effected by composing the iOp-th one with the it-th one
          RPlist(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
+         ! ^--- Having gotten both the rotations and the translation in the sections above (sort_permutations_list etc...),
+         ! the "operators" of the rotation (one of them is R_i) and the translations (one of them is T_j) 
+         ! are now "scrambled", i.e., (T_j) o (R_i).
+         ! Since the *first* Rotation R_1 = Id, the *first* entries in the RPlist(iH)%perm are equivalent to
+         ! pure translations only.
+         ! The following entries are a combination of both.
       enddo
    enddo
 enddo ! loop over iH (superlattices)
@@ -1065,7 +1075,7 @@ do ivol = nMin, nMax
    Scnt = 0 ! Keep track of the number of structures at this size   
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
-      filename = "temp_perms.out"
+      filename = "debug_temp_perms.out"
       call write_rotperms_list(rdRPList(iBlock),filename)
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range

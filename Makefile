@@ -30,6 +30,7 @@ ifeq (${F90},ifort)  # Intel compiler
   else
 #  F90 =  /opt/intel/fc/10.0.016/bin/ifort
      FFLAGS =  -fPIC -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBDR} 
+     FOUND = true
 #-prof-use -prof-dir .
    endif
 endif
@@ -60,7 +61,7 @@ endif
 
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
-      derivative_structure_generator.f90 enumeration_utilities.f90 cwrapper.f90
+      derivative_structure_generator.f90 enumeration_utilities.f90 #cwrapper.f90
 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \

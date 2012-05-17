@@ -9,8 +9,10 @@ use combinatorics
 implicit none
 private
 public  count_full_colorings, &
-        make_member_list, make_label_rotation_table, generate_unique_labelings, &
-        write_labelings, generate_permutation_labelings, generate_permutation_labelingsOrig
+        make_member_list, make_label_rotation_table, &
+        generate_unique_labelings, &       ! original algorithm for full concentration enumeration
+        generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
+        write_labelings
 CONTAINS
 
 !***************************************************************************************************
@@ -48,7 +50,8 @@ integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site
 
 integer, allocatable:: E(:,:) ! A matrix of 1's and 0's, indicating site-restrictions
 ! One row for each site in the supercell, one column for each color (label)
-integer nL, status !  number of perumations (labelings)
+integer(li) nL !  number of perumations (labelings)
+integer status
 integer q, nPerm ! loop counter for symmetry permutations
 integer(li) idxOrig, idx  ! Index of unpermuted labeling, Index of a permuted labeling
 integer a(n*nD) ! The current labeling depicted as a list of integers
@@ -69,7 +72,7 @@ nPerm = size(perm,1)
 ! Initialize the mask (E) used to prune the tree to meet site restrictions 
 allocate(E(n*nD,k))
 E = 0
-do ik = 1, k; do iD = 1, n*nD
+do ik = 1, k; do iD = 1, n*nD ! loop over all "colors" and all "sites"
    if (any(parLabel(:,(iD-1)/n+1)==ik-1)) then ! this label is allowed on this site
       E(iD,ik) = 1
    end if
@@ -85,7 +88,7 @@ a = -1; flag = .true.
 sitePointer = 1
 do while (flag) ! Loop over digits (place holders) in the labeling
    do while (flag) ! Loop over possible values for each digit
-      !print *,"sp",sitepointer
+                   ! This loop "walks the tree" until it hits a bottom branch (i.e., a complete labeling, not necessarily already a leagl labeling)
       if (sitePointer < 1) then
          flag = .false.; exit
       endif
@@ -97,11 +100,18 @@ do while (flag) ! Loop over digits (place holders) in the labeling
       endif
       if(E(sitePointer,a(sitePointer)+1)==1) exit ! Found a valid label for this site, so exit loop
    enddo
+
    if(.not.flag) exit ! Done with the label generation
-   if(count(a==a(sitePointer))>iConc(a(sitePointer)+1)) cycle
+   if(count(a==a(sitePointer))>iConc(a(sitePointer)+1)) cycle ! Did I violate a concentration restriction (*) ? 
+                                                 !  ^         ! If so, don't go on with that labeling and rather cycle!
+                                                 !  because the labeling (a) starts at 0 and goes to k-1
+                                          ! (*) We only check for ">" because we're looking at ONE fixed concentration and 
+                                          ! not a range. If THIS digit's concentration was too small, one of the concentrations
+                                          ! of the other digits will be too large and we will catch that exception there.
+
    sitePointer = sitePointer + 1
    if(sitePointer>n*nD) sitePointer = n*nD
-   !write(*,'(100i1)') a   
+  !write(*,'(100i1)') a   
    if(is_valid_multiplicity(a,iConc)) then ! We have a valid labeling on the tree, mark it in the
       call generate_index_from_labeling(a,iConc,idxOrig) ! hash table and then mark the symmetry brothers
       if(lab(idxOrig)=='') then ! This labeling hasn't been generated yet (directly or by symmetry permutation)
@@ -122,7 +132,7 @@ do while (flag) ! Loop over digits (place holders) in the labeling
                 write(*,'(100i1)') a(perm(q,:))
                 print *,"idx",idx
                 print *,"max expected",nL
-                print *,"An index outside the expected range occurred in get_permutations_labeling"
+                print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
                 stop
              endif
              if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
@@ -130,6 +140,7 @@ do while (flag) ! Loop over digits (place holders) in the labeling
        end if
     end if
  enddo
+
 ! If there are no site restrictions, then the hash table is "minimal" and every entry should hove
 ! been visited. Double check if this is the case. Just another failsafe.
 if(all(E==1) .and. any(lab=='')) then 
@@ -356,79 +367,79 @@ end subroutine postprocess_labeling
 
 ENDSUBROUTINE write_labelings
 
-!***************************************************************************************************
-!  This subroutine is conceptually the same as generate_unique_labelings. That routine generates
-!  labelings as a lexicographical list of all possible labelings (all concentrations), subject to
-!  label-site restrictions. This routine generates all possible *permutations* of a fixed
-!  concentration of labels. See Rod's multiperms.pdf write-up (in the enumlib repository) for
-!  details on how the algorithm works. Rod's approach makes it possible to design a minimal hash
-!  table and perfect hash function for this list (just like we did for the combinations list in the
-!  other routine).
-!  GLWH Spring 2011
-SUBROUTINE generate_permutation_labelingsOrig(k,n,nD,perm,lab,iConc,parLabel,parDigit)
-integer, intent(in) :: k ! Number of colors/labels
-integer, intent(in) :: n ! Index of the superlattice
-integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
-integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
-character, pointer :: lab(:) ! Array to store markers for every raw labeling
-! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
-! Need to pass lab out to write out the labelings
-integer, intent(in) :: iConc(:) ! concentration; the numerator of each rational number that is the
-                                ! concentration for each label
-integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
-integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
-
-
-
-integer nL, status !  number of perumations (labelings)
-integer q, nPerm ! loop counter for symmetry permutations
-integer(li) iP, idx  ! Loop variable over symmetry permutations, Index of a permuted labeling
-integer a(n*nD) ! The current labeling depicted as a list of integers
-!integer a(11) ! The current labeling depicted as a list of integers
-
-lab => null()
-
-nL = multinomial(iConc)
-allocate(lab(nL),STAT=status)
-if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
-lab = ""
-nPerm = size(perm,1)
-a = -1
-do iP = 1, nL  ! Loop over each possible permutation (later generalize this for k-nary case)
-   if(lab(iP)=='') then ! this labeling is unique. Keep it and cross off the duplicates
-      lab(iP) = 'U'
-      ! Get the labeling so we can apply the permutations
-      call generate_labeling_from_index(iP,iConc,a)
-!      write(*,'(20(i1,1x))') a
-      do q = 2, nPerm
-         !write(*,'(20(i1,1x))') a(perm(q,:))
-         ! Add a check for legal labelings later
-         call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
-
-         if (idx==iP .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
-         ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
-         ! "translation" permutation and not a rotation permutation (they're ordered in the
-         ! list...and there are n. The first is the identity so skip that one.)
-         if (idx > nL) then
-            print *,"idx",idx
-            print *,"expected",nL
-            print *,"An index outside the expected range occurred in get_permutations_labeling"
-            stop
-         endif
-         if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
-         if(lab(idx)=='U' .and. idx/=iP) then ! I think something may be wrong
-            write(*,'("Hash table index iP was: ",i20)') iP
-            write(*,'("Permuted  index     was: ",i20)') idx
-            write(*,'("Permution number    was: ",i20)') q
-            write(*,'("Permutation looked like: ",32(i2,1x))') perm(q,:)
-            stop "Idx landed on a spot in the hash table that was marked as 'U'"
-         endif
-      enddo
-   endif
-enddo
-if (any(lab=='')) stop "Not every labeling was marked in generate_permutation_labelings"
-
-END SUBROUTINE generate_permutation_labelingsOrig
+!obsolete>!***************************************************************************************************
+!obsolete>!  This subroutine is conceptually the same as generate_unique_labelings. That routine generates
+!obsolete>!  labelings as a lexicographical list of all possible labelings (all concentrations), subject to
+!obsolete>!  label-site restrictions. This routine generates all possible *permutations* of a fixed
+!obsolete>!  concentration of labels. See Rod's multiperms.pdf write-up (in the enumlib repository) for
+!obsolete>!  details on how the algorithm works. Rod's approach makes it possible to design a minimal hash
+!obsolete>!  table and perfect hash function for this list (just like we did for the combinations list in the
+!obsolete>!  other routine).
+!obsolete>!  GLWH Spring 2011
+!obsolete>SUBROUTINE generate_permutation_labelingsOrig(k,n,nD,perm,lab,iConc,parLabel,parDigit)
+!obsolete>integer, intent(in) :: k             ! Number of colors/labels
+!obsolete>integer, intent(in) :: n             ! Index of the superlattice (="volume" of the superlattice)
+!obsolete>integer, intent(in) :: nD            ! Number of sites in the basis of the parent lattice (size of d-set)
+!obsolete>integer, intent(in) :: perm(:,:)     ! list of translation and rotation permutations
+!obsolete>character, pointer  :: lab(:)        ! Array to store markers for every raw labeling
+!obsolete>! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
+!obsolete>! Need to pass lab out to write out the labelings
+!obsolete>integer, intent(in) :: iConc(:)      ! concentration; the numerator of each rational number that is the
+!obsolete>                                     ! concentration for each label
+!obsolete>integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
+!obsolete>integer, intent(in) :: parDigit(:)   ! The *number* of labels allowed on each site of the parent cell 
+!obsolete>
+!obsolete>
+!obsolete>
+!obsolete>integer nL, status !  number of perumations (labelings)
+!obsolete>integer q, nPerm ! loop counter for symmetry permutations
+!obsolete>integer(li) iP, idx  ! Loop variable over symmetry permutations, Index of a permuted labeling
+!obsolete>integer a(n*nD) ! The current labeling depicted as a list of integers
+!obsolete>!integer a(11) ! The current labeling depicted as a list of integers
+!obsolete>
+!obsolete>lab => null()
+!obsolete>
+!obsolete>nL = multinomial(iConc)
+!obsolete>allocate(lab(nL),STAT=status)
+!obsolete>if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
+!obsolete>lab = ""
+!obsolete>nPerm = size(perm,1)
+!obsolete>a = -1
+!obsolete>do iP = 1, nL  ! Loop over each possible permutation (later generalize this for k-nary case)
+!obsolete>   if(lab(iP)=='') then ! this labeling is unique. Keep it and cross off the duplicates
+!obsolete>      lab(iP) = 'U'
+!obsolete>      ! Get the labeling so we can apply the permutations
+!obsolete>      call generate_labeling_from_index(iP,iConc,a)
+!obsolete>!      write(*,'(20(i1,1x))') a
+!obsolete>      do q = 2, nPerm
+!obsolete>         !write(*,'(20(i1,1x))') a(perm(q,:))
+!obsolete>         ! Add a check for legal labelings later
+!obsolete>         call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
+!obsolete>                                                             
+!obsolete>         if (idx==iP .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
+!obsolete>         ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+!obsolete>         ! "translation" permutation and not a rotation permutation (they're ordered in the
+!obsolete>         ! list...and there are n. The first is the identity so skip that one.)
+!obsolete>         if (idx > nL) then
+!obsolete>            print *,"idx",idx
+!obsolete>            print *,"expected",nL
+!obsolete>            print *,"An index outside the expected range occurred in get_permutations_labeling"
+!obsolete>            stop
+!obsolete>         endif
+!obsolete>         if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
+!obsolete>         if(lab(idx)=='U' .and. idx/=iP) then ! I think something may be wrong
+!obsolete>            write(*,'("Hash table index iP was: ",i20)') iP
+!obsolete>            write(*,'("Permuted  index     was: ",i20)') idx
+!obsolete>            write(*,'("Permution number    was: ",i20)') q
+!obsolete>            write(*,'("Permutation looked like: ",32(i2,1x))') perm(q,:)
+!obsolete>            stop "Idx landed on a spot in the hash table that was marked as 'U'"
+!obsolete>         endif
+!obsolete>      enddo
+!obsolete>   endif
+!obsolete>enddo
+!obsolete>if (any(lab=='')) stop "Not every labeling was marked in generate_permutation_labelings"
+!obsolete>
+!obsolete>END SUBROUTINE generate_permutation_labelingsOrig
 
 !***************************************************************************************************
 ! This routine takes a number (an index) and the number of labels and the number of each type of
@@ -814,13 +825,15 @@ integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
 integer :: nsp ! Number of superperiodic labelings
 integer :: np, ip, nPerm, status ! Loops over label exchang permutations, number of labeling permutatations, allocate error flag
 
+
+
 lab => null()
 
 nl = n*nD
-nexp = k**nl  ! Number of digits in k-ary counter; upper limit of k-ary counter
 
 !!< Set up the number of expected labelings
 nexp = product(parDigit)**int(n,li)  ! should be the same as k**nl when all labels are on all sites
+if (nexp<0) stop "ERROR in generate_unique_labelings: integer overflow of variable nexp."
 
 !if (associated(lab)) deallocate(lab)
 allocate(lab(nexp),STAT=status)
@@ -848,7 +861,8 @@ forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
 forall(j=0:k-1); c(j) = count(label(1,:)==j); endforall
 
 
-a = 0; multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert to base 10
+a = label(1,:)
+multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert to base 10
 
 !!< Set up a new multiplier
 multiplier = 0; multiplier(nl)=1
@@ -903,6 +917,7 @@ do; ic = ic + 1
          ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
          ! "translation" permutation and not a rotation permutation (they're ordered in the
          ! list...and there are n. The first is the identity so skip that one.)
+
          if (idx > nexp) then
             print *, "Index of permuted labeling is outside the range"
             write(*,'("original labeling ",20i1)') a
