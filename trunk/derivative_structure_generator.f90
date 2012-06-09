@@ -429,7 +429,7 @@ do iH = 1,nH ! loop over each superlattice
       dgp = 0 ! Initialize the (d,g) table
       do iD = 1, nD ! Loop over each row in the (d,g) table
          ! LA^-1(v_i+(RAL^-1)G)
-         rgp = matmul(Tinv,(spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
+         rgp = matmul(Tinv,(-spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
          if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
          gp = nint(rgp) ! Move the rotated group into an integer array
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
