@@ -330,35 +330,20 @@ if(status/=0)stop "Allocation failed in get_dvector_permutations: tList"
 allocate(dRPList%perm(nOp,nD),dRPList%v(3,nD,nOp),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: dRPList"
 
-
 call matrix_inverse(pLV,inv_pLV,err)
 if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 
-dRPList%nL = nOp
-!print *,"numops",nOp,"nD",nD
-!print*,"shape(pd)",shape(pd),"shape(rd)",shape(rd)
-!!DEBUG  do ix = 1,3
-!!DEBUG      write(*,'("pLV, pLVinv:",20(f8.4,1x))') pLV(ix,:),inv_pLV(ix,:)
-!!DEBUG   enddo
+dRPList%nL = nOp  ! Number of operations that fix the parent lattice (but may permute the d-vectors)
 
 do iOp = 1, nOp ! Try each operation in turn and see how the d-vectors are permuted for each
    rd = matmul(rot(:,:,iOp),pd)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
-!!DEBUG   do ix = 1,3
-!!DEBUG      write(*,'(i2,":  pd/rd:",20(f8.4,1x))') iOp,pd(ix,:),rd(ix,:)
-!!DEBUG   enddo
-!!DEBUG   do ix = 1,3
-!!DEBUG      write(*,'(i2,": ",3(f7.3,1x))') iOp,rot(ix,:,iOp) !nint(rot(iD,:,iOp))
-!!DEBUG   enddo
-!!DEBUG!   write(*,'("S:",3i3,/)') nint(shift(:,iOp))
-!!DEBUG   write(*,'("S:",3(f7.3,1x),/)') shift(:,iOp)
    tRD = rd
    do iD = 1, nD
       call bring_into_cell(rd(:,iD),inv_pLV,pLV,eps)
    enddo
-!!DEBUG  do ix = 1,3
-!!DEBUG      write(*,'(i2,":  postrot pd/rd:",20(f8.4,1x))') iOp,pd(ix,:),rd(ix,:)
-!!DEBUG   enddo
  
+! The v vector is the vector that must be added (it's a lattice vector) to move a rotated d-vector
+! back into the parent cell.
    dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
    call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
 enddo
@@ -390,6 +375,9 @@ real(dp), dimension(3,3) :: Ainv, T, Tinv
 logical err
 real(dp), allocatable :: rgp(:,:)
 logical, allocatable :: skip(:)
+integer OpIndxInSuperCellList, RowInDxGTable
+
+open(19,file="debug_get_rotation_perms_lists.out")
 
 ! Number of HNFs (superlattices); Index of the superlattices; Number of d-vectors in d set
 nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2) 
@@ -424,7 +412,6 @@ do iH = 1,nH ! loop over each superlattice
    !print *,nop,nd,n;stop
    allocate(rperms%perm(nOp,nD*n),STAT=status)
    if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
-   
    do iOp = 1, nOp ! For each rotation, find the permutation 
       dgp = 0 ! Initialize the (d,g) table
       do iD = 1, nD ! Loop over each row in the (d,g) table
@@ -434,14 +421,21 @@ do iH = 1,nH ! loop over each superlattice
          gp = nint(rgp) ! Move the rotated group into an integer array
          gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of the SNF to bring into group
          ! Now that the rotated group is known, find the mapping of the elements between the
-         ! orginal group and the permuted group. This is the permutation.
-
+         ! original group and the permuted group. This is the permutation.
          skip = .false. ! This is just for efficiency
          do im = 1, n
             do jm = 1, n
                if (skip(jm)) cycle ! Skip elements whose mapping is already known
                if (all(gp(:,jm)==g(:,im))) then ! these elements map to each other
-                  dgp(dperms%perm(RPList(iH)%RotIndx(iOp),iD),im) = jm+(iD-1)*n
+                  ! The list of operations that fix the superlattice are a subset of those that fix
+                  ! the parent lattice. RotIndx stores the indicies of the parent lattice operations
+                  ! in a list with as many entries as supercell fixing operations.
+
+                  ! dperms%perm stores a list of d-vector permutations, one permutation (an nD list)
+                  ! for each operation in the parent lattice symmetries
+                  OpIndxInSuperCellList = RPList(iH)%RotIndx(iOp) 
+                  RowInDxGTable = dperms%perm(OpIndxInSuperCellList,iD)
+                  dgp(RowInDxGTable,im) = jm+(iD-1)*n
                   skip(jm) = .true.
                   exit
                endif
@@ -497,6 +491,7 @@ do iH = 1,nH ! loop over each superlattice
       enddo
    enddo
 enddo ! loop over iH (superlattices)
+close(19)
 ENDSUBROUTINE get_rotation_perms_lists
 
 !***************************************************************************************************
@@ -535,10 +530,6 @@ logical found(size(RP))
 
 RP = 0; found = .false.
 nD = size(rd,2) ! # of d-vectors
-!!DEBUGdo iD = 1, nD
-!!DEBUG   write(*,'("rd: ",3(f8.4,1x))') rd(:,iD)
-!!DEBUG   write(*,'(" d: ",3(f8.4,1x))')  d(:,iD)
-!!DEBUGenddo
 
 do iD = 1, nD
    do jD = 1, nD
@@ -1081,6 +1072,8 @@ do ivol = nMin, nMax
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
             call generate_permutation_labelings(k,ivol,nD&
                  &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull)
+!            call generate_disjoint_permutation_labelings(k,ivol,nD&
+!                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
                  &,RPLindx,lm,equivalencies,iRange(iC,:))
          enddo
