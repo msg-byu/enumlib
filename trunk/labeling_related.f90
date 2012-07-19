@@ -12,7 +12,7 @@ public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
         generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
-        write_labelings
+        write_labelings, generate_disjoint_permutation_labelings
 CONTAINS
 
 !***************************************************************************************************
@@ -367,79 +367,6 @@ end subroutine postprocess_labeling
 
 ENDSUBROUTINE write_labelings
 
-!obsolete>!***************************************************************************************************
-!obsolete>!  This subroutine is conceptually the same as generate_unique_labelings. That routine generates
-!obsolete>!  labelings as a lexicographical list of all possible labelings (all concentrations), subject to
-!obsolete>!  label-site restrictions. This routine generates all possible *permutations* of a fixed
-!obsolete>!  concentration of labels. See Rod's multiperms.pdf write-up (in the enumlib repository) for
-!obsolete>!  details on how the algorithm works. Rod's approach makes it possible to design a minimal hash
-!obsolete>!  table and perfect hash function for this list (just like we did for the combinations list in the
-!obsolete>!  other routine).
-!obsolete>!  GLWH Spring 2011
-!obsolete>SUBROUTINE generate_permutation_labelingsOrig(k,n,nD,perm,lab,iConc,parLabel,parDigit)
-!obsolete>integer, intent(in) :: k             ! Number of colors/labels
-!obsolete>integer, intent(in) :: n             ! Index of the superlattice (="volume" of the superlattice)
-!obsolete>integer, intent(in) :: nD            ! Number of sites in the basis of the parent lattice (size of d-set)
-!obsolete>integer, intent(in) :: perm(:,:)     ! list of translation and rotation permutations
-!obsolete>character, pointer  :: lab(:)        ! Array to store markers for every raw labeling
-!obsolete>! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
-!obsolete>! Need to pass lab out to write out the labelings
-!obsolete>integer, intent(in) :: iConc(:)      ! concentration; the numerator of each rational number that is the
-!obsolete>                                     ! concentration for each label
-!obsolete>integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
-!obsolete>integer, intent(in) :: parDigit(:)   ! The *number* of labels allowed on each site of the parent cell 
-!obsolete>
-!obsolete>
-!obsolete>
-!obsolete>integer nL, status !  number of perumations (labelings)
-!obsolete>integer q, nPerm ! loop counter for symmetry permutations
-!obsolete>integer(li) iP, idx  ! Loop variable over symmetry permutations, Index of a permuted labeling
-!obsolete>integer a(n*nD) ! The current labeling depicted as a list of integers
-!obsolete>!integer a(11) ! The current labeling depicted as a list of integers
-!obsolete>
-!obsolete>lab => null()
-!obsolete>
-!obsolete>nL = multinomial(iConc)
-!obsolete>allocate(lab(nL),STAT=status)
-!obsolete>if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
-!obsolete>lab = ""
-!obsolete>nPerm = size(perm,1)
-!obsolete>a = -1
-!obsolete>do iP = 1, nL  ! Loop over each possible permutation (later generalize this for k-nary case)
-!obsolete>   if(lab(iP)=='') then ! this labeling is unique. Keep it and cross off the duplicates
-!obsolete>      lab(iP) = 'U'
-!obsolete>      ! Get the labeling so we can apply the permutations
-!obsolete>      call generate_labeling_from_index(iP,iConc,a)
-!obsolete>!      write(*,'(20(i1,1x))') a
-!obsolete>      do q = 2, nPerm
-!obsolete>         !write(*,'(20(i1,1x))') a(perm(q,:))
-!obsolete>         ! Add a check for legal labelings later
-!obsolete>         call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
-!obsolete>                                                             
-!obsolete>         if (idx==iP .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
-!obsolete>         ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
-!obsolete>         ! "translation" permutation and not a rotation permutation (they're ordered in the
-!obsolete>         ! list...and there are n. The first is the identity so skip that one.)
-!obsolete>         if (idx > nL) then
-!obsolete>            print *,"idx",idx
-!obsolete>            print *,"expected",nL
-!obsolete>            print *,"An index outside the expected range occurred in get_permutations_labeling"
-!obsolete>            stop
-!obsolete>         endif
-!obsolete>         if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
-!obsolete>         if(lab(idx)=='U' .and. idx/=iP) then ! I think something may be wrong
-!obsolete>            write(*,'("Hash table index iP was: ",i20)') iP
-!obsolete>            write(*,'("Permuted  index     was: ",i20)') idx
-!obsolete>            write(*,'("Permution number    was: ",i20)') q
-!obsolete>            write(*,'("Permutation looked like: ",32(i2,1x))') perm(q,:)
-!obsolete>            stop "Idx landed on a spot in the hash table that was marked as 'U'"
-!obsolete>         endif
-!obsolete>      enddo
-!obsolete>   endif
-!obsolete>enddo
-!obsolete>if (any(lab=='')) stop "Not every labeling was marked in generate_permutation_labelings"
-!obsolete>
-!obsolete>END SUBROUTINE generate_permutation_labelingsOrig
 
 !***************************************************************************************************
 ! This routine takes a number (an index) and the number of labels and the number of each type of
@@ -978,7 +905,7 @@ if (ic /= nexp) then
 endif
 if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
 nsp = count(lab=="N") 
-write(87,'(i3,2x,i10,2x,i10,2x,f9.6)') n,nsp,ic,nsp/real(ic,dp)
+!write(*,'(i3,2x,i10,2x,i10,2x,f9.6)') n,nsp,ic,nsp/real(ic,dp)
 END SUBROUTINE generate_unique_labelings
 
  
@@ -1073,4 +1000,191 @@ else  ! For a partial list (incomplete labelings not included) things are slight
 endif
 
 ENDSUBROUTINE count_full_colorings
+
+!***************************************************************************************************
+! This is a sketch of the permutations labeling routine for enumerating permutations when the
+! partitions possible labelings of the d-vectors in the parent cell are disjoint sets.
+! This routine is just a re-write of the generate_permutations_labelings routine
+!  !!> indicates "old" code or comments, !> indicates modified or new code or comments.
+
+SUBROUTINE generate_disjoint_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit)
+integer, intent(in) :: k ! Number of colors/labels
+integer, intent(in) :: n ! Index of the superlattice
+integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
+integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
+character, pointer :: lab(:) ! Array to store markers for every raw labeling
+! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
+! Need to pass lab out to write out the labelings
+!!!integer, intent(in) :: iConc(:) !!> concentration; the numerator of each rational number that is the
+!!!                                !!> concentration for each label (denominator is n*nD), length is k
+integer :: iConc(:) !!> concentration; the numerator of each rational number that is the
+
+!> Now, this will be the concentration "numerators" for subsets, not for labels
+integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
+integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
+
+integer, allocatable:: E(:,:) ! A matrix of 1's and 0's, indicating site-restrictions
+! One row for each site in the supercell, one column for each color (label)
+integer nL, status !  number of perumations (labelings)
+integer q, nPerm ! loop counter for symmetry permutations
+integer(li) idxOrig, idx  ! Index of unpermuted labeling, Index of a permuted labeling
+integer a(n*nD) ! The current labeling depicted as a list of integers
+integer ik, iD ! Loop counters for colors and sites in the supercell
+integer sitePointer ! Marks the location of the current digit that is advancing
+logical flag ! Use this to exit the loops once we have traversed the entire tree
+
+integer digCnt(n*nD)  !!> Ordinal counter for each place in the labeling (a mixed-radix number)
+integer digit(n*nD)   !!> Each entry is the number of labels in each place
+integer label(k,n*nD) !!> Same as parLabel but repeated n times
+integer i, j, ic  !!> loop variables
+
+lab => null()
+
+!!>nL = multinomial(iConc) ! The hash table is "full size" even if
+                         !!> site-restrictions will reduce the size of the list
+!> The size of the hash table will be smaller than the multinomial over the concentration divisions
+!> of the labels but will be 
+!> *** Might be easier to read if iConc was renamed to something that indicated sets... ****
+
+print *,"Change iConc declaration back when done"
+iConc = (/2,2,0,0/)
+!if (size(iConc)/=nSets) stop "ERROR: number of disjoint subsets does not match entries in iConc"
+nl = multinomial(iConc)
+
+allocate(lab(nL),STAT=status)
+if(status/=0) stop "Allocation of 'lab' failed in generate_disjoint_permutation_labelings"
+lab = ""
+nPerm = size(perm,1)
+
+! Initialize the mask (E) used to prune the tree to meet site restrictions 
+!!> Still need this to have k columns, and not nSets columns
+allocate(E(n*nD,k))
+E = 0
+do ik = 1, k; do iD = 1, n*nD
+   if (any(parLabel(:,(iD-1)/n+1)==ik-1)) then ! this label is allowed on this site
+      E(iD,ik) = 1
+   end if
+end do; end do
+! Write a file containing the mask for site restrictions
+open(22,file="debug_site_restrictions.out",access="append")
+write(22,'("site #   parent site #        Mask")') 
+do iD = 1, n*nD
+   write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
+end do; write(22,*); close(22)
+
+!!> Set up some tables to keep track of the labels on each site
+!!> "digit" keeps track of how many labels are allowed on each site in the supercell.
+digit = (/((parDigit(j),i=1,n),j=1,nD)/) 
+!!> "digCnt" keeps track of where each "place" in the labeling is. Thinking of it as a type of
+!!> odometer, "digCnt" keeps track of where each "wheel" is
+digCnt = 1   !!> Initialize each site "wheel" to the first label ("lowest" digit)
+digCnt(1) = 0!!> except the first (because we advance the wheel before the first check)
+
+! "label" stores a list of allowed labels. Each column shows the allowed
+! labels on each site. The number of rows is k (number of colors---
+! e.g., binary, ternary, etc.). If a label (or labels) is not allowed
+! on a particular site, then the end of the column will be padded with
+! -1.
+! For example, consider a 2-lattice and n=2. If k=5 (quintenary) and
+! labels 0 and 1 are allowed on site 1 in the parent and labels 2,3,4
+! are allowed on the second site in the parent cell, then the table
+! "label" will contain:
+!    0  0  2  2
+!    1  1  3  3
+!   -1 -1  4  4
+!   -1 -1 -1 -1
+forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
+! Write a file containing the table of allowed labels/site
+open(22,file="debug_label_table.out",access="append")
+write(22,'("label #     Label table (k.n*nD)")') 
+do ik = 1, k
+   write(22,'(i4,8x,30(i2,1x))') ik,label(ik,:)
+end do; write(22,*); close(22)
+
+
+print *,"DEBUG, n,k,nD",n,k,nD
+a = -1; flag = .true.
+sitePointer = 1
+
+do while (flag) ! Loop over digits (place holders, wheels) in the labeling
+   do while (flag) ! Loop over possible values for each digit (labels on the wheel)
+      write(*,'("DEBUG: digCnt=",100i2)') digCnt 
+!      write(*,'("DEBUG: a=",100i2)') a(label(digCnt,:))
+      !print *,"sp",sitepointer
+      if (sitePointer < 1) then
+         flag = .false.; exit
+      endif
+      digCnt(sitePointer) = digCnt(sitePointer) + 1   ! Advance the current digit (rotate the wheel one click)
+!print *,"digCnt", digCnt
+print *,"label at current spot",label(digCnt(sitePointer),sitePointer)
+      if (label(digCnt(sitePointer),sitePointer) == -1) then  ! If the wheel is rolling over, reset the label to "zero"   
+         digCnt(sitePointer) = 1                  ! (i.e., lowest allowed label, ordinal 1)
+         sitePointer = sitePointer - 1            ! and back up one digit (i.e., go left one "wheel")
+         cycle
+      endif
+      write(*,'("DEBUG: sp,dig,E:" 3(i2,1x))') sitepointer,digit(sitepointer),E(sitePointer,digit(sitepointer))
+      if(E(sitePointer,digit(sitePointer))==1) exit ! Found a valid label for this site, so exit loop
+   enddo
+   write(*,'("22DEBUG: digCnt=",100i2)') digCnt 
+
+   a(sitePointer) = label(digCnt(sitePointer),sitePointer)
+   write(*,'("Labeling: ",100i1)') a
+   if(.not.flag) exit ! Done with the label generation
+   if(count(a==digCnt(sitePointer))>iConc(digCnt(sitePointer)+1)) cycle
+   sitePointer = sitePointer + 1
+   if(sitePointer>n*nD) sitePointer = n*nD
+   write(*,'("end of labeling construction",100i1)') a
+   stop
+   if(is_valid_multiplicity(a,iConc)) then ! We have a valid labeling on the tree, mark it in the
+      call generate_index_from_labeling(a,iConc,idxOrig) ! hash table and then mark the symmetry brothers
+      if(lab(idxOrig)=='') then ! This labeling hasn't been generated yet (directly or by symmetry permutation)
+         lab(idxOrig)='U'
+         ! In the hash table, cross out the symmetrical duplicates
+         do q = 2, nPerm
+!             if(.not. is_valid_multiplicity(a(perm(q,:)),iConc)) cycle
+             call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
+             if (idx==idxOrig .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
+             ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+             ! "translation" permutation and not a rotation permutation (they're ordered in the
+             ! list...and there are n. The first is the identity so skip that one.)
+
+             ! This is a failsafe and should never trigger if the algorithm is properly implemented
+             if (idx > nL) then
+                write(*,'("iConc",100(i3,1x))') iConc
+                write(*,'(100i1)') a
+                write(*,'(100i1)') a(perm(q,:))
+                print *,"idx",idx
+                print *,"max expected",nL
+                print *,"An index outside the expected range occurred in get_permutations_labeling"
+                stop
+             endif
+             if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
+          end do
+       end if
+    end if
+ enddo
+! If there are no site restrictions, then the hash table is "minimal" and every entry should hove
+! been visited. Double check if this is the case. Just another failsafe.
+if(all(E==1) .and. any(lab=='')) then 
+   print*,"There are no site restrictions and yet not every labeling was marked in generate_permutation_labelings"
+   stop "There is a bug in generate_permutations_labeling in labeling_related.f90"
+endif
+
+CONTAINS
+FUNCTION is_valid_multiplicity(labeling,concList)
+logical is_valid_multiplicity
+integer, intent(in) :: labeling(:)
+integer, intent(in) :: concList(:)
+integer i
+
+is_valid_multiplicity = .true.
+if (sum(concList)/=n*nD) stop "Something is strange in is_valid_multiplicity"
+do i = 0, size(concList,1)-1 
+   if(count(labeling==i)/=concList(i+1)) is_valid_multiplicity = .false.
+enddo
+
+END FUNCTION is_valid_multiplicity
+END SUBROUTINE generate_disjoint_permutation_labelings
+
+
 END MODULE labeling_related

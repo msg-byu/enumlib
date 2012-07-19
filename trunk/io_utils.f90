@@ -244,6 +244,8 @@ open(98,file="debug_conc_check.out")
 close(98,status="delete")
 open(98,file="debug_site_restrictions.out")
 close(98,status="delete")
+open(98,file="debug_label_table.out")
+close(98,status="delete")
 
 
 ! Write to the debug file

@@ -74,7 +74,7 @@ if(iargc()>=6) then
   read(dummy,*)spotsize
 endif
 
-call init(scale,-10.0,20.0)
+call init(scale,-10.0,5.0)
 call init_colors
 
 xorig = 0.; yorig = 0

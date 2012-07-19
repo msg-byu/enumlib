@@ -1,0 +1,79 @@
+This file is contains walk-throughs for a few examples illustrating
+how to use the enumeration code. Please take a look at the README file
+before stepping through this file. The README is not long.
+
+If you have suggestions about how to make it easier to learn how to
+use the enumeration code, please call or email me: 
+
+Gus Hart 
+801-422-7444
+gus.hart@byu.edu
+
+
+
+**********
+Ex. 1: Generate all fcc-based, binary superstructures from 2
+atoms/cell to 4 atoms/cell
+
+In the input directory, there is a file for this case called
+"struct_enum.in.fcc". 
+
+You can run this example by typing (in the input directory):
+../multienum.x struct_enum.in.fcc
+
+Or, copy the struct_enum.in.fcc file to "struct_enum.in" and simply:
+../multienum.x
+
+This will generate an output file called "struct_enum.out", as well as
+some supporting files that you needn't pay any attention to. We'll
+discuss the output below, but first here's a general description of
+the input file, some details specific to this example.
+
+*Line 1: Just a title, echoed in the output, but not used otherwise
+*Line 2: the word "bulk" triggers a 3-D enumeration, "surf" enumerates
+2-D structures.
+*Lines 3-5: The parent unit cell is defined by the vectors given
+here. The vectors should be listed by rows (not by columns)
+*Line 6: An integer specifying binary (2), ternary (3), quaternary
+(4), etc. This number is the same as the total number of distinct
+labels that are used in Lines 8 and beyond.
+*Line 7: Nd, an integer. Nd is the number of lattice points in the
+parent lattice. 1 for monotamic cases (like fcc, bcc, etc.), 2 for
+hcp, e.g., etc.
+*Lines 8--8+Nd-1: The vectors describing each of the parent lattice
+points, given in Cartesian coordinates
+*Line 9+Nd-1: The range of supercell sizes to sweep over (size 1 to
+size 8 in this example). For a single size, say size 12, give the same
+number twice, e.g., "12 12"
+*Line 10+Nd-1: a small real number. This is an epsilon used when
+comparing two real numbers to avoid finite precision errors. Should be
+much smaller than the absolute value of the coordinates in your
+lattice vectors. Almost anything works as long as it's not too small
+(1e-14). 
+*Line 11+Nd-1: "full" or "part" When "full" is specified, every
+symmetrically-distinct configuration is generated (this is what most
+people want). When "part" is specified, structures that are identical
+under atom exchange (A<-->B) are only listed once. For example, in
+enumerating fcc superstructurs of size 4, the L1_2 structure would
+appear twice, once as A_3B and once again as AB_3 with the "full"
+setting. But with the "part" setting, L1_2 would only be listed
+once. The "full" setting lists all structures that are *physically*
+distinct (different energies), whereas the "part" setting lists only 
+structures that *crystallographically* distinct. (It doesn't list the
+"concentration mirror image" structures.)
+
+
+
+
+
+
+
+
+
+make makestr.x  <-- To make a program for making POSCARs
+
+If you compile this program, you can use it to generate POSCARs from the struct_enum.out file like this
+
+./makestr.x struct_enum.out 165
+
+To make number 165 into a POSCAR from the struct_enum.out. You can replace the name "struct_enum.out" by another name as long as the format is the same as a standard struct_enum.out file. You can also replace "165" by "165 175" if you want all 11 structures between those limits.
