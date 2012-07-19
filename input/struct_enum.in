@@ -1,54 +1,13 @@
 FCC interstitials
-surf
- 9.0000000      0.0000000      0.0000000        # a1 parent lattice vector
- 0.0000000      1.0000000      0.0000000        # a2 parent lattice vector
- 0.0000000      0.0000000      1.0000000        # a3 parent lattice vector
-4 
-   38 # Number of points in the multilattice
- 2.0000000      0.0000000      0.0000000    0/1    # d01 d-vector, labels: 0/1
- 2.0000000     0.50000000     0.50000000    0/1    # d02 d-vector, labels: 0/1
- 2.5000000     0.50000000      0.0000000    0/1    # d03 d-vector, labels: 0/1
- 2.5000000      0.0000000     0.50000000    0/1    # d04 d-vector, labels: 0/1
- 3.0000000      0.0000000      0.0000000    0/1    # d05 d-vector, labels: 0/1
- 3.0000000     0.50000000     0.50000000    0/1    # d06 d-vector, labels: 0/1
- 3.5000000     0.50000000      0.0000000    0/1    # d07 d-vector, labels: 0/1
- 3.5000000      0.0000000     0.50000000    0/1    # d08 d-vector, labels: 0/1
- 4.0000000      0.0000000      0.0000000    0      # d09 d-vector, labels: 0
- 4.0000000     0.50000000     0.50000000    1      # d10 d-vector, labels: 1
- 4.5000000     0.50000000      0.0000000    1      # d11 d-vector, labels: 1
- 4.5000000      0.0000000     0.50000000    1      # d12 d-vector, labels: 1
- 5.0000000      0.0000000      0.0000000    0      # d13 d-vector, labels: 0
- 5.0000000     0.50000000     0.50000000    1      # d14 d-vector, labels: 1
- 5.5000000     0.50000000      0.0000000    0/1    # d15 d-vector, labels: 0/1
- 5.5000000      0.0000000     0.50000000    0/1    # d16 d-vector, labels: 0/1
- 6.0000000      0.0000000      0.0000000    0/1    # d17 d-vector, labels: 0/1
- 6.0000000     0.50000000     0.50000000    0/1    # d18 d-vector, labels: 0/1
- 6.5000000     0.50000000      0.0000000    0/1    # d19 d-vector, labels: 0/1
- 6.5000000      0.0000000     0.50000000    0/1    # d20 d-vector, labels: 0/1
- 7.0000000      0.0000000      0.0000000    0/1    # d21 d-vector, labels: 0/1
- 7.0000000     0.50000000     0.50000000    0/1    # d22 d-vector, labels: 0/1
- 1.5000000      0.0000000      0.0000000    2/3    # d23 d-vector, labels: 1   top   
- 1.5000000     0.50000000     0.50000000    2/3    # d24 d-vector, labels: 1   top   
- 1.5000000     0.25000000     0.25000000    2/3    # d25 d-vector, labels: 1   bridge
- 1.5000000     0.75000000     0.75000000    2/3    # d26 d-vector, labels: 1   bridge
- 1.5000000     0.25000000     0.75000000    2/3    # d27 d-vector, labels: 1   bridge
- 1.5000000     0.75000000     0.25000000    2/3    # d28 d-vector, labels: 1   bridge
- 1.5000000     0.50000000      0.0000000    2/3    # d29 d-vector, labels: 0/1 hollow
- 1.5000000      0.0000000     0.50000000    2/3    # d30 d-vector, labels: 0/1 hollow
- 7.5000000      0.0000000      0.0000000    2/3    # d31 d-vector, labels: 1   top   
- 7.5000000     0.50000000     0.50000000    2/3    # d32 d-vector, labels: 1   top   
- 7.5000000     0.25000000     0.25000000    2/3    # d33 d-vector, labels: 1   bridge
- 7.5000000     0.75000000     0.75000000    2/3    # d34 d-vector, labels: 1   bridge
- 7.5000000     0.25000000     0.75000000    2/3    # d35 d-vector, labels: 1   bridge
- 7.5000000     0.75000000     0.25000000    2/3    # d36 d-vector, labels: 1   bridge
- 7.5000000     0.50000000      0.0000000    2/3    # d37 d-vector, labels: 0/1 hollow
- 7.5000000      0.0000000     0.50000000    2/3    # d38 d-vector, labels: 0/1 hollow
-#Equivalencies
-#1 2 3 4 5 6 7 8 9 10 11 12 13 14   7 8 5 6 3 4 1 2    23 24 25 26 27 28 29 30   23 24 25 26 27 28 29 30
-   1   1 # Starting and ending cell sizes for search
+bulk
+      1.0 0.0 0.0
+      0.0 1.0 0.0
+      0.0 0.0 1.0
+2 
+   3 # Number of points in the multilattice
+0.0  0.5 0.5    0/1
+0.5  0.0  0.5   0/1 
+0.5  0.5  0.0   0/1 
+   5 5   # Starting and ending cell sizes for search
 0.001    # eps
 full list of labelings (including incomplete labelings) is used
-0 100 100
-0 100 100
-0 12 100
-0 100 100

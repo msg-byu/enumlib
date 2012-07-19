@@ -497,7 +497,7 @@ real(dp), intent(in):: eps
 integer, pointer :: HNF(:,:,:) ! (out) List of (rotationally-) equivalent HNFs
 integer, intent(out) :: SNF(3,3), L(3,3) ! L is the left transform for SNF
 
-integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i, nEnumBas, iE, iP
+integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i, nEnumBas, iE, iP, ioerr
 integer, pointer :: aTypTemp(:)
 real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:), EnumBas(:,:)
 real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest, sLVinv
@@ -522,7 +522,7 @@ enddo
 ! is, the bases for the parent lattice must not only be equivalent, but identical.) This is because,
 ! if A_1!=A_2 (the two bases for the parent lattice), then A_1*H!=A_2*H. We need to use the same
 ! parent basis when extracting the HNF of a superlattice.
-open(18,file=sfname,status="old")
+open(18,file=sfname,status="old",iostat=ioerr)
 read(18,*); read(18,*) ! Skip the first two lines
 do i = 1, 3; read(18,*) pLV(:,i); enddo
 write(17,'("parent lattice vectors (columns) from ",a80)') adjustl(sfname)
@@ -555,7 +555,9 @@ call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
 if (nEnumBas/=size(aTypTemp))then;print*,"Number of parent lattice sites in "//trim(adjustl(sfname))
    print *,"isn't the same as the structure being checked";
-   print *,"size(aTypTemp)",size(aTypTemp),"nEnumBas",nEnumBas;stop;endif
+   print *,"size(aTypTemp)",size(aTypTemp),"nEnumBas",nEnumBas
+   print *,"Maybe your input cell did not reduce to the same-sized primitive as in the struct_enum.out"
+   print *,"routine: get_HNF_of_derivative_structure_old, file: enumeration_utilities.f90";stop;endif
 ! If we pass this test, the two cell bases are equivalent even if not equal. From this point on, use
 ! the one from the struct_enum.out file. (that one is pLV, not pLVtemp)
 
@@ -857,12 +859,13 @@ integer, intent(in) :: HNF(:,:,:)! HNFs to generate the superlattice from pLV
 real(dp), intent(in) :: eps
 integer, intent(in) :: LatDim
 integer, pointer :: pLabel(:,:)  ! The list of permuted labels (all equivalent)
+integer, pointer :: rotProdLabeling(:) ! List of which rotations producing each labeling permutation
 !logical err 
 
 integer, pointer :: aTypTemp(:), SNFlabel(:)
 real(dp), pointer :: aBasTemp(:,:), sLVlist(:,:,:)
 real(dp), dimension(3,3) :: pLVtemp, sLVtemp, parLattTest, T
-integer nAt, nuq, nP, SNF(3,3)
+integer nAt, nuq, nP, SNF(3,3), iAt, ip, j, iop, iuq
 integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
 type(RotPermList) :: dRotList ! This is a list of permutations for the d-set 
                               ! (needed as in put for several routines)
@@ -884,10 +887,9 @@ allocate(digit(size(dset,2)))
 label = 1
 digit = 1
 
-!if (strNumber >1) stop "made it to here"
-! open(17,file="debug_gspace_rep.out")
+open(17,file="debug_gspace_rep.out")
 nAt = size(aBas,2)
-! write(17,'("Number of atoms: ",i3)') nAt
+write(17,'("Number of atoms: ",i3)') nAt
 if(nAt/=size(aTyp)) stop "Input to get_gspace_representation is inconsistent: nAt"
 
 
@@ -901,41 +903,41 @@ sLVtemp = sLV
 
 call make_primitive(sLVtemp,aTypTemp,aBasTemp,.false.,eps)
 if(nAt/=size(aTypTemp)) then;
-   ! write(17,'(/,"ERROR: The input structure wasn''t primitive")')
-   ! write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
-   ! write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
+   write(17,'(/,"ERROR: The input structure wasn''t primitive")')
+   write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
+   write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
    !stop "ERROR: input structure for get_gspace_representation was not primitive";endif
   write(*,'(A)') "WARNING: input structure for get_gspace_representation was not primitive";endif
 aTypTemp = 1; pLVtemp = sLV
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-! write(17,'("Parent lattice (columns): ",/,3(3(f7.3,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
-! write(17,'("Parent lattice (in): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
-! write(17,'("Superlattice (columns): ",/,3(3(f7.3,1x),/))') (sLV(iAt,:),iAt=1,3)
+write(17,'("Parent lattice (columns): ",/,3(3(f7.3,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
+write(17,'("Parent lattice (in): ",/,3(3(f7.3,1x),/))') (pLV(iAt,:),iAt=1,3)
+write(17,'("Superlattice (columns): ",/,3(3(f7.3,1x),/))') (sLV(iAt,:),iAt=1,3)
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Parent lattice of input superstructure is wrong"
 T = matmul(parLattTest,pLV)
 if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
-! write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
-! write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
-! write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
+write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+!write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
 !** Calls to enumlib routines **
   ! This call generates a list of permutations for the d-set under symmetry operations
   ! of the parent lattice (need this for d-g table permutations)
 
 call get_dvector_permutations(pLV,dset,dRotList,LatDim,eps)
-!write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: This throws a "bad type" error !?!?!
+write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: This throws a "bad type" error !?!?!
   ! This call returns a list of operations that fix the superlattice. The routine expects a *list* of
   ! HNF matrices, but here we only need to pass in one because every one in the list is
   ! rotationally-equivalent. So the input and output lists are only one element
   ! long (in the last index). E.g., HNFin is a 3x3x1 array of integers (original lattice HNF)
 
 call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,eps)
-! write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
-! write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
-!     ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
+write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
+write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
+    ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
+
   ! This routine gets the SNF form of the HNF, returns a list of permutations effected by the
   ! rotation symmetries,
-
 call get_SNF(HNFout,L,SNFlist,R,LattRotList,uqSNF,SNFlabel,fixOp)
 !!! Debug
 !print *,"HNF check",all(HNFin(:,:,1)==HNFout(:,:,1))
@@ -948,20 +950,20 @@ call get_SNF(HNFout,L,SNFlist,R,LattRotList,uqSNF,SNFlabel,fixOp)
 !        &,matmul(Ainv,aBas(:,iAt)))),diag)
 !enddo
 
-! write(17,'("Left transform:",/,3(3i2,1x,/))') transpose(L(:,:,1))
-! write(17,'("Smith Normal form:",/,3(3i2,1x,/))') transpose(SNFlist(:,:,1))
-! write(17,'("Permutations:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
+write(17,'("Left transform:",/,3(3i2,1x,/))') transpose(L(:,:,1))
+write(17,'("Smith Normal form:",/,3(3i2,1x,/))') transpose(SNFlist(:,:,1))
+write(17,'("Permutations:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
 
 SNF = SNFlist(:,:,1)
 
 ! This loads up the "perm" element of LattRotList
 call get_rotation_perms_lists(pLV,HNFout,L,SNFlist,fixOp,LattRotList,dRotList,eps)
-! write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
-! write(17,'("Permutation group (trans+rot):")')
+write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
+write(17,'("Permutation group (trans+rot):")')
 nP = size(LattRotList(1)%perm,1)
-! do ip = 1, nP
-!    write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
-! enddo
+do ip = 1, nP
+   write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
+enddo
 
 !!! debug
 !print *,"HNF check",all(HNFin(:,:,1)==HNFout(:,:,1))
@@ -976,8 +978,8 @@ nP = size(LattRotList(1)%perm,1)
 
 
 call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,dset,aTyp,SNF,eps,labeling)
-! write(17,'("Input atom labels: ",200(i2,1x))') aTyp
-! write(17,'("Labeling:          ",200(i2,1x))') labeling
+write(17,'("Input atom labels: ",200(i2,1x))') aTyp
+write(17,'("Labeling:          ",200(i2,1x))') labeling
 
 ! Now that we know the labeling for the input atomic basis, find all possible permutations of that
 ! labeling. These can be compared to the entries in struct_enum.out
@@ -985,35 +987,39 @@ call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,dset,aTyp,SNF,eps,labeling)
 ! Use the permutations effected by the rotations that fix the superlattice to generate labelings
 ! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
 ! struct_enum file
-call find_equivalent_labelings(labeling,LattRotList,pLabel)
+call find_equivalent_labelings(labeling,LattRotList,pLabel,rotProdLabeling)
 
 nuq = size(pLabel,1)
-! write(17,'(/,"Number of unique labelings: ",i5)') nuq
-! do iuq = 1, nuq
-!    write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,pLabel(iuq,:)
-! enddo
-! close(17)
+write(17,'(/,"Number of unique labelings: ",i5)') nuq
+do iuq = 1, nuq
+   write(17,'("Rot #:",i4,3x,"uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))')&
+        & rotProdLabeling(iuq),iuq,pLabel(iuq,:)
+enddo
+close(17)
 
 END SUBROUTINE get_gspace_representation
 
 !***************************************************************************************************
-SUBROUTINE find_equivalent_labelings(labeling,rotPerm,lab)
+SUBROUTINE find_equivalent_labelings(labeling,rotPerm,lab,rotProdLab)
 integer, intent(in)           :: labeling(:)
 type(RotPermList), intent(in) :: rotPerm(:)
 integer, pointer              :: lab(:,:)
+integer, pointer              :: rotProdLab(:) ! Keep a list of which rotation created each labeling permutation
 
 integer iuq, nuq, ip, nP, nAt
-integer, pointer              :: tempLabeling(:,:)
+integer, pointer              :: tempLabeling(:,:), tempRotProdLab(:)
 logical unique
 nP = size(rotPerm(1)%perm,1)
 nAt = size(labeling)
 
 iuq = 0; nuq = 0; allocate(tempLabeling(nP,nAt)); tempLabeling = 0
+allocate(tempRotProdLab(nP)); tempRotProdLab = 0
 do ip = 1, nP
    unique = .true.
    do iuq = 1, nuq
       if(all(labeling(rotPerm(1)%perm(ip,:))==tempLabeling(iuq,:))) then
          unique = .false.
+         tempRotProdLab(iuq) = iP
          exit
       endif
    enddo
@@ -1023,7 +1029,9 @@ do ip = 1, nP
    endif
 enddo
 allocate(lab(nuq,nAt))
+allocate(rotProdLab(nuq))
 lab = tempLabeling(1:nuq,:)
+rotProdLab = tempRotProdLab(1:nuq)
 END SUBROUTINE find_equivalent_labelings
 
 !***************************************************************************************************
@@ -1148,7 +1156,12 @@ do
    do iLab = 1, nLab
       if(all(ilabeling==pLabel(iLab,:))) then
          foundLab = .true.
-         if (match/=0) stop "BUG! Found more than one match in struct_enum.out file"
+         if (match/=0) then
+            close(13)
+            print *, "The first two matching structures are:"
+            print *,match,iStr
+            stop "BUG! Found more than one match in struct_enum.out file"
+         endif
          match = iStr
          exit
       endif
