@@ -10,11 +10,13 @@ types can be disallowed on some sites in the parent lattice. In other
 words, the possible occupation of sites by different atoms does not
 have to be the same on each parent lattice site. You could have two
 sites in the parent lattice and one could be populated by A or B atoms
-and the second site could be populated by B and C atoms, for example.
+and the second site could be populated by B and C atoms, for
+example. (But see Ex. 5 in the EXAMPLES file for some caveats.)
 
 
 A discussion of the algorithm and its applications can be found in the
-following publications:
+following publications. If you use this code in a publication, we
+would appreciate it if you would cite these papers. Thank you.
 
 Gus L. W. Hart and Rodney W. Forcade, "Algorithm for generating
 derivative structures," Phys. Rev. B 77 224115 (26 June 2008)
@@ -22,15 +24,14 @@ http://msg.byu.edu/papers/GLWHart_enumeration.pdf
 
 Gus L. W. Hart and Rodney W. Forcade, "Generating derivative
 structures from multilattices: Application to hcp alloys,"
-Phys. Rev. B80 014120 (July 2009) 
+Phys. Rev. B 80 014120 (July 2009) 
 http://msg.byu.edu/papers/multi.pdf
 
 Gus L. W. Hart, Lance J. Nelson, and Rodney W. Forcade, "Generating
-derivative structures at a fixed concentration," 
+derivative structures at a fixed concentration," Comp. Mat. Sci. 59
+101-107 (March 2012)
+http://msg.byu.edu/papers/enum3.pdf
 
-
-If you use this code in a publication, we would appreciate it if you
-would cite these papers. Thank you.
 
 **********************************************************************
 COMPILING THE CODE
@@ -56,6 +57,9 @@ make
 Finally, to make a stand-alone executable for enumeration:
 make multienum.x
 
+If you have trouble compiling, please send me a note and I'll try and
+assist you.  gus.hart@byu.edu, 801-422-7444
+
 **********************************************************************
 HOW TO USE THE CODE:
 
@@ -67,6 +71,6 @@ There are also helper programs for making VASP POSCARs, pictures of
 make makestr.x  <-- To make a program for making POSCARs
 make 2dplot.x <-- To make a program that plots 2D enumeration results
 
-If you have questions, email or call gus.hart@byu.edu, 801-422-7444
+If you have questions, email or call: gus.hart@byu.edu, 801-422-7444
 
-For in-depth examples, please see the EXAMPLES file
+For in-depth examples, please see the EXAMPLES file.

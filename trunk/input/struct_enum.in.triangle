@@ -1,0 +1,12 @@
+Triangular lattice, 2 points/cell 
+surf                         # Surface case (instead of bulk)			  
+1 0 0			     #  (only columns 2 and 3 in rows 2 and 3 are used)
+0 .5 0.866025403784439 	     # Second lattice vector				  
+0 1 0			     # Third lattice vector				  
+2			     # binary case					  
+2			     # Two lattice points/unit cell				  
+0 0 0              0/1	     # First lattice point is at the origin			  
+0 .5 0.28867513459 0/1	     # Second lattice point is at the center of a triangle
+1 6			     # Cell sizes to enumerate				     	  
+1e-10			     # Finite precision parameter			     
+part			     # generate a partial listing (e.g., consider AAAB==BBBA)
