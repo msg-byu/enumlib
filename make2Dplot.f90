@@ -47,10 +47,10 @@ do ;read(11,*) dummy
    if(dummy(1:5)=="start") exit
 enddo 
 
-scale = .025*1.5
-Nspots = 14
+scale = .025*4
+Nspots = 8
 rows = 49
-cols = 8*7/1.5
+cols = 24
 spotsize = .48
 
 if (iargc()>=2) then
@@ -74,7 +74,7 @@ if(iargc()>=6) then
   read(dummy,*)spotsize
 endif
 
-call init(scale,-10.0,5.0)
+call init(scale,-10.0,5)
 call init_colors
 
 xorig = 0.; yorig = 0
@@ -82,7 +82,7 @@ xorig = 0.; yorig = 0
 outer: do js = 1,rows
    do is = 1,cols
       xoff = 1.05*(is-1)*Nspots
-      yoff = 28/scale - (js-1)*(Nspots+1)
+      yoff = 27/scale - (js-1)*(Nspots+1)
       !if ((js-1)*cols+is>160) exit outer ! Ternary
       !if ((js-1)*cols+is>155) exit outer ! binary
       if (yoff < 0) exit outer

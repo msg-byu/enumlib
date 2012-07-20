@@ -1,9 +1,9 @@
-hcp 
+Triangular lattice, 2 points/cell 
 surf
 1 0 0
 0 .5 0.866025403784439 
 0 1 0
-3
+2
 2
 0 0 0 0/1/2
 .5 .5 0.28867513459 0/1
