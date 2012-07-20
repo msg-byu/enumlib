@@ -47,6 +47,9 @@ nD = size(pBas,2)
 a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
 d = HNF(3,1); e = HNF(3,2); f = HNF(3,3)
 ! Compute the superlattice vectors 
+!write(*,'("Parent lattice:",/,3(3f7.3,1x,/))') (pLV(:,i),i=1,3) 
+!write(*,'("Parent lattice:",/,3(3I,1x,/))') (HNF(i,:),i=1,3) 
+
 sLV = matmul(pLV,HNF)
 
 ! Find the coordinates of the basis atoms
@@ -550,7 +553,7 @@ if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
 aTypTemp = 1; pLVtemp = sLV
 ! Now make every atom the same and apply make_primitive to find the parent cell
 call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
+!write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
 if (nEnumBas/=size(aTypTemp))then;print*,"Number of parent lattice sites in "//trim(adjustl(sfname))
@@ -935,7 +938,6 @@ call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattR
 write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
 write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
     ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
-
   ! This routine gets the SNF form of the HNF, returns a list of permutations effected by the
   ! rotation symmetries,
 call get_SNF(HNFout,L,SNFlist,R,LattRotList,uqSNF,SNFlabel,fixOp)
@@ -1085,8 +1087,8 @@ endif
 ! Read in the parent lattice vectors
 do i = 1,3; read(11,*) p(:,i); enddo
 call matrix_inverse(p,Ainv)
-write(13,'("Parent lattice:",/,3(3f7.3,1x,/))') (p(:,i),i=1,3) 
-write(13,'("Parent lattice inverse matrix:",/,3(3f7.3,1x,/))') (Ainv(:,i),i=1,3) 
+!write(13,'("Parent lattice:",/,3(3f7.3,1x,/))') (p(:,i),i=1,3) 
+!write(13,'("Parent lattice inverse matrix:",/,3(3f7.3,1x,/))') (Ainv(:,i),i=1,3) 
 if (.not. equal(determinant(pLV),determinant(p),eps)) then
    write(13,'("Volume of input structure parent: ",f7.3)') determinant(pLV)
    write(13,'("Volume of struct_enum parent: ",f7.3)') determinant(p)
