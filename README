@@ -32,12 +32,14 @@ derivative structures at a fixed concentration," Comp. Mat. Sci. 59
 101-107 (March 2012)
 http://msg.byu.edu/papers/enum3.pdf
 
+If you download this code, please send me an email so I can let you
+know about bugs/improvements/etc.
 
 **********************************************************************
 COMPILING THE CODE
 
 To compile the code, first unpack the tar file:
-tar -xvf enum.tar.gz
+tar -zxvf enum.tar.gz
 
 Next, compile the symmetry library. Go to the celib/trunk directory:
 cd celib/trunk
@@ -69,7 +71,7 @@ There are also helper programs for making VASP POSCARs, pictures of
 2-D enumerations, etc.
 
 make makestr.x  <-- To make a program for making POSCARs
-make 2dplot.x <-- To make a program that plots 2D enumeration results
+make 2Dplot.x <-- To make a program that plots 2D enumeration results
 
 If you have questions, email or call: gus.hart@byu.edu, 801-422-7444
 

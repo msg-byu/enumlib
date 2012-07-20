@@ -415,9 +415,12 @@ the A atoms and 1/16 for the C atoms.
 
 The definition of the square lattice with two lattice points is given
 in the input file "struct_enum.in.ex5". The supercell is defined in
-another file that must be named "fixed_cells.in". Copy
-"fixed_cells.in.8x" to "fixed_cells.in" and then run "../multienum.x
-struct_enum.in.ex5".
+another file that must be named "fixed_cells.in". In this file, the
+supercell vectors are defined in Cartesian coordinates (not as
+multiples of the parent cell vectors).
+
+Copy "fixed_cells.in.8x" to "fixed_cells.in" and then run
+"../multienum.x struct_enum.in.ex5".
 
 **********************************************************************
 (hart)~/codes/enumlib/trunk/input> ../multienum.x struct_enum.in.ex5 
