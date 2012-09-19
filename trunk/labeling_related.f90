@@ -58,7 +58,7 @@ integer a(n*nD) ! The current labeling depicted as a list of integers
 integer ik, iD ! Loop counters for colors and sites in the supercell
 integer sitePointer ! Marks the location of the current digit that is advancing
 logical flag ! Use this to exit the loops once we have traversed the entire tree
-
+integer degen ! Count the degeneracy of each structure
 
 lab => null()
 
@@ -116,6 +116,7 @@ do while (flag) ! Loop over digits (place holders) in the labeling
       call generate_index_from_labeling(a,iConc,idxOrig) ! hash table and then mark the symmetry brothers
       if(lab(idxOrig)=='') then ! This labeling hasn't been generated yet (directly or by symmetry permutation)
          lab(idxOrig)='U'
+         degen = 0
          ! In the hash table, cross out the symmetrical duplicates
          do q = 2, nPerm
 !             if(.not. is_valid_multiplicity(a(perm(q,:)),iConc)) cycle
@@ -135,9 +136,10 @@ do while (flag) ! Loop over digits (place holders) in the labeling
                 print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
                 stop
              endif
-             if(lab(idx)=='') lab(idx)='D' ! Mark this labeling as a duplicate
+             if(lab(idx)=='') degen = degen+1;lab(idx)='D' ! Mark this labeling as a duplicate
           end do
        end if
+       print *, degen, "degeneracy!!!"
     end if
  enddo
 
@@ -199,12 +201,13 @@ END SUBROUTINE setup_mixed_radix_multiplier
 ! generate_unique_labelings routine is not efficient CPU-wise but save lots of memory since the
 ! labelings are never stored in memory except as a base-10 number.
 SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp, &
-                           Tcnt,Scnt,Hcnt,permIndx,lm,equivalencies,concVect)
+                           Tcnt,Scnt,Hcnt,permIndx,lm,equivalencies,hnf_degen,lab_degen,concVect)
 integer, intent(in) :: k ! number of colors/labels
 integer, intent(in) :: n, nD ! index (size of supercell), size of d-set
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 
+integer, intent(in) :: hnf_degen, lab_degen(:)
 integer, intent(in) :: HNFi ! Index in the permIndx corresponding to the current block of HNFs
 integer, intent(in), dimension(:,:,:) :: HNFlist, SNFlist, L ! List of the HNFs, SNFs, L's. Need this just for the output
 type(opList), intent(in) :: fixOp(:)
@@ -225,7 +228,7 @@ integer ivsL
 integer, pointer :: label(:,:)=>null(), digit(:)=>null(), multiplier(:)=>null() ! Need to convert base-10 back to labeling
 logical conc_check
 character(3) :: dummy
-character(80) :: struct_enum_out_formatstring 
+character(100) :: struct_enum_out_formatstring 
 
 
 ! Labeling Postprocessing data
@@ -303,7 +306,11 @@ call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 !print *,lm
 !print *,nL
 write(dummy,'(I3)') n*nAllD
-struct_enum_out_formatstring = '(i11,1x,i7,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
+print *, lab_degen, "lab degen"
+print *, size(lab_degen), "size"
+print *, nl, "number of labels"
+print *, nHNF, "Number of hnfs"
+struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
 !   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
@@ -331,10 +338,12 @@ do il = 1, nl ! Loop over the unique labelings
       ! check if concentrations of this labeling match the user specification:
       !!GH if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
         Tcnt = Tcnt + 1; Scnt = Scnt + 1
+        print *, lab_degen(il), "lab degen"
+
         write(14,struct_enum_out_formatstring) &
-             Tcnt, Hcnt+iHNF,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
+             Tcnt, Hcnt+iHNF,hnf_degen,lab_degen(il),lab_degen(il)*hnf_degen,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
              HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
-             HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling   
+             HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling!,lab_degen(il), hnf_degen*lab_degen(il)   
       !!GH endif
    enddo ! loop over HNFs
 enddo ! loop over labelings
@@ -721,7 +730,7 @@ ENDFUNCTION labeling_is_legal
 ! Got rid of the old comments from the original counter (that didn't
 ! allow for different labels on different sites) at svn revision #191
 ! (GLWH Dec 2011)
-SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab,parLabel,parDigit)
+SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab,parLabel,parDigit,degeneracy_list)
 integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
@@ -732,6 +741,8 @@ character, pointer :: lab(:)     ! Array to store markers for every raw labeling
 logical, intent(in) :: full ! specify whether the full labelings list should be used or not
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
+integer, intent(inout), pointer :: degeneracy_list(:)
+
 
 integer j ! Index variable (place index) for the k-ary counter
 integer(li) ic
@@ -751,7 +762,8 @@ integer id, iq ! Counter for labels that are duplicates, for those unique
 integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
 integer :: nsp ! Number of superperiodic labelings
 integer :: np, ip, nPerm, status ! Loops over label exchang permutations, number of labeling permutatations, allocate error flag
-
+integer, allocatable :: degen(:),temp(:) ! keep track of degeneracy for each structure.
+integer nUniq
 
 
 lab => null()
@@ -816,10 +828,13 @@ do ic = 0, k-1
    c(ic) = count(label(1,:)==ic)
 enddo
 
-
+allocate(degeneracy_list(nexp) )
+degeneracy_list = 0
+nUniq = 1
 if (sum(c)/=nl) stop "ERROR: initialization of the 'c' counter failed in generate_unique_labelings"
 
 ic = 0
+nUniq = 0
 do; ic = ic + 1
    if (ic > nexp) exit ! Fail safe
    idx = sum((digCnt-1)*multiplier)+1
@@ -834,17 +849,23 @@ do; ic = ic + 1
    ! and mark its duplicates as 'D'
    if (lab(idx)=='') then
       lab(idx) = 'U'
+      nUniq = nUniq + 1
+      degeneracy_list(nUniq) = 1
       ! Is the first permutation in the list guaranteed to be the identity? We need to skip the identity
       do q = 2,nPerm ! Mark duplicates and eliminate superperiodic (non-primitive) colorings
          if (.not. labeling_is_legal(a(perm(q,:)),label,digit)) then
             cycle
          endif
          idx = sum((digCnt(perm(q,:))-1)*multiplier)+1
-         if (idx==ic .and. q <= n) lab(idx)='N' ! This will happen if the coloring is superperiodic
+            ! This will happen if the coloring is superperiodic
          ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
          ! "translation" permutation and not a rotation permutation (they're ordered in the
          ! list...and there are n. The first is the identity so skip that one.)
-
+         if (idx==ic .and. q <= n) then
+            degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1
+            lab(idx)='N'
+         end if
+         
          if (idx > nexp) then
             print *, "Index of permuted labeling is outside the range"
             write(*,'("original labeling ",20i1)') a
@@ -856,7 +877,10 @@ do; ic = ic + 1
             stop
          endif
 
-         if (lab(idx)=='') lab(idx) = 'D'  ! Mark as a duplicate
+         if (lab(idx)=='') then
+            degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
+            lab(idx) = 'D'  ! Mark as a duplicate
+         endif
       enddo
       if (.not. full) then ! loop over the label-exchange duplicates and mark them off.
          do q = 1,nPerm ! Loop over all possible permutations. (should this loop start at 1? I think so...)
@@ -869,12 +893,16 @@ do; ic = ic + 1
                   cycle
                endif
                idx = sum(b(perm(q,:))*multiplier)+1
-               if  (lab(idx)=='') lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
+               if  (lab(idx)=='') then
+                  degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
+                  lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
+               endif
                ! not otherwise marked
             enddo
          enddo
       endif ! end block to remove label exchange duplicates
    endif
+   
 
 ! "c" counts the number of labels of each kind across the entire labeling. Need this for "partial"
 ! lists that have label-exchange duplicates removed.
@@ -898,6 +926,21 @@ do; ic = ic + 1
    c(label(digCnt(j)-1,j)) = c(label(digCnt(j)-1,j)) - 1 ! subtract 1 from the number of digits of the j-th kind
    if (sum(c) /= nl .and. .not. full) stop 'counting bug'
 enddo
+nUniq = count(degeneracy_list > 0.0001)
+allocate(temp(nUniq))
+idx = 1
+do i = 1, size(degeneracy_list)
+   if (degeneracy_list(i) > 0) then
+      temp(idx) = degeneracy_list(i)
+      idx = idx + 1
+   end if
+end do
+deallocate(degeneracy_list)
+allocate(degeneracy_list(nUniq) )
+degeneracy_list = temp
+deallocate(temp)
+print *, nUniq, "number of unique labels"
+print *, degeneracy_list, "final degeneracy_list for this labeling"
 if (ic /= nexp) then
    print *, 'number of permutations counted', iC
    print *, 'number expected', nexp

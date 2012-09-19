@@ -874,7 +874,7 @@ type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
                               ! (needed as in put for several routines)
 type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
 type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
-integer, pointer :: labeling(:)
+integer, pointer :: labeling(:), hnf_degen(:)
 
 integer, pointer :: label(:,:), digit(:)
 !debug
@@ -934,7 +934,7 @@ write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: Thi
   ! rotationally-equivalent. So the input and output lists are only one element
   ! long (in the last index). E.g., HNFin is a 3x3x1 array of integers (original lattice HNF)
 
-call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,eps)
+call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
 write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
 write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
     ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
