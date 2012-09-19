@@ -679,10 +679,11 @@ ENDSUBROUTINE get_SNF
 ! rotationally equivalent (under the rotations of the parent lattice). Also
 ! returns all the unique derivative _lattices_ for this parent. Also returns  
 ! a list of rotations that fix each superlattice. 
-SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,eps)
+SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,degeneracy_list,eps)
 integer, pointer :: hnf(:,:,:) ! HNF matrices (input)
 integer :: LatDim ! Is the parent lattice 2D or 3D?
 real(dp), intent(in) :: parent_lattice(3,3) ! parent lattice (input)
+integer, pointer     :: degeneracy_list(:)
 integer, pointer :: uq_hnf(:,:,:) ! list of symmetrically distinct HNFs (output)
 type(opList), pointer :: fixing_op(:) ! List of operations that fix each HNF
 real(dp),intent(in):: eps ! finite precision (input)
@@ -692,12 +693,14 @@ type(RotPermList), pointer :: RPList(:)
 !integer, intent(in)  :: label(:,:), digit(:)
 
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
-real(dp), dimension(3,3) :: test_latticei, test_latticej
+real(dp), dimension(3,3) :: test_latticei, test_latticej, test_latticek, matinv, transf_mat
 integer i, Nhnf, iuq, irot, j, nRot, Nq, status, nD
-integer, allocatable :: temp_hnf(:,:,:)
+integer, allocatable :: temp_hnf(:,:,:),degeneracy(:)
+real(dp),allocatable :: degen_lattices(:,:,:)
 real(dp), pointer :: latts(:,:,:)
-logical duplicate
+logical duplicate, inList,err
 integer, pointer :: aTyp(:)
+integer cDegen,f, nUniq
 
 
 nD = size(d,2)
@@ -715,36 +718,86 @@ call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
 Nhnf = size(hnf,3)
 allocate(temp_hnf(3,3,Nhnf),STAT=status)
+allocate(degeneracy(Nhnf) ) 
+degeneracy = 0
+allocate(degen_lattices(3,3,nRot) )
+
+
 if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp_hnf"
 temp_hnf = hnf
 call write_lattice_symmetry_ops(sgrots,sgshift)
 
 ! for the 2D case, eliminate the "3D" operations.
+   
 if (LatDim==2) then
    call rm_3d_operations(parent_lattice,sgrots,sgshift,eps)
    nRot = size(sgrots,3)
    call write_lattice_symmetry_ops(sgrots,sgshift,"2D")
 endif
-
+print *, nRot, "number of rotations"
+print *, Nhnf, "number of hnfs to compare against" 
 ! For each HNF in the list, see if it is a derivative lattice of a preceding
 ! HNF in the list. If so, don't include it in the list of unique ones.
 iuq = 1
 do i = 2,Nhnf  ! Loop over each matrix in the original list
    duplicate = .false.
    do j = 1,iuq! Loop over the known unique matrices (in the updated list)
+      degen_lattices = 0
+      cDegen = 0
       do irot = 1, nRot! The duplicates will always be rotated from 
                        ! the original (otherwise necessarily unique)
          test_latticei = matmul(sgrots(:,:,irot),matmul(parent_lattice,hnf(:,:,i)))
          test_latticej = matmul(parent_lattice,temp_hnf(:,:,j))
+
+         ! Starting here was added by L.N. to count the degeneracy of each hnf
+         test_latticek = matmul(sgrots(:,:,irot),matmul(parent_lattice,hnf(:,:,j)))
          
+
+         inList = .false.
+         do f = 1, cDegen
+            call matrix_inverse(degen_lattices(:,:,f),matinv,err)
+            transf_mat = matmul(matinv,test_latticek)
+            if ( all(abs(transf_mat - nint(transf_mat)) < eps) ) then
+               inList = .true.
+               exit
+            endif
+         end do
+
+         if( .not. inList) then
+            cDegen = cDegen + 1
+            degen_lattices(:,:,cDegen) = test_latticek(:,:)
+         end if
+         ! End of stuff added by L.N.
+
+
          if (is_equiv_lattice(test_latticei,test_latticej,eps)) then
-            duplicate = .true.;exit;endif
+            duplicate = .true.
+         end if
+!         if (is_equiv_lattice(test_latticei,test_latticej,eps)) then
+!            duplicate = .true.;exit;endif
       enddo
+      print *, cDegen, "cDegen"
+      degeneracy(j) = cDegen
    enddo
    if (.not. duplicate) then ! No duplicate found---add this to the unique list
       iuq = iuq+1
-      temp_hnf(:,:,iuq) = hnf(:,:,i);endif
+      temp_hnf(:,:,iuq) = hnf(:,:,i)
+   endif
+      
 enddo
+if (Nhnf == 1) then
+   degeneracy = 1
+end if
+print *, degeneracy, "degeneracy of hnfs"
+nUniq = count(degeneracy > 0)
+if (nUniq == 0) then
+   allocate(degeneracy_list(1) )
+   degeneracy_list(1) = 0
+else
+   allocate(degeneracy_list(nUniq) )
+   degeneracy_list(:) = degeneracy(1:nUniq)
+end if
+deallocate(degeneracy)
 allocate(uq_hnf(3,3,iuq),latts(3,3,iuq),RPList(iuq),STAT=status)
 if(status/=0) stop "Failed to allocate uq_hnf/latts in remove_duplicate_lattices: uq_hnf"
 uq_hnf = temp_hnf(:,:,:iuq)
@@ -908,6 +961,7 @@ character(80) formatstring
 logical fixed_cells ! This is set to true if we are giving a list of cells from a file instead of generating them all
 integer, pointer :: iRange(:,:)
 logical err
+integer, pointer :: hnf_degen(:), lab_degen(:)
 
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
@@ -995,7 +1049,7 @@ write(14,'("Equivalency list:" ,40(I2,1x))') equivalencies(:)
 !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 
 
-write(14,'("start",3x,"#tot",6x,"HNF",5x,"#size",1x,"idx",4x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",26x,"labeling")')
+write(14,'("start",3x,"#tot",6x,"HNF",5x,"Hdegn",3x,"labdegn",3x,"Totdegn",3x,"#size",1x,"idx",4x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",26x,"labeling")')
 
 ! Check for 2D or 3D request
 if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
@@ -1043,7 +1097,7 @@ do ivol = nMin, nMax
    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
-   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,eps)
+   call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
    !call cpu_time(Removetime)
    ! Superlattices with the same SNF will have the same list of translation permutations of the
    ! labelings. So they can all be done at once if we find the SNF. rdHNF is the reduced list.
@@ -1067,9 +1121,11 @@ do ivol = nMin, nMax
    endif
 !call cpu_time(groupcheck)
    Scnt = 0 ! Keep track of the number of structures at this size   
+   print *, hnf_degen, "hnf_degen"
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
       filename = "debug_temp_perms.out"
+
       call write_rotperms_list(rdRPList(iBlock),filename)
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
@@ -1078,12 +1134,13 @@ do ivol = nMin, nMax
 !            call generate_disjoint_permutation_labelings(k,ivol,nD&
 !                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
-                 &,RPLindx,lm,equivalencies,iRange(iC,:))
+                 &,RPLindx,lm,equivalencies,hnf_degen(iBlock),lab_degen,iRange(iC,:))
          enddo
       else
-      	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit)
+      	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit,lab_degen)
+       print *, lm, "labelings2"
       	! Now that we have the labeling marker, we can write the output.
-      	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies)
+      	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen(iBlock),lab_degen)
       	!call cpu_time(endwrite)
       endif
    enddo! iBlock

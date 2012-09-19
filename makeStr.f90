@@ -10,7 +10,7 @@ implicit none
 character(80) fname, title, strname, strNstring
 character(maxLabLength) :: labeling
 integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt
-integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
+integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen
 integer, pointer :: gIndx(:)
 real(dp) :: p(3,3), sLV(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3)
 real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a routine
@@ -83,7 +83,7 @@ write(13,'("Skipped to the ",i10,"nth line in ",a80)') strNi,fname
 
 ! Read in the info for the given structure
 do istrN=strNi,strNf
-   read(11,*) strN, hnfN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L, labeling
+   read(11,*) strN, hnfN, hnf_degen, lab_degen, tot_degen,sizeN, n, pgOps, diag, a,b,c,d,e,f, L, labeling
    write(13,'("strN, hnfN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L, labeling")')  
    write(13,'(i11,1x,i7,1x,i8,1x,i2,1x,i2,1x,3(i3,1x),1x,6(i3,1x),1x,9(i3,1x),1x,a40)') &
         strN, hnfN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L, labeling
