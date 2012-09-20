@@ -207,7 +207,7 @@ integer, intent(in) :: n, nD ! index (size of supercell), size of d-set
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 
-integer, intent(in) :: hnf_degen, lab_degen(:)
+integer, intent(in) :: hnf_degen(:), lab_degen(:)
 integer, intent(in) :: HNFi ! Index in the permIndx corresponding to the current block of HNFs
 integer, intent(in), dimension(:,:,:) :: HNFlist, SNFlist, L ! List of the HNFs, SNFs, L's. Need this just for the output
 type(opList), intent(in) :: fixOp(:)
@@ -306,10 +306,7 @@ call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 !print *,lm
 !print *,nL
 write(dummy,'(I3)') n*nAllD
-print *, lab_degen, "lab degen"
-print *, size(lab_degen), "size"
-print *, nl, "number of labels"
-print *, nHNF, "Number of hnfs"
+
 struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
 !   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
@@ -338,16 +335,15 @@ do il = 1, nl ! Loop over the unique labelings
       ! check if concentrations of this labeling match the user specification:
       !!GH if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
         Tcnt = Tcnt + 1; Scnt = Scnt + 1
-        print *, lab_degen(il), "lab degen"
 
         write(14,struct_enum_out_formatstring) &
-             Tcnt, Hcnt+iHNF,hnf_degen,lab_degen(il),lab_degen(il)*hnf_degen,Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
+             Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen(il),lab_degen(il)*hnf_degen(jHNF),Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
              HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
              HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling!,lab_degen(il), hnf_degen*lab_degen(il)   
       !!GH endif
    enddo ! loop over HNFs
 enddo ! loop over labelings
-Hcnt = Hcnt + nHNF
+Hcnt = Hcnt + nHNF 
 
 contains
 
@@ -939,8 +935,6 @@ deallocate(degeneracy_list)
 allocate(degeneracy_list(nUniq) )
 degeneracy_list = temp
 deallocate(temp)
-print *, nUniq, "number of unique labels"
-print *, degeneracy_list, "final degeneracy_list for this labeling"
 if (ic /= nexp) then
    print *, 'number of permutations counted', iC
    print *, 'number expected', nexp

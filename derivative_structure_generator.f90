@@ -695,13 +695,12 @@ type(RotPermList), pointer :: RPList(:)
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
 real(dp), dimension(3,3) :: test_latticei, test_latticej, test_latticek, matinv, transf_mat
 integer i, Nhnf, iuq, irot, j, nRot, Nq, status, nD
-integer, allocatable :: temp_hnf(:,:,:),degeneracy(:)
-real(dp),allocatable :: degen_lattices(:,:,:)
+integer, allocatable :: temp_hnf(:,:,:)
 real(dp), pointer :: latts(:,:,:)
 logical duplicate, inList,err
 integer, pointer :: aTyp(:)
 integer cDegen,f, nUniq
-
+real(dp) :: temp(3,3)
 
 nD = size(d,2)
 allocate(aTyp(nD),STAT=status)
@@ -718,9 +717,6 @@ call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
 nRot = size(sgrots,3)
 Nhnf = size(hnf,3)
 allocate(temp_hnf(3,3,Nhnf),STAT=status)
-allocate(degeneracy(Nhnf) ) 
-degeneracy = 0
-allocate(degen_lattices(3,3,nRot) )
 
 
 if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp_hnf"
@@ -734,50 +730,20 @@ if (LatDim==2) then
    nRot = size(sgrots,3)
    call write_lattice_symmetry_ops(sgrots,sgshift,"2D")
 endif
-print *, nRot, "number of rotations"
-print *, Nhnf, "number of hnfs to compare against" 
 ! For each HNF in the list, see if it is a derivative lattice of a preceding
 ! HNF in the list. If so, don't include it in the list of unique ones.
 iuq = 1
 do i = 2,Nhnf  ! Loop over each matrix in the original list
    duplicate = .false.
    do j = 1,iuq! Loop over the known unique matrices (in the updated list)
-      degen_lattices = 0
-      cDegen = 0
       do irot = 1, nRot! The duplicates will always be rotated from 
                        ! the original (otherwise necessarily unique)
          test_latticei = matmul(sgrots(:,:,irot),matmul(parent_lattice,hnf(:,:,i)))
          test_latticej = matmul(parent_lattice,temp_hnf(:,:,j))
 
-         ! Starting here was added by L.N. to count the degeneracy of each hnf
-         test_latticek = matmul(sgrots(:,:,irot),matmul(parent_lattice,hnf(:,:,j)))
-         
-
-         inList = .false.
-         do f = 1, cDegen
-            call matrix_inverse(degen_lattices(:,:,f),matinv,err)
-            transf_mat = matmul(matinv,test_latticek)
-            if ( all(abs(transf_mat - nint(transf_mat)) < eps) ) then
-               inList = .true.
-               exit
-            endif
-         end do
-
-         if( .not. inList) then
-            cDegen = cDegen + 1
-            degen_lattices(:,:,cDegen) = test_latticek(:,:)
-         end if
-         ! End of stuff added by L.N.
-
-
          if (is_equiv_lattice(test_latticei,test_latticej,eps)) then
-            duplicate = .true.
-         end if
-!         if (is_equiv_lattice(test_latticei,test_latticej,eps)) then
-!            duplicate = .true.;exit;endif
+            duplicate = .true.;exit;endif
       enddo
-      print *, cDegen, "cDegen"
-      degeneracy(j) = cDegen
    enddo
    if (.not. duplicate) then ! No duplicate found---add this to the unique list
       iuq = iuq+1
@@ -785,19 +751,7 @@ do i = 2,Nhnf  ! Loop over each matrix in the original list
    endif
       
 enddo
-if (Nhnf == 1) then
-   degeneracy = 1
-end if
-print *, degeneracy, "degeneracy of hnfs"
-nUniq = count(degeneracy > 0)
-if (nUniq == 0) then
-   allocate(degeneracy_list(1) )
-   degeneracy_list(1) = 0
-else
-   allocate(degeneracy_list(nUniq) )
-   degeneracy_list(:) = degeneracy(1:nUniq)
-end if
-deallocate(degeneracy)
+
 allocate(uq_hnf(3,3,iuq),latts(3,3,iuq),RPList(iuq),STAT=status)
 if(status/=0) stop "Failed to allocate uq_hnf/latts in remove_duplicate_lattices: uq_hnf"
 uq_hnf = temp_hnf(:,:,:iuq)
@@ -809,16 +763,20 @@ forall (i=1:Nq); latts(:,:,i) = matmul(parent_lattice,uq_hnf(:,:,i));end forall
 ! duplicates. 
 allocate(fixing_op(Nq),STAT=status)
 if(status/=0) stop "Allocation of fixing_op failed in remove_duplicate_lattices"
+
+allocate(degeneracy_list(Nq) )
+degeneracy_list = 0
 do iuq = 1, Nq  ! Loop over each unique HNF
    ! Determine which operations in the sym ops of the parent lattice leave the 
    ! superlattice fixed. These operations may permute the labeling so we need them
    ! when finding duplicate labelings
    call get_sLV_fixing_operations(uq_hnf(:,:,iuq),parent_lattice,nD,sgrots,sgshift,&
-                                  dperms,fixing_op(iuq),RPList(iuq),eps)
+                                  dperms,fixing_op(iuq),RPList(iuq),degeneracy_list(iuq),eps)
 enddo
+degeneracy_list = degeneracy_list + 1
 END SUBROUTINE remove_duplicate_lattices
 !***************************************************************************************************
-SUBROUTINE get_sLV_fixing_operations(HNF,pLV,nD,rot,shift,dPerm,fixOp,rotPerm,eps)
+SUBROUTINE get_sLV_fixing_operations(HNF,pLV,nD,rot,shift,dPerm,fixOp,rotPerm,degeneracy,eps)
 integer, intent(in)       :: HNF(:,:), nD
 real(dp), intent(in)      :: pLV(:,:), rot(:,:,:), shift(:,:)
 type(opList)              :: fixOp ! Stores the operations that leave sLV fixed
@@ -826,16 +784,21 @@ real(dp), intent(in)      :: eps
 type(RotPermList)         :: rotPerm
 type(RotPermList), intent(in):: dPerm
 
-integer i, ic, iRot, nRot, status
+integer :: degeneracy
+integer i, ic, iRot, nRot, status, iDegen, cDegen
 type(opList)               :: tmpOp
 real(dp), dimension(3,3)   :: thisRot, origLat, rotLat
-real(dp), allocatable      :: tv(:,:,:)
+real(dp), allocatable      :: tv(:,:,:), degen_lattices(:,:,:)
 integer, allocatable       :: tIndex(:)
+logical :: inList
 
 nRot = size(rot,3)
 allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
 allocate(tmpOp%rot(3,3,nRot),tmpOp%shift(3,nRot))
 
+allocate(degen_lattices(3,3,nRot) )
+degen_lattices = 0
+cDegen = 0
 ic = 0 ! Counter for the fixing operations
 tv = 0; tIndex = 0 ! temp variables
 do iRot = 1,nRot  ! Loop over each rotation
@@ -848,8 +811,24 @@ do iRot = 1,nRot  ! Loop over each rotation
       tmpOp%shift(:,ic) = shift(:,iRot)
       tv(:,:,ic) = dPerm%v(:,:,iRot)
       tIndex(ic) = iRot
+      ! Added by LN from here
+   else
+      inList = .false.
+      do iDegen = 1, cDegen
+         if (is_equiv_lattice(degen_lattices(:,:,iDegen),rotLat,eps) ) then
+            inList = .true.
+            exit
+         end if
+      end do
+      
+      if (.not. inList) then
+         cDegen = cDegen + 1
+         degen_lattices(:,:,cDegen) = rotLat
+      end if
    endif
+   ! End of LN additions for degeneracy
 enddo ! Now we know which rotations fix the lattice and how many there are so store them
+degeneracy = cDegen
 do i=1,ic; allocate(fixOp%rot(3,3,ic),fixOp%shift(3,ic),STAT=status)
    if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo ! Allocate the storage for them
 fixOp%rot =   tmpOp%rot(:,:,1:ic) ! Stuff the rotations into the permanent array
@@ -962,7 +941,7 @@ logical fixed_cells ! This is set to true if we are giving a list of cells from 
 integer, pointer :: iRange(:,:)
 logical err
 integer, pointer :: hnf_degen(:), lab_degen(:)
-
+integer lance
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
 allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
@@ -1094,7 +1073,8 @@ do ivol = nMin, nMax
          call get_all_2D_HNFs(ivol,HNF) ! 2D
       endif
    endif
-   !call cpu_time(HNFtime)
+
+    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
    call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
@@ -1121,7 +1101,6 @@ do ivol = nMin, nMax
    endif
 !call cpu_time(groupcheck)
    Scnt = 0 ! Keep track of the number of structures at this size   
-   print *, hnf_degen, "hnf_degen"
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
       filename = "debug_temp_perms.out"
@@ -1134,13 +1113,12 @@ do ivol = nMin, nMax
 !            call generate_disjoint_permutation_labelings(k,ivol,nD&
 !                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
-                 &,RPLindx,lm,equivalencies,hnf_degen(iBlock),lab_degen,iRange(iC,:))
+                 &,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
          enddo
       else
       	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit,lab_degen)
-       print *, lm, "labelings2"
-      	! Now that we have the labeling marker, we can write the output.
-      	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen(iBlock),lab_degen)
+       	! Now that we have the labeling marker, we can write the output.
+      	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen)
       	!call cpu_time(endwrite)
       endif
    enddo! iBlock
