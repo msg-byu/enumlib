@@ -34,7 +34,7 @@ CONTAINS
 ! 
 ! GLWH Dec. 2011
 
-SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit)
+SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit,degeneracy_list)
 integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
@@ -46,8 +46,10 @@ integer, intent(in) :: iConc(:) ! concentration; the numerator of each rational 
                                 ! concentration for each label
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
+integer, intent(inout), pointer :: degeneracy_list(:)
 
-
+integer, allocatable :: temp(:)
+integer index, nUniq,i
 integer, allocatable:: E(:,:) ! A matrix of 1's and 0's, indicating site-restrictions
 ! One row for each site in the supercell, one column for each color (label)
 integer(li) nL !  number of perumations (labelings)
@@ -58,7 +60,6 @@ integer a(n*nD) ! The current labeling depicted as a list of integers
 integer ik, iD ! Loop counters for colors and sites in the supercell
 integer sitePointer ! Marks the location of the current digit that is advancing
 logical flag ! Use this to exit the loops once we have traversed the entire tree
-integer degen ! Count the degeneracy of each structure
 
 lab => null()
 
@@ -83,6 +84,10 @@ write(22,'("site #   parent site #        Mask")')
 do iD = 1, n*nD
    write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
 end do; write(22,*); close(22)
+
+allocate(degeneracy_list(nL) )
+degeneracy_list = 0
+nUniq = 0
 
 a = -1; flag = .true.
 sitePointer = 1
@@ -116,16 +121,17 @@ do while (flag) ! Loop over digits (place holders) in the labeling
       call generate_index_from_labeling(a,iConc,idxOrig) ! hash table and then mark the symmetry brothers
       if(lab(idxOrig)=='') then ! This labeling hasn't been generated yet (directly or by symmetry permutation)
          lab(idxOrig)='U'
-         degen = 0
+         nUniq = nUniq + 1
+         degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
          ! In the hash table, cross out the symmetrical duplicates
          do q = 2, nPerm
 !             if(.not. is_valid_multiplicity(a(perm(q,:)),iConc)) cycle
              call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
-             if (idx==idxOrig .and. q <= n) lab(idx)='N'! This will happen if the coloring is superperiodic
-             ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
-             ! "translation" permutation and not a rotation permutation (they're ordered in the
-             ! list...and there are n. The first is the identity so skip that one.)
-
+             if (idx==idxOrig .and. q <= n) then                              ! This will happen if the coloring is superperiodic
+                degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1           ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+                lab(idx)='N'                                                  ! "translation" permutation and not a rotation permutation (they're ordered in the
+             end if                                                           ! list...and there are n. The first is the identity so skip that one.)
+             
              ! This is a failsafe and should never trigger if the algorithm is properly implemented
              if (idx > nL) then
                 write(*,'("iConc",100(i3,1x))') iConc
@@ -136,12 +142,28 @@ do while (flag) ! Loop over digits (place holders) in the labeling
                 print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
                 stop
              endif
-             if(lab(idx)=='') degen = degen+1;lab(idx)='D' ! Mark this labeling as a duplicate
+             if(lab(idx)=='')then
+                degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
+                lab(idx)='D' ! Mark this labeling as a duplicate
+             end if
           end do
        end if
-       print *, degen, "degeneracy!!!"
     end if
  enddo
+
+nUniq = count(degeneracy_list > 0.0001)
+allocate(temp(nUniq) )
+index = 1
+do i = 1, size(degeneracy_list)
+   if (degeneracy_list(i) > 0) then
+      temp(index) = degeneracy_list(i)
+      index = index + 1
+   end if
+end do
+deallocate(degeneracy_list)
+allocate(degeneracy_list(nUniq) )
+degeneracy_list = temp
+deallocate(temp)
 
 ! If there are no site restrictions, then the hash table is "minimal" and every entry should hove
 ! been visited. Double check if this is the case. Just another failsafe.
@@ -826,7 +848,6 @@ enddo
 
 allocate(degeneracy_list(nexp) )
 degeneracy_list = 0
-nUniq = 1
 if (sum(c)/=nl) stop "ERROR: initialization of the 'c' counter failed in generate_unique_labelings"
 
 ic = 0

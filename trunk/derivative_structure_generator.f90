@@ -1109,7 +1109,7 @@ do ivol = nMin, nMax
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
             call generate_permutation_labelings(k,ivol,nD&
-                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull)
+                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,lab_degen)
 !            call generate_disjoint_permutation_labelings(k,ivol,nD&
 !                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
