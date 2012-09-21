@@ -1,11 +1,13 @@
 FCC interstitials
-bulk
+surf
       1.0 0.0 0.0
       0.0 1.0 0.0
       0.0 0.0 1.0
 2 
    1 # Number of points in the multilattice
 0.0  0.0 0.0    0/1
-   1 5   # Starting and ending cell sizes for search
+   1 12   # Starting and ending cell sizes for search
 0.001    # eps
 full list of labelings (including incomplete labelings) is used
+0 1 2
+0 1 2
