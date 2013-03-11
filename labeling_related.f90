@@ -46,7 +46,7 @@ integer, intent(in) :: iConc(:) ! concentration; the numerator of each rational 
                                 ! concentration for each label
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
-integer, intent(inout), pointer :: degeneracy_list(:)
+integer, pointer :: degeneracy_list(:)
 
 integer, allocatable :: temp(:)
 integer index, nUniq,i
@@ -759,7 +759,7 @@ character, pointer :: lab(:)     ! Array to store markers for every raw labeling
 logical, intent(in) :: full ! specify whether the full labelings list should be used or not
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
-integer, intent(inout), pointer :: degeneracy_list(:)
+integer, pointer :: degeneracy_list(:)
 
 
 integer j ! Index variable (place index) for the k-ary counter

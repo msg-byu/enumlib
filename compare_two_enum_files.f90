@@ -1,3 +1,5 @@
+! This is not a pretty program. Not for general distribution. Don't release it into the wild.
+! It has really been used. It works but is fragile.
 program compare_two_struct_enum
 use num_types
 use enumeration_types
@@ -14,8 +16,8 @@ integer, pointer :: pLabel(:,:), HNFout(:,:,:), eq(:), digit(:)
 integer, pointer :: HNFin(:,:,:), label(:,:)
 integer :: LatDim1, LatDim2, match, nD1, nD2, Nmin, Nmax, k, ioerr
 integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f
-integer :: iuq, nuq, iP, nP, lc, iStr2, HNFtest(3,3)
-integer :: strN2, hnfN2, sizeN2, n2, pgOps2, diag2(3), iL, nL
+integer :: iuq, nuq, iP, nP, lc, iStr2, HNFtest(3,3), hdgenfact, labdgen, totdgen
+integer :: strN2, hnfN2, sizeN2, n2, pgOps2, diag2(3), iL, nL, idx, idx2
 integer, allocatable :: ilabeling(:), ilabeling2(:)
 real(dp) :: eps
 logical full, HNFmatch, foundLab
@@ -23,6 +25,10 @@ character(maxLabLength)   :: labeling ! List, 0..k-1, of the atomic type at each
 type(RotPermList)         :: dRotList
 type(RotPermList),pointer :: LattRotList(:)
 type(opList), pointer     :: fixOp(:)
+integer, pointer          :: crange(:,:)
+logical                   :: conc_check
+integer, pointer          :: degen_list(:)
+integer, pointer          :: rotProdLab(:)
 
 SNF = 0
 allocate(HNFin(3,3,1))
@@ -33,8 +39,8 @@ read(dummy,'(a80)') f1name
 call getarg(2,dummy)
 read(dummy,'(a80)') f2name
 if(iargc()/=2) stop "Need two arguments: source and target struct_enum.out-type files"
-call read_input(title,LatDim1,pLV1,nD1,dset1,k,eq,Nmin,Nmax,eps,full,pLabel,digit,f1name)
-call read_input(title,LatDim2,pLV2,nD2,dset2,k,eq,Nmin,Nmax,eps,full,pLabel,digit,f2name)
+call read_struct_enum_out(title,LatDim1,pLV1,nD1,dset1,k,eq,Nmin,Nmax,eps,full,pLabel,digit,f1name,crange,conc_check)
+call read_struct_enum_out(title,LatDim2,pLV2,nD2,dset2,k,eq,Nmin,Nmax,eps,full,pLabel,digit,f2name,crange,conc_check)
 if (LatDim1/=LatDim2) stop "Bulk/surf modes are not the same in the input files"
 if (.not. equal(pLV2,pLV1,eps)) stop "Parent lattice vectors are not equivalent"
 if (nD1/=nD2) stop "Number of d-vectors are not equivalent"
@@ -59,7 +65,7 @@ print *, "Rotationally equivalent HNFs are not considered"
 print *, "Change this in the future"
 
 do ! Read each structure from f1 and see if it is in the list of f2 structures
-   read(10,*,iostat=ioerr) strN, sizeN, n, pgOps, diag, a,b,c,d,e,f, L(:,:,1), labeling
+   read(10,*,iostat=ioerr) strN, sizeN, hdgenfact, labdgen, totdgen, idx, n,  pgOps, diag, a,b,c,d,e,f, L(:,:,1), labeling
    if(ioerr/=0) exit
    L(:,:,1) = transpose(L(:,:,1)) ! Written out column-wise but read in row-wise. So fix it by
    ! transposing
@@ -68,12 +74,13 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    HNFin = 0 ! Load up the HNF with the elements that were read in.
    HNFin(1,1,1) = a; HNFin(2,1,1) = b; HNFin(2,2,1) = c;
    HNFin(3,1,1) = d; HNFin(3,2,1) = e; HNFin(3,3,1) = f;
+   !print *,"before remove"
    call remove_duplicate_lattices(HNFin,LatDim1,pLV1,dset1,dRotList,HNFout,fixOp,&
-                                  LattRotList,sLVlist,label,digit,eps)
-
+                                  LattRotList,sLVlist,degen_list,eps)
    open(17,file="debug_rotation_permutations.out")
 
    ! Get the list of label permutations
+   !print *,"before got_rotperm"
    call get_rotation_perms_lists(pLV1,HNFout,L,SNF,fixOp,LattRotList,dRotList,eps)
    write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList(1)%RotIndx(:)
    write(17,'("Permutation group (trans+rot):")')
@@ -87,8 +94,12 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    ! struct_enum file
    allocate(ilabeling(n*nD1),ilabeling2(n*nD1))
    read(labeling,'(500i1)') ilabeling
-   call find_equivalent_labelings(ilabeling,LattRotList,pLabel)
-
+   !print *,"before find_eq"
+   !print *,"ilabeling",ilabeling
+   !print *,"size",size(ilabeling)
+   !print *,"strN",strN
+   call find_equivalent_labelings(ilabeling,LattRotList,pLabel,rotProdLab)
+   !print *,"after find_eqv"
    nuq = size(pLabel,1)
    write(17,'(/,"Number of unique labelings: ",i5)') nuq
    do iuq = 1, nuq
@@ -112,7 +123,9 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    iStr2 = 0
    do
       iStr2 = iStr2 + 1
-      read(11,*,iostat=ioerr) strN2, hnfN2, sizeN2, n2, pgOps2, diag2, a,b,c,d,e,f, L, labeling
+!      read(11,*,iostat=ioerr) strN2, hnfN2, sizeN2, n2, pgOps2, diag2, a,b,c,d,e,f, L, labeling
+      read(11,*,iostat=ioerr) strN2, hnfN2, hdgenfact, labdgen, totdgen,  idx2, n2,  pgOps2, diag2, a,b,c,d,e,f, L(:,:,1), labeling
+
       if(ioerr/=0) exit
       if (n2 < n) then ! Unit cells in this block are too small
          write(13,'("Volume is too small for structure #: ",i9," in file 2 (label # ",i9,")")') iStr2
@@ -164,7 +177,11 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
       write(*,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
    endif
    close(13)
-   deallocate(ilabeling,ilabeling2)
+
+   deallocate(ilabeling2)
+   !print *,allocated(ilabeling2)
+   deallocate(ilabeling)
+!   if(strN==3) stop "here2"
    !read(*,*)
 enddo
 endprogram compare_two_struct_enum

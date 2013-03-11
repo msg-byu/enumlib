@@ -16,7 +16,7 @@ if(not path.isfile("makestr.x")):
     print "This script needs 'makestr.x' to run..."
     print "Try 'make makestr.x'"
     exit()
-for n in range(1,1300):
+for n in range(1,10850):
     rs=system('./makestr.x '+sys.argv[1]+' '+str(n)+' >& /dev/null')
     if rs!=0:
          break
