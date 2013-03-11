@@ -130,7 +130,7 @@ do istrN=strNi,strNf
       do iAt = 1, n*nD
          if (labeling(gIndx(iAt):gIndx(iAt))==char(ilab+48)) then ! We have a match to the current
             ! label so print it
-           write(12,'(3f12.8)') aBas(:,iAt)
+           write(12,'(3(f12.8,1x))') aBas(:,iAt)
            write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,">")') iAt, aBas(:,iAt), labeling(gIndx(iAt):gIndx(iAt))
          endif
       enddo

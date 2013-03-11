@@ -104,6 +104,8 @@ makestructin.x: makeStrIn.o
 randReduceTest.x: random_lattice_driver.o
 	${F90} ${LDFLAGS} -o $@ random_lattice_driver.o libenum.a ${LIBS}
 
+compare_enum_files.x: compare_two_enum_files.o
+	${F90} ${LDFLAGS} -o $@ compare_two_enum_files.o libenum.a ${LIBS}
 
 .f95.o : 
 	${F90} ${FFLAGS} -c $<

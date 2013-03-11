@@ -77,6 +77,9 @@ do i = 1, size(volTable,1)
    write(98,'(90(i4,1x))') volTable(i,:)
 enddo
 
+! Imagine an odometer with n wheels, each which has a sequence of labels (the allowed labels for
+! that atomic site). We'll turn the wheels on this odometer and keep a list of those reading that
+! are consistent with (don't violate) the concentration restrictions.
 n = volTable(1,3) ! Total number of slots in the labeling
 digit = volTable(:,2) - volTable(:,1) + 1  ! Number of "labels" on each "wheel" of the odometer
 digCnt = 1 ! Start each wheel of the odometer at the first position
@@ -84,19 +87,22 @@ k = size(volTable,1) ! Number of labels, i.e., number of wheels on the odometer 
 allocate(cList(product(digit),k))
 allocate(a(k))  ! The reading on the "odometer"
 
-!print *,"digit",digit
 ! Define a table that stores the possible labels for each wheel
 allocate(label(size(volTable,1),maxval(digit)))
 label = -1 ! Ends of the rows in this ragged list
+! Paint the labels on the wheels (leave -1 for wheels that have more positions than valid labels for
+! that site)
 do j = 1, k 
    label(j,:) = (/(i,i=volTable(j,1),volTable(j,2))/)
    minv(j) = real(minval((/concTable(j,1),concTable(j,2)/)),dp)/concTable(j,3)
    maxv(j) = real(maxval((/concTable(j,1),concTable(j,2)/)),dp)/concTable(j,3)
 enddo
+! Initialize the reading, "a", to the beginning
 forall(j=1:k);a(j)=label(j,1);endforall
 
 cc = 0 ! number of valid concentrations
 do
+   !write(98,'(10(i1,1x))') a
    if (sum(a)==n) then ! This "reading" is a valid partition, i.e., cell size is correct
       conc = a/real(n,dp)
       if (.not. ( any(conc<minv-eps) .or. any(conc>maxv+eps) )) then 
@@ -119,7 +125,7 @@ do
 enddo
 !print *,"clist_get",cList
 cList => ralloc(cList,cc,k) ! Reallocate the list to be the proper size
-write(98,'(/," Number of discrete partition: ",i5)') size(cList,1)
+write(98,'(/," Number of discrete partitions: ",i5)') size(cList,1)
 write(98,'(/," generated list:")')
 do i = 1, size(cList,1)
    write(98,'(10(i4,1x))') cList(i,:)
@@ -1095,11 +1101,11 @@ do ivol = nMin, nMax
    call organize_rotperm_lists(RPList,rdRPList,RPLindx)
    !call cpu_time(organizetime)
    ! This next if statement makes the run-time horrible (N^3 scaling) if enabled. (only used for checking once.)
-   if (.not. do_rotperms_form_groups(rdRPList)) then
-      print *, "Rotperm list doesn't form group"
-      stop
-   endif
-!call cpu_time(groupcheck)
+   !if (.not. do_rotperms_form_groups(rdRPList)) then
+   !   print *, "Rotperm list doesn't form group"
+   !   stop
+   !endif
+   !call cpu_time(groupcheck)
    Scnt = 0 ! Keep track of the number of structures at this size   
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
