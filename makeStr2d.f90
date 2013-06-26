@@ -94,7 +94,7 @@ do istrN=strNi,strNf
    HNF(1,1) = a; HNF(2,1) = b; HNF(2,2) = c
    HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
    
-   call map_enumStr_to_real_space(k,n,HNF,labeling,p,dvec,eps,sLV,aBas,spin,gIndx,x,L,diag)
+   call map_enumStr_to_real_space(k,n,HNF,labeling,p,dvec,eps,sLV,aBas,spin,gIndx,x,L,diag,minkowskiReduce=.true.)
    write(strname,'("vasp.",i6.6)') strN
    write(strNstring,*) strN
    open(12,file=strname)

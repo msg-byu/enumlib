@@ -18,7 +18,7 @@ public  map_enumStr_to_real_space, cartesian2direct, read_poscar, &
 CONTAINS
 
 !***************************************************************************************************
-SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, aBas, spin, gIndx, x, L, S)
+SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, aBas, spin, gIndx, x, L, S, minkowskiReduce)
 integer, intent(in) :: k ! Number of atom types (number of colors in the enumeration)
 integer, intent(in) :: n ! Number of atoms in the unit cell of given structure
 integer, intent(in) :: HNF(3,3) ! Hermite normal form corresponding to the superlattice
@@ -32,6 +32,9 @@ integer, pointer :: gIndx(:) ! Label ordinal for each atom (position in the labe
 real(dp), pointer :: x(:) ! Concentration of each component
 integer, intent(in):: L(3,3) ! HNF->SNF left transform. Need this to map r->G (Eq. 3 in first paper)
 integer, intent(in):: S(3) ! Diagonal entries of the SNF
+logical, intent(in) :: minkowskiReduce ! flag whether to perform a minkowski reduction or not. (inserted by tk, need it in UNCLE)
+                                       ! Problem is that the minkowski reduction may exchange the LVs of the supercell, which causes
+                                       ! trouble for surface-slab reference structures
 
 integer a, b, c, d, e, f ! elements of the HNF matrix
 integer digit ! one of the labelings in the labeling
@@ -59,7 +62,7 @@ gIndx=-1
 
 !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
 ! Let's get the fattest basis (Minkowski reduction)
-call minkowski_reduce_basis(sLV,sLV,eps)
+if (minkowskiReduce) call minkowski_reduce_basis(sLV,sLV,eps)
 !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
 
 
