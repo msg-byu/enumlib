@@ -699,14 +699,12 @@ type(RotPermList), pointer :: RPList(:)
 !integer, intent(in)  :: label(:,:), digit(:)
 
 real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
-real(dp), dimension(3,3) :: test_latticei, test_latticej, test_latticek, matinv, transf_mat
+real(dp), dimension(3,3) :: test_latticei, test_latticej
 integer i, Nhnf, iuq, irot, j, nRot, Nq, status, nD
 integer, allocatable :: temp_hnf(:,:,:)
 real(dp), pointer :: latts(:,:,:)
-logical duplicate, inList,err
+logical duplicate
 integer, pointer :: aTyp(:)
-integer cDegen,f, nUniq
-real(dp) :: temp(3,3)
 
 nD = size(d,2)
 allocate(aTyp(nD),STAT=status)
@@ -947,7 +945,7 @@ logical fixed_cells ! This is set to true if we are giving a list of cells from 
 integer, pointer :: iRange(:,:)
 logical err
 integer, pointer :: hnf_degen(:), lab_degen(:)
-integer lance
+
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
 allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
@@ -972,6 +970,8 @@ open(43,file="fixed_cells.in",status="old",iostat=status)
 if(status==0) then
    write(*,'(A)') "---------------------------------------------------------------------------------------------"
    write(*,'("Generating permutations for fixed cells. index n=",i2," to ",i2)') nMin, nMax
+   write(*,'("Be aware: non-primitive structures (super-periodic configurations) are included",/,&
+             "in the final list in this mode.")')
    fixed_cells=.true.
 endif
 close(43)
@@ -1057,8 +1057,6 @@ do iD = 1, nD
    endif
 enddo
 call get_dvector_permutations(parLV,d,ParRPList,LatDim,eps)
-filename = "d-vector_perms.out"
-call write_rotperms_list(ParRPList,filename) ! Output might be useful (debugging, etc.)
 
 ! This part generates all the derivative structures. Results are written to unit 14.
 Tcnt = 0 ! Keep track of the total number of structures generated
@@ -1114,15 +1112,16 @@ do ivol = nMin, nMax
       call write_rotperms_list(rdRPList(iBlock),filename)
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
-            call generate_permutation_labelings(k,ivol,nD&
-                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,lab_degen)
+            call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
+                 lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
 !            call generate_disjoint_permutation_labelings(k,ivol,nD&
 !                 &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
                  &,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
          enddo
       else
-      	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,full,lm,label,digit,lab_degen)
+      	call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
+                  full,lm,label,digit,lab_degen,fixed_cells)
        	! Now that we have the labeling marker, we can write the output.
       	call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen)
       	!call cpu_time(endwrite)

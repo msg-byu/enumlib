@@ -75,9 +75,9 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a multienum.x find_structure_in_list.x 2Dplot.x makestr.x  
+all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x  
 
-multienum.x: ${OBJS} driver.o
+enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
 2Dplot.x: make2Dplot.o splot.o

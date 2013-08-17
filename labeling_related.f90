@@ -34,7 +34,7 @@ CONTAINS
 ! 
 ! GLWH Dec. 2011
 
-SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit,degeneracy_list)
+SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit,degeneracy_list,fixed_cells)
 integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
@@ -47,6 +47,7 @@ integer, intent(in) :: iConc(:) ! concentration; the numerator of each rational 
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 integer, pointer :: degeneracy_list(:)
+logical, intent(in) :: fixed_cells ! Enumeration for user-specified cells instead of generated cells 
 
 integer, allocatable :: temp(:)
 integer index, nUniq,i
@@ -127,11 +128,12 @@ do while (flag) ! Loop over digits (place holders) in the labeling
          do q = 2, nPerm
 !             if(.not. is_valid_multiplicity(a(perm(q,:)),iConc)) cycle
              call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
-             if (idx==idxOrig .and. q <= n) then                              ! This will happen if the coloring is superperiodic
-                degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1           ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
-                lab(idx)='N'                                                  ! "translation" permutation and not a rotation permutation (they're ordered in the
-             end if                                                           ! list...and there are n. The first is the identity so skip that one.)
-             
+             if (.not. fixed_cells) then
+                if (idx==idxOrig .and. q <= n) then                              ! This will happen if the coloring is superperiodic
+                   degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1           ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+                   lab(idx)='N'                                                  ! "translation" permutation and not a rotation permutation (they're ordered in the
+                end if                                                           ! list...and there are n. The first is the identity so skip that one.)
+             end if
              ! This is a failsafe and should never trigger if the algorithm is properly implemented
              if (idx > nL) then
                 write(*,'("iConc",100(i3,1x))') iConc
@@ -748,7 +750,7 @@ ENDFUNCTION labeling_is_legal
 ! Got rid of the old comments from the original counter (that didn't
 ! allow for different labels on different sites) at svn revision #191
 ! (GLWH Dec 2011)
-SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab,parLabel,parDigit,degeneracy_list)
+SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab,parLabel,parDigit,degeneracy_list,fixed_cells)
 integer, intent(in) :: k ! Number of colors/labels
 integer, intent(in) :: n ! Index of the superlattice
 integer, intent(in) :: nD ! Number of sites in the basis of the parent lattice (size of d-set)
@@ -760,9 +762,9 @@ logical, intent(in) :: full ! specify whether the full labelings list should be 
 integer, intent(in) :: parLabel(:,:) ! The *labels* (index 1) for each d-vector (index 2) in the parent
 integer, intent(in) :: parDigit(:) ! The *number* of labels allowed on each site of the parent cell 
 integer, pointer :: degeneracy_list(:)
+logical, intent(in) :: fixed_cells ! Enumeration for user-specified cells           
 
-
-integer j ! Index variable (place index) for the k-ary counter
+integer j ! Index variable (place index) for the k-nary counter
 integer(li) ic
 integer i, q ! loop counters, index variables
 integer(li) nexp ! number of raw labelings that the k-ary counter should generate
@@ -874,15 +876,16 @@ do; ic = ic + 1
             cycle
          endif
          idx = sum((digCnt(perm(q,:))-1)*multiplier)+1
+         if (.not. fixed_cells) then
             ! This will happen if the coloring is superperiodic
-         ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
-         ! "translation" permutation and not a rotation permutation (they're ordered in the
-         ! list...and there are n. The first is the identity so skip that one.)
-         if (idx==ic .and. q <= n) then
-            degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1
-            lab(idx)='N'
+            ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+            ! "translation" permutation and not a rotation permutation (they're ordered in the
+            ! list...and there are n. The first is the identity so skip that one.)
+            if (q<= n .and. idx==ic) then
+               degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1
+               lab(idx)='N'
+            end if
          end if
-         
          if (idx > nexp) then
             print *, "Index of permuted labeling is outside the range"
             write(*,'("original labeling ",20i1)') a

@@ -10,6 +10,10 @@ surf              # Surface case (instead of bulk)
 8 8               # Cell sizes to enumerate
 .0001             # Finite precision parameter
 full              # generate a full listing (e.g., don't consider AAAB==BBBA)
+		  # Otherwise only generate those structures that are
+		  # *structurally distinct.* Don't include structures
+		  # whose energies will be different but are
+		  # "crystallographically" the same
 # Concentration ranges
 1 1 16
 7 7 16
