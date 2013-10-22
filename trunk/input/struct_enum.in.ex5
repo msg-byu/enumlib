@@ -5,6 +5,7 @@ surf              # Surface case (instead of bulk)
 0. 0. 1.          # Third lattice vector
 4                 # quaternary case
 2                 # Two lattice points/unit cell
+# Cartesian coordinates: 
  0 0 0   0/1      # First lattice point is at the origin
  0 0 0   2/3      # Second lattice point is at the center of the square
 8 8               # Cell sizes to enumerate
