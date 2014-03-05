@@ -9,15 +9,18 @@ use enumeration_types, only: maxLabLength
 implicit none
 character(80) fname, title, strname, strNstring
 character(maxLabLength) :: labeling
-integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt
-integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen
+integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt, jAt, iSpec, nSpec
+integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, nType
+integer HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen, cSpec
 integer, pointer :: gIndx(:)
-real(dp) :: p(3,3), sLV(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3)
+real(dp) :: p(3,3), sLV(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3), shift(3)
 real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a routine
+integer, pointer :: nSpecType(:) 
 character(1) bulksurf
-character(40) dummy 
+character(80) dummy, specAtoms 
 integer, pointer :: spin(:) ! Occupation variable of the positions
 real(dp), pointer :: x(:) ! Concentration of each component
+logical :: file_exists
 
 open(13,file="readcheck_makestr.out")
 write(13,'(5(/),"This file echoes the input for the makestr.x program and")')
@@ -37,6 +40,46 @@ if (iargc()==3) then
 else
   strNf=strNi
 endif
+
+! Modifications made by GLWH 03/05/2014.
+!
+! If the parent cell for a cluster expansion contains "spectator
+! atoms" (sites where the same atom always appears---no
+! configurational degrees of freedom) then we need to add these to the
+! poscar files (but as the code is written now, spectators are not
+! explicitly included in the CE input and output). The short-term
+! workaround (watch it last for years. Argh) is to add the spectators
+! by hand using a "spectators.in" file. 
+
+! This file contains on line 1 a list of how many atoms (spectators
+! only) of each type are in the file (just like line 6 in the poscar
+! file). Each line after that lists the position of the spectator
+! atoms (in direct coordinates!) in blocks of the same type
+! (consistent with line 1 of the file).
+inquire(file="spectators.in", exist=file_exists)
+if (file_exists) then ! figure out how many spectators there are
+   open(14,file="spectators.in",action="read")
+   read(14,'(a80)') specAtoms
+   nSpec = 0
+   nType = 0
+   dummy = specAtoms
+   do
+      read(dummy,*) iAt
+      nSpec = iAt + nSpec
+      dummy = adjustl(dummy(index(dummy," "):)) ! Throw away the number we just read in
+      nType = nType + 1
+      if (dummy == "") exit
+   end do
+   ! Now figure out how many of each type there are
+   allocate(nSpecType(nType))
+   dummy = specAtoms
+   do iAt = 1, nType
+      print *, iAt,"iAT","ntype",nType
+      read(dummy,*) jAt
+      nSpecType(iAt) = jAt
+      dummy = adjustl(dummy(index(dummy," "):)) ! Throw away the number we just read in
+   end do
+end if
 
 !call read_nth_line_from_enumlist()
 open(11,file=fname,status='old',iostat=ioerr)
@@ -119,12 +162,13 @@ do istrN=strNi,strNf
       write(13,'(i3," atoms of label type ",i2," found")') ic, i
    enddo
    write(13,'("Finished counting the atoms of each type")')  
-   
-   write(12,*) ! Start next line
+   ! Write the number of spectator atoms on line 6 of the poscar
+   if (file_exists) write(12,'(100(i4,1x))') nSpecType*n !
+   !write(12,*) ! Start next line
    write(12,'("D")')
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
-   ! For vasp, UNCLE it needs to list the vectors in blocks of that have the same label.
+   ! For vasp, UNCLE it needs to list the vectors in blocks of atoms that have the same label.
    call cartesian2direct(sLV,aBas,eps)
    do ilab = 0,k-1
       do iAt = 1, n*nD
@@ -135,9 +179,29 @@ do istrN=strNi,strNf
          endif
       enddo
    enddo
+
+! Now, if there are spectators in the parent cell, put them in the superlattice POSCAR
+   if(file_exists) then
+      do iSpec = 1, nType
+         do jAt = 1, nSpecType(iSpec)
+            read(14,*) shift
+            do iAt = 1, n               
+                write(12,'(3(f12.8,1x),"spectator type:",i2,1x," cell#",i4)')&
+                    & aBas(:,iAt) + shift, iSpec, iAt
+               write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,"&
+                    &>")') iAt, aBas(:,iAt), labeling(gIndx(iAt):gIndx(iAt))
+            end do
+            !rewind(14)
+            !read(14,*)
+         end do
+      end do
+      close(14)
+   end if
+
    close(12);
    deallocate(spin,x,gIndx,aBas)
 enddo ! structure loop
+if (file_exists) close(14)
 close(11)
 close(13)
 END PROGRAM makeStr
