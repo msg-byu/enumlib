@@ -162,9 +162,8 @@ do istrN=strNi,strNf
    enddo
    write(13,'("Finished counting the atoms of each type")')  
    ! Write the number of spectator atoms on line 6 of the poscar
-   if (file_exists) write(12,'(100(i4,1x))') nSpecType*n !
-   !write(12,*) ! Start next line
-   write(12,'("D")')
+   if (file_exists) write(12,'(100(i4,1x))',advance="no") nSpecType*n
+   write(12,'(/,"D")')
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
    ! For vasp, UNCLE it needs to list the vectors in blocks of atoms that have the same label.
