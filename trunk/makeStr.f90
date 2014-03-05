@@ -11,9 +11,9 @@ character(80) fname, title, strname, strNstring
 character(maxLabLength) :: labeling
 integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt, jAt, iSpec, nSpec
 integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, nType
-integer HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen, cSpec
+integer HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen
 integer, pointer :: gIndx(:)
-real(dp) :: p(3,3), sLV(3,3), eps, v(3), Ainv(3,3), sLVinv(3,3), shift(3)
+real(dp) :: p(3,3), sLV(3,3), eps, Ainv(3,3), sLVinv(3,3), shift(3)
 real(dp), pointer :: aBas(:,:), dvec(:,:) ! pointer so it can be passed in to a routine
 integer, pointer :: nSpecType(:) 
 character(1) bulksurf
@@ -74,7 +74,6 @@ if (file_exists) then ! figure out how many spectators there are
    allocate(nSpecType(nType))
    dummy = specAtoms
    do iAt = 1, nType
-      print *, iAt,"iAT","ntype",nType
       read(dummy,*) jAt
       nSpecType(iAt) = jAt
       dummy = adjustl(dummy(index(dummy," "):)) ! Throw away the number we just read in
@@ -186,10 +185,12 @@ do istrN=strNi,strNf
          do jAt = 1, nSpecType(iSpec)
             read(14,*) shift
             do iAt = 1, n               
-                write(12,'(3(f12.8,1x),"spectator type:",i2,1x," cell#",i4)')&
-                    & aBas(:,iAt) + shift, iSpec, iAt
+!                write(12,'(3(f12.8,1x),"spectator type:",i2,1x," cell#",i4)')&
+!                    & aBas(:,iAt) + shift, iSpec, iAt
+               write(12,'(3(f12.8,1x))') aBas(:,iAt) + shift
                write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,"&
-                    &>")') iAt, aBas(:,iAt), labeling(gIndx(iAt):gIndx(iAt))
+                    &>",3x,"Cell #",i3,2x,"Type ",i2)') iAt, aBas(:&
+                    &,iAt), labeling(gIndx(iAt):gIndx(iAt)), iAt, iSpec
             end do
             !rewind(14)
             !read(14,*)
