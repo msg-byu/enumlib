@@ -1078,7 +1078,7 @@ do ivol = nMin, nMax
       endif
    endif
 
-    !call cpu_time(HNFtime)
+   !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
    call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
