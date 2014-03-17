@@ -186,7 +186,7 @@ do istrN=strNi,strNf
             do iAt = 1, n               
 !                write(12,'(3(f12.8,1x),"spectator type:",i2,1x," cell#",i4)')&
 !                    & aBas(:,iAt) + shift, iSpec, iAt
-               write(12,'(3(f12.8,1x))') aBas(:,iAt) + shift
+               write(12,'(3(f12.8,1x))') fraction(aBas(:,iAt) + shift)
                write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,"&
                     &>",3x,"Cell #",i3,2x,"Type ",i2)') iAt, aBas(:&
                     &,iAt), labeling(gIndx(iAt):gIndx(iAt)), iAt, iSpec
