@@ -61,8 +61,8 @@ endif
 
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
-      derivative_structure_generator.f90 enumeration_utilities.f90 \
-      kgrid_utilities.f90 #cwrapper.f90
+      derivative_structure_generator.f90 enumeration_utilities.f90 #\
+      #kgrid_utilities.f90 cwrapper.f90
 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
@@ -81,8 +81,8 @@ all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x
 enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
-HNF_counter.x: ${OBJS} HNF_counter.o
-	${F90} ${LDFLAGS} -o $@ kgrid_utilities.o HNF_counter.o libenum.a ${LIBS}
+#HNF_counter.x: ${OBJS} HNF_counter.o
+#	${F90} ${LDFLAGS} -o $@ kgrid_utilities.o HNF_counter.o libenum.a ${#LIBS}
 
 2Dplot.x: make2Dplot.o splot.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}

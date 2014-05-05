@@ -887,7 +887,6 @@ logical err
 ! debug
 
 !write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
-
 allocate(label(1,size(dset,2)))
 allocate(digit(size(dset,2)))
 label = 1
@@ -929,14 +928,13 @@ write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
 !** Calls to enumlib routines **
   ! This call generates a list of permutations for the d-set under symmetry operations
   ! of the parent lattice (need this for d-g table permutations)
-
+! HERE IS THE BROKEN PART
 call get_dvector_permutations(pLV,dset,dRotList,LatDim,eps)
-write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: This throws a "bad type" error !?!?!
+!write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)    ! tk: This throws a "bad type" error !?!?!
   ! This call returns a list of operations that fix the superlattice. The routine expects a *list* of
   ! HNF matrices, but here we only need to pass in one because every one in the list is
   ! rotationally-equivalent. So the input and output lists are only one element
   ! long (in the last index). E.g., HNFin is a 3x3x1 array of integers (original lattice HNF)
-
 call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
 write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
 write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
