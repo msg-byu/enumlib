@@ -54,6 +54,7 @@ d = HNF(3,1); e = HNF(3,2); f = HNF(3,3)
 !write(*,'("Parent lattice:",/,3(3I,1x,/))') (HNF(i,:),i=1,3) 
 
 sLV = matmul(pLV,HNF)
+!write(*,'("Superlattice:",/,3(3f7.3,1x,/))') (sLV(:,i),i=1,3) 
 
 ! Find the coordinates of the basis atoms
 allocate(aBas(3,n*nD))
@@ -117,8 +118,11 @@ x = x/real(n*nD,dp)
 ENDSUBROUTINE map_enumStr_to_real_space
 
 !***************************************************************************************************
+! This routine takes three lattice vectors and a list of atomic basis
+! vector in Cartesian coordinates and converts them to direct
+! ("lattice") coordinates.
 subroutine cartesian2direct(sLV,aBas, eps) 
-real(dp), intent(in)    :: sLV(3,3) ! Superlattice vectors (Cartesian coordinates)
+real(dp), intent(in)    :: sLV(3,3)  ! Superlattice vectors (Cartesian coordinates)
 real(dp), intent(inout) :: aBas(:,:) ! Atomic positions (cartesian coordinates first, then direct)
 real(dp), intent(in)    :: eps
 
@@ -127,7 +131,6 @@ integer iAt, nAt
 
 nAt = size(aBas,2)
 call matrix_inverse(sLV,sLVinv)
-!!! Convert aBas to DIRECT COORDINATES
 do iAt=1,nAt
   aBas(:,iAt) = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
   ! This keeps the atomic coordinates inside the first unit cell---
@@ -137,7 +140,6 @@ do iAt=1,nAt
     aBas(:,iAt) = merge(aBas(:,iAt), aBas(:,iAt) + 1.0_dp, aBas(:,iAt) >= 0.0_dp - eps)
   enddo
 end do
-!!! End of conversion to DIRECT COORDINATES
 end subroutine cartesian2direct
 
 !***************************************************************************************************
