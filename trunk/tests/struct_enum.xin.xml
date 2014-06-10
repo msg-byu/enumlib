@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="input" version="1">
+  <name>FCC ternary</name>
+  <lattype>bulk</lattype>
+  <lattice>
+    <vector>0 .5 .5</vector>
+    <vector>.5 0 .5</vector>
+    <vector>.5 .5 0</vector>
+  </lattice>
+  <colors>2</colors>
+  <points>
+    <point>0.0 0.0 0.0 0/1</point>
+    <point>.25 .25 .25 0/1</point>
+  </points>
+  <searchsize>8 8</searchsize>
+  <eps>0.001</eps>
+  <labels>full</labels>
+</fortpy>

@@ -357,14 +357,14 @@ do il = 1, nl ! Loop over the unique labelings
    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
       jHNF = vsH(iHNF) ! Index of matching HNFs
       ! check if concentrations of this labeling match the user specification:
-      !!GH if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
+      !GH if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
         Tcnt = Tcnt + 1; Scnt = Scnt + 1
 
         write(14,struct_enum_out_formatstring) &
              Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen(il),lab_degen(il)*hnf_degen(jHNF),Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
              HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
              HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling!,lab_degen(il), hnf_degen*lab_degen(il)   
-      !!GH endif
+      !GH endif
    enddo ! loop over HNFs
 enddo ! loop over labelings
 Hcnt = Hcnt + nHNF 
@@ -790,7 +790,7 @@ lab => null()
 
 nl = n*nD
 
-!!< Set up the number of expected labelings
+!< Set up the number of expected labelings
 nexp = product(parDigit)**int(n,li)  ! should be the same as k**nl when all labels are on all sites
 if (nexp<0) stop "ERROR in generate_unique_labelings: integer overflow of variable nexp."
 
@@ -823,7 +823,7 @@ forall(j=0:k-1); c(j) = count(label(1,:)==j); endforall
 a = label(1,:)
 multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert to base 10
 
-!!< Set up a new multiplier
+!< Set up a new multiplier
 multiplier = 0; multiplier(nl)=1
 do i = nl-1,1,-1
    multiplier(i) = digit(i+1)*multiplier(i+1)
@@ -1066,7 +1066,7 @@ ENDSUBROUTINE count_full_colorings
 ! This is a sketch of the permutations labeling routine for enumerating permutations when the
 ! partitions possible labelings of the d-vectors in the parent cell are disjoint sets.
 ! This routine is just a re-write of the generate_permutations_labelings routine
-!  !!> indicates "old" code or comments, !> indicates modified or new code or comments.
+!  !o> indicates "old" code or comments, !> indicates modified or new code or comments.
 
 SUBROUTINE generate_disjoint_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit)
 integer, intent(in) :: k ! Number of colors/labels
@@ -1076,8 +1076,8 @@ integer, intent(in) :: perm(:,:) ! list of translation and rotation permutations
 character, pointer :: lab(:) ! Array to store markers for every raw labeling
 ! I=>incomplete labeling, U=>unique, D=>rot/trans duplicate, N=>non-primitive, E=>label exchange
 ! Need to pass lab out to write out the labelings
-!!!integer, intent(in) :: iConc(:) !!> concentration; the numerator of each rational number that is the
-!!!                                !!> concentration for each label (denominator is n*nD), length is k
+!integer, intent(in) :: iConc(:) !> concentration; the numerator of each rational number that is the
+!                                !> concentration for each label (denominator is n*nD), length is k
 integer :: iConc(:) !!> concentration; the numerator of each rational number that is the
 
 !> Now, this will be the concentration "numerators" for subsets, not for labels
@@ -1101,8 +1101,8 @@ integer i, j, ic  !!> loop variables
 
 lab => null()
 
-!!>nL = multinomial(iConc) ! The hash table is "full size" even if
-                         !!> site-restrictions will reduce the size of the list
+!o>nL = multinomial(iConc) ! The hash table is "full size" even if
+                         !o> site-restrictions will reduce the size of the list
 !> The size of the hash table will be smaller than the multinomial over the concentration divisions
 !> of the labels but will be 
 !> *** Might be easier to read if iConc was renamed to something that indicated sets... ****
@@ -1118,7 +1118,7 @@ lab = ""
 nPerm = size(perm,1)
 
 ! Initialize the mask (E) used to prune the tree to meet site restrictions 
-!!> Still need this to have k columns, and not nSets columns
+!o> Still need this to have k columns, and not nSets columns
 allocate(E(n*nD,k))
 E = 0
 do ik = 1, k; do iD = 1, n*nD
@@ -1133,11 +1133,11 @@ do iD = 1, n*nD
    write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
 end do; write(22,*); close(22)
 
-!!> Set up some tables to keep track of the labels on each site
-!!> "digit" keeps track of how many labels are allowed on each site in the supercell.
+!o> Set up some tables to keep track of the labels on each site
+!o> "digit" keeps track of how many labels are allowed on each site in the supercell.
 digit = (/((parDigit(j),i=1,n),j=1,nD)/) 
-!!> "digCnt" keeps track of where each "place" in the labeling is. Thinking of it as a type of
-!!> odometer, "digCnt" keeps track of where each "wheel" is
+!o> "digCnt" keeps track of where each "place" in the labeling is. Thinking of it as a type of
+!o> odometer, "digCnt" keeps track of where each "wheel" is
 digCnt = 1   !!> Initialize each site "wheel" to the first label ("lowest" digit)
 digCnt(1) = 0!!> except the first (because we advance the wheel before the first check)
 

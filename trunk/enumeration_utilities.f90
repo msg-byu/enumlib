@@ -131,6 +131,7 @@ integer iAt, nAt
 
 nAt = size(aBas,2)
 call matrix_inverse(sLV,sLVinv)
+! Convert aBas to DIRECT COORDINATES
 do iAt=1,nAt
   aBas(:,iAt) = matmul(sLVinv,aBas(:,iAt)) ! Put positions into "direct" coordinates
   ! This keeps the atomic coordinates inside the first unit cell---
@@ -140,6 +141,7 @@ do iAt=1,nAt
     aBas(:,iAt) = merge(aBas(:,iAt), aBas(:,iAt) + 1.0_dp, aBas(:,iAt) >= 0.0_dp - eps)
   enddo
 end do
+! End of conversion to DIRECT COORDINATES
 end subroutine cartesian2direct
 
 !***************************************************************************************************
@@ -490,9 +492,9 @@ END SUBROUTINE get_HNF_of_derivative_structure
 ! THIS ROUTINE IS ONLY NEEDED IN THE DRIVER ROUTINE FIND_STRUCTURE_IN_LIST.X, and this
 ! modified version is in GET_HNF_OF_DERIATIVE_STRUCTURE above.
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!E!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! PLEASE: Don't change anything here that could as well be of importance to get_hnf_of_derivative_structure above.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!E!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 SUBROUTINE get_HNF_of_derivative_structure_old(sfname,sLV,aBas,aTyp,pLV,dset,HNF,SNF,L,eps)
 character(80), intent(in) :: sfname ! Name of file to be searched for target structure
@@ -944,7 +946,7 @@ write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
   ! This routine gets the SNF form of the HNF, returns a list of permutations effected by the
   ! rotation symmetries,
 call get_SNF(HNFout,L,SNFlist,R,LattRotList,uqSNF,SNFlabel,fixOp)
-!!! Debug
+!E!! Debug
 !print *,"HNF check",all(HNFin(:,:,1)==HNFout(:,:,1))
 !call matrix_inverse(pLV,Ainv,err)
 !diag = (/SNFlist(1,1,1),SNFlist(2,2,1),SNFlist(3,3,1)/)
@@ -970,7 +972,7 @@ do ip = 1, nP
    write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
 enddo
 
-!!! debug
+!E!! debug
 !print *,"HNF check",all(HNFin(:,:,1)==HNFout(:,:,1))
 !call matrix_inverse(pLV,Ainv,err)
 !diag = (/SNFlist(1,1,1),SNFlist(2,2,1),SNFlist(3,3,1)/)

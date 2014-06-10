@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+  <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
+    <group name="stuct_enum_tests" purpose="testing" staging="./testruns/">
+      <outcome target="./struct_enum.out" compare="./struct_enum.out.{}" 
+	       cases="001,002,003,004,005,006" sourcepath="./tests" 
+	       sources="struct_enum.in.{}" rename="struct_enum.in" 
+	       template="struct_enum.out.xml" comparepath="./tests" />
+      <global name="dFull" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="labelFull" type="integer" modifiers="pointer" 
+	      dimensions=":,:" />
+      <global name="digitFull" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="equivalencies" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="fname" type="character" kind="80" 
+	      default=" 'struct_enum.in'" />
+      <global name="cRange" type="integer" modifiers="pointer" 
+	      dimensions=":,:" />
+      <global name="LatDim" type="integer" />
+      <prereq method="io_utils.read_input" 
+	      paramlist="title,LatDim,parLV,nDFull,dFull,k,equivalencies,
+			 nMin,nMax,eps,full,labelFull,digitFull,fname,
+			 cRange,conc_check" />
+      <instance name="platTyp" conditionals="LatDim==3:'b'|LatDim==2:'s'" />
+    </group>
+  </decorates>
+</fortpy>

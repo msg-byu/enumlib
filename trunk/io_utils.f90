@@ -173,29 +173,29 @@ else; stop 'Specify "full" or "part" in the input file';endif
 !%%GH
 !
 ! Write to the debug file
-!!GHif (conc_check) then
-!!GH   write(99,'("Concentration ranges are specified. Will run with using &
-!!GH   & the fixed-concentration algorithm.")')
-!!GH   do i = 1, k
-!!GH      write(99,'("Type",i2," conc:",i2,"/",i2,"--",i2,"/",i2)') i,cRange(i,(/1,3/)),cRange(i,2:3)
-!!GH   enddo
-!!GHelse
-!!GH   write(99,'("Concentration ranges are *not* specified. Using &
-!!GH   & the full-conc-range algorithm (original enum algorithm).")')
-!!GHendif
-!!GHclose(10)
+!GHif (conc_check) then
+!GH   write(99,'("Concentration ranges are specified. Will run with using &
+!GH   & the fixed-concentration algorithm.")')
+!GH   do i = 1, k
+!GH      write(99,'("Type",i2," conc:",i2,"/",i2,"--",i2,"/",i2)') i,cRange(i,(/1,3/)),cRange(i,2:3)
+!GH   enddo
+!GHelse
+!GH   write(99,'("Concentration ranges are *not* specified. Using &
+!GH   & the full-conc-range algorithm (original enum algorithm).")')
+!GHendif
+!GHclose(10)
 
-!!GHif (any(cRange<0)) stop "ERROR: negative input on concentrations in read_input"
-!!GHdo i = 1, k
-!!GH   if (maxval(cRange(i,1:2))>cRange(i,3)) then
-!!GH      write(*,'("ERROR: Numerator is larger than denominator.")')
-!!GH      write(*,'("ERROR: Check the concentration input for element #:",i2)') i
-!!GH      stop
-!!GH   endif
-!!GHenddo
-!!GH
-!!GHwrite(99,'(/,"--<< Successfully read the struct_enum.in file >>--",/)')
-!!GHclose(99)
+!GHif (any(cRange<0)) stop "ERROR: negative input on concentrations in read_input"
+!GHdo i = 1, k
+!GH   if (maxval(cRange(i,1:2))>cRange(i,3)) then
+!GH      write(*,'("ERROR: Numerator is larger than denominator.")')
+!GH      write(*,'("ERROR: Check the concentration input for element #:",i2)') i
+!GH      stop
+!GH   endif
+!GHenddo
+!GH
+!GHwrite(99,'(/,"--<< Successfully read the struct_enum.in file >>--",/)')
+!GHclose(99)
 end subroutine read_struct_enum_out
 
 

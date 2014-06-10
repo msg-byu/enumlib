@@ -899,26 +899,54 @@ if(status/=0) stop "Allocation of diagonals fails in get_HNF_2D_diagonals, modul
 diagonals = tempDiag(:,1:id)
 END SUBROUTINE get_HNF_2D_diagonals
 
-!***************************************************************************************************
-! This routine should eventually replace "generate_derivative_structures". The difference with
-! this one is that it applies to superstructures derived from *multilattices.* This is more general
-! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
-! implemented here has been slightly reordered from the original routine discussed in the
-! first paper (Hart & Forcade 2008).
-! 
-! GH Oct 2010  This routine has long since replaced the original
-! GH Oct 2010  Added the ability to enumerate for a fixed concentration (EnumIII)
+![TODO] Add line enumerations for proteins etc.
+!!<summary>This procedure generates derivative superstructures from multilattices.</summary>
+!!<comments>
+!! This is more general
+!! and should therefore work on "mono"-lattices, as the original routine did. The algorithm
+!! implemented here has been slightly reordered from the original routine discussed in the
+!! first paper (Hart and Forcade 2008).
+!!</comments>
+!!<revision date="Oct 2010" author="GH">This routine has long since replaced the original.</revision>
+!!<revision date="Oct 2010" author="GH">Added the ability to enumerate for a fixed concentration (EnumIII).</revision>
+!!<parameter name="title" regular="true">A string to identify the run, echoed in the output file.</parameter>
+!!<parameter name="parLV" regular="true">The parent lattice vectors.</parameter>
+!!<parameter name="nDFull" regular="true">The number of d-vectors in the full d-set @CREF[param.dFull].</parameter>
+!!<parameter name="dFull">A list of all the d-vectors including those with no configurational degrees of freedom.</parameter>
+!!<parameter name="k" regular="true">The number of different kind of atoms that can be placed on a site (a.k.a. colors).</parameter>
+!!<parameter name="nMin" regular="true">The lower bound on the range of cell sizes to enumerate over.</parameter>
+!!<parameter name="nMax" regular="true">The upper bound on the range of cell sizes to enumerate over.</parameter>
+!!<parameter name="pLatTyp" choices="S,B" regular="true">
+!! The parent lattice type. Possible choices are S = "Surface", B = "Bulk".
+!!</parameter>
+!!<parameter name="eps" regular="true">Tolerance for the finite difference calculations.</parameter>
+!!<parameter name="full" regular="true">
+!! The full setting returns all possible combinations of colors at sites even if they are crystallographically
+!! equivalent. Partial (i.e. .false.) removes combinations of colors where a crystallographically equivalent
+!! site already exists (even though the energy may be different..</parameter>
+!!<parameter name="labelFull">A list of the labels (index 1) allowed on each site (index 2).</parameter>
+!!<parameter name="digitFull">A list of the *number* of labels on each site </parameter>
+!!<parameter name="equivalencies">A listing of sites that need to have the same color.</parameter>
+!!<parameter name="conc_check" regular="true">Specifies whether the enumeration should be done in a restricted
+!! concentration range. The restricted range is specified in @CREF[param.cRange]</parameter>
+!!<parameter name="cRange">
+!!  <summary>A restricted concentration range for the enumeration. If any concentrations are restricted, ranges must
+!!  be specified for ALL colors (atom types) in the enumeration.</summary>
+!!  <dimension>Rows specify range fractions. Row 1: Numerator (START); Row 2: Numerator (END); Row 3: Denominator.</dimension>
+!!  <dimension>Columns specify colors for range limitations.</dimension>
+!!</parameter>
 SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
     & labelFull,digitFull,equivalencies, conc_check,cRange)
 integer, intent(in) :: k, nMin, nMax, nDFull
 integer             :: nD
+!Had to change character to 80 from 10 to match the definition in io_utils.read_input
 character(10), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3), eps
 real(dp), pointer :: dFull(:,:), d(:,:)
 character(1), intent(in) :: pLatTyp
 logical, intent(in) :: full 
-integer, intent(inout) :: labelFull(:,:) ! A list of the labels (index 1) allowed on each site (index 2)
-integer, intent(inout) :: digitFull(:)   ! A list of the *number* of labels on each site 
+integer, intent(inout) :: labelFull(:,:) !
+integer, intent(inout) :: digitFull(:)   !
 integer, allocatable    :: label(:,:), digit(:)
 integer, intent(in) :: equivalencies(:)
 logical, intent(in) :: conc_check
@@ -996,6 +1024,8 @@ write(*,'("Volume",7x,"CPU",8x,"#HNFs",2x,"#SNFs",&
 
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
+!Write the fortpy version information for the file.
+write(14, *) '# <fortpy version="2"></fortpy>'
 write(14,'(a10)') title
 if (pLatTyp=='S'.or.pLatTyp=="s") then; write(14,'(a4)') "surf"
 elseif (pLatTyp=='B'.or.pLatTyp=="b") then; write(14,'(a4)') "bulk"

@@ -1,0 +1,11 @@
+FCC
+bulk       # Bulk case (i.e., 3D not 2D)
+.5 .5 0    # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used
+.5 0 .5    # Second lattice vector
+0 .5 .5    # Third lattice vector
+1          # One lattice point/unit cell
+ 0 0 0     # That lattice point is at the origin
+2          # binary case
+2 8        # Enumerate 8-atom cells only
+.0001      # Finite precision parameter
+part       # Only generate a partial listing (e.g. consider AAAB==BBBA)
