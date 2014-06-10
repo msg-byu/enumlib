@@ -940,7 +940,7 @@ SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nM
 integer, intent(in) :: k, nMin, nMax, nDFull
 integer             :: nD
 !Had to change character to 80 from 10 to match the definition in io_utils.read_input
-character(10), intent(in) :: title
+character(80), intent(in) :: title
 real(dp), intent(in) :: parLV(3,3), eps
 real(dp), pointer :: dFull(:,:), d(:,:)
 character(1), intent(in) :: pLatTyp
@@ -1108,7 +1108,7 @@ do ivol = nMin, nMax
       endif
    endif
 
-   !call cpu_time(HNFtime)
+    !call cpu_time(HNFtime)
    ! Many of the superlattices will be symmetrically equivalent so we use the symmetry of the parent
    ! multilattice to reduce the list to those that are symmetrically distinct.
    call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
