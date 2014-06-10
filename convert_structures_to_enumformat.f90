@@ -381,7 +381,7 @@ type MC_variables ! variables for Monte Carlo
    integer :: boxSize(3)                      ! Size of the simulations cell (times unit cell in 3 directions)
    character(30) :: cboxSize                  ! character equivalent of boxSize (for printing)
    real(dp), pointer :: x(:)                  ! Concentration of each atom type in the simulation
-                                        !!!!!!! NOTE: have to generalise the concentration and mu for coupled CEs
+                                        !E!!!!!! NOTE: have to generalise the concentration and mu for coupled CEs
    real(dp), pointer :: mu(:)                 ! chemical potential for each atom type
    real(dp), pointer :: Dmu(:,:)              ! Difference in chemical potential (lookup-table)
    integer(si), pointer :: possibleNewSpins(:,:)  ! { index, current spin }: list (1st index)  of possible new spin
