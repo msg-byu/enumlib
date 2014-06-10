@@ -19,6 +19,7 @@
       <global name="cRange" type="integer" modifiers="pointer" 
 	      dimensions=":,:" />
       <global name="LatDim" type="integer" />
+      <global name="title" type="character" kind="80" />
       <prereq method="io_utils.read_input" 
 	      paramlist="title,LatDim,parLV,nDFull,dFull,k,equivalencies,
 			 nMin,nMax,eps,full,labelFull,digitFull,fname,
