@@ -1025,7 +1025,7 @@ write(*,'("Volume",7x,"CPU",8x,"#HNFs",2x,"#SNFs",&
 ! Set up the output file and write the lattice information
 open(14,file="struct_enum.out")
 !Write the fortpy version information for the file.
-write(14, *) '# <fortpy version="2"></fortpy>'
+write(14, *) '# <fortpy version="2" revision="247"></fortpy>'
 write(14,'(a10)') title
 if (pLatTyp=='S'.or.pLatTyp=="s") then; write(14,'(a4)') "surf"
 elseif (pLatTyp=='B'.or.pLatTyp=="b") then; write(14,'(a4)') "bulk"
