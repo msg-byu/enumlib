@@ -1,0 +1,9 @@
+FCC binary
+bulk      # bulk or surf tag indicates a 2D or 3D enumeration (both use 3x3 latt vects)
+0 .5 .5    # a1 parent lattice vector
+.5 0 .5    # a2 parent lattice vector
+.5 .5 0    # a3 parent lattice vector
+2           # Number of labels/atom types/colors, i.e., binary, ternary, etc.
+2 24      # Range of supercell sizes to enumerate over
+.0001    # epsilon, tolerance for finite precision arithmetic
+part       # full or part tag:  use full list of labelings? (including incomplete ones) 
