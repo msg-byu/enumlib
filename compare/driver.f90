@@ -14,7 +14,8 @@ character(1) :: latTyp
 real(dp)  eps
 real(dp) :: parLV(3,3)
 
-character(80) title, fname
+character(len=:), allocatable :: title, fname
+character(5000) :: buffer
 logical fullLab,concCheck
 integer, pointer :: cRange(:,:)
 integer, pointer :: label(:,:)
@@ -23,15 +24,13 @@ integer, pointer :: equivalencies(:)
 
 
 if (iargc()>=1) then
-   call getarg(1,fname)
+   call getarg(1,buffer)
+   fname = trim(buffer)
 else
-   fname = "struct_enum.in"
+   fname = "struct_enum.out"
 endif
-call read_input(title,LatDim,parLV,nD,d,k,equivalencies,nMin,nMax,eps&
-     &,fullLab,label,digit,fname,cRange,concCheck) ! Read in parent lattice vectors, etc.
-if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
-!call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,&
-!         label,digit,equivalencies,concCheck,cRange)
-!call spaceGroup_initialize(
+
+call list%read_in_list(fname)
+
 
 END PROGRAM deriv_driver

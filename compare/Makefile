@@ -6,14 +6,15 @@
 # Shell
 SHELL		= /bin/bash
 
-LBDR = ../../../celib/trunk
+LBDR1 = ../../../celib/trunk
+LBDR2 = ..# enumlib
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
   ifeq (${DEBUG},false)
-     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBDR}
+     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBDR1}  -I${LBDR2}
      FOUND = true
   else
-     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBDR} 
+     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBDR1} -I${LBDR2}
      FOUND = true
   endif
 endif
@@ -60,30 +61,20 @@ endif
 
 
 
-SRC = ../sorting.f90 ../enumeration_types.f90 ../io_utils.f90 ../labeling_related.f90 \
-      ../derivative_structure_generator.f90 ../enumeration_utilities.f90 derivative_structures.f90
+SRC =  derivative_structures.f90 driver.f90
 #\
       #kgrid_utilities.f90 cwrapper.f90
 
 OBJS = ${SRC:.f90=.o}
-LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
-         ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
+LIBS =  ${LBDR1}/libcomparestructs.a ${LBDR1}/libutils.a ${LBDR1}/libsym.a \
+         ${LBDR1}/librational.a ${LBDR1}/libcombinatorics.a  ${LBDR2}/libenum.a
 
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
 
 
-libenum.a: ${OBJS}
-	ar ru $@ $?
-	ranlib  $@
-
-all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x compare_enum_files.x
-
-enum.x: ${OBJS} driver.o
-	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
-
-deriv.x: ${OBJS} driver.o
-	 ${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
+deriv.x: ${OBJS}
+	 ${F90} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
 
 compare_enum_files.x:  compare_two_enum_files.o
 	${F90} ${LDFLAGS} -o $@ compare_two_enum_files.o libenum.a ${LIBS}
@@ -92,7 +83,7 @@ compare_enum_files.x:  compare_two_enum_files.o
 	${F90} ${FFLAGS} -c $<
 .f90.o : 
 #	bash -c "perl -pi -e 's/write\(21.*/write\(21,\*\) \"SVN revision number:'`svnversion`'\"/' derivative_structure_generator.f90 "
-	#bash -c "echo `svnversion` > version.enum"
+#	bash -c "echo `svnversion` > version.enum"
 	${F90} ${FFLAGS} -c $<
 .f.o : 
 	${F90} -c $<
