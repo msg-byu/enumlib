@@ -3,6 +3,8 @@
 !!June 2008). </summary>
 MODULE derivative_structures
 use num_types
+use io_utils
+implicit none
 private
 public enum_list
 
@@ -82,6 +84,8 @@ type enum_list
    integer, pointer, dimension(:,:,:):: L
    type(perm_list), pointer, dimension(:) :: perm
    type(structure), pointer, dimension(:) :: str
+contains
+  procedure, public :: read_in_list
 endtype enum_list
 
 
@@ -94,6 +98,94 @@ endtype dlabel
 
 CONTAINS
 
+!!<summary>Reads in a file in *struct_enum.out* format and sets up the enumerated list</summary>
+!!<comments>This was copied and pasted from the "find_match..." routine in
+!!enumeration_utilities. There is also a similar couple of routines in io_utils. This implementation
+!!should supersede those and they should me removed eventually.</comments>
+subroutine read_in_list(this,fname)
+class(enum_list) :: this
+character(len=:), allocatable, intent(in) :: fname ! Name of file to read in from
+
+!!integer nMin, nMax ! Enumeration runs over all cells of size nMin to max size of nMax
+!!integer LatDim ! 2D or 3D parent lattice?
+!!real(dp)  eps ! Finite precision parameter
+!!real(dp) :: parLV(3,3) ! Lattice vector of the parent lattice
+!!
+!!logical fullLab  !?? 
+!!integer, pointer :: cRange(:,:) ! concentration ranges
+!!integer, pointer :: label(:,:)
+!!integer, pointer :: digit(:)
+!!integer, pointer :: equivalencies(:) ! List of atoms that are equivalent
+
+real(dp) :: p(3,3) ! Lattice vectors of the parent lattice
+integer ioerr ! Stores code for file i/o error
+character(80) title, dummy  ! Comment in line 1 of the enum file, dummy variable
+character(1) :: bulksurf ! Lattice type (bulk 3D or surf 2D)
+integer nD ! Number of sites in the basis (i.e., number of points in the multilattice)
+real(dp), pointer :: dvec(:,:) => null() ! Atomic basis vectors in the unit cell
+integer k ! Number of colors/label types (i.e., binary, ternary, etc.)
+real(dp)  eps ! Finite precision parameter
+integer i ! generic loop counter
+
+
+open(13,file="readcheck_read_in_struct_enum_list.out")
+write(13,'(5(/),"This file echoes the input for the read_in_list routine and")')
+write(13,'("prints some of the computed quantities as well. It is intended to")')
+write(13,'("be useful for debugging and troubleshooting formatting issues")')
+write(13,'("***************************************************")')
+
+open(11,file=fname,status='old',iostat=ioerr)
+if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a)') trim(fname);stop;endif
+! Read in the title from the struct_enum.out file
+read(11,'(a80)') title; title = trim(title)
+write(13,'("Title: ",a80)') title
+
+! Read in surf/bulk mode marker
+read(11,'(a1)') bulksurf
+write(13,'("bulk/surf: ",a1)') bulksurf
+!GHcall ucase(bulksurf)
+!GHif((LatDim==2 .and. bulksurf=="B") .or. (LatDim==3 .and. bulksurf=="S")) then 
+!GH   print *,"The bulk/surf parameter in "//trim(fname)//" not consistent"
+!GH   write(*,'("Bulk/surf parameter is: ",a1)') bulksurf
+!GH   write(*,'("LatDim input in call is: ",i1)') LatDim
+!GH   stop
+!GHendif
+
+! Read in the parent lattice vectors
+do i = 1,3; read(11,*) p(:,i); enddo
+write(13,'("Parent Lattice Vectors:",/,3(f8.3,1x))') (p(i,:),i=1,3)
+!GHcall matrix_inverse(p,Ainv)
+!GHif (.not. equal(determinant(pLV),determinant(p),eps)) then
+!GH   write(13,'("Volume of input structure parent: ",f7.3)') determinant(pLV)
+!GH   write(13,'("Volume of struct_enum parent: ",f7.3)') determinant(p)
+!GH   !stop "Volumes of parent lattices don't match"
+!GHendif
+!if (.not. equal(matmul(Ainv,pLV),nint(matmul(Ainv,pLV)),eps)) stop "Parent lattices don't match"
+
+! Read in the number of d-vectors, then read each one in
+read(11,*) nD
+write(13,'("Number of d-vectors: ",i3)') nD
+!if(nD/=size(dset,2)) stop "Numbers of d-vectors don't match"
+allocate(dvec(3,nD))
+do i = 1,nD; read(11,*) dvec(:,i); enddo
+write(13,'("d-vectors:",/,40(3f8.4,1x,/))') (dvec(:,i),i=1,nD) 
+
+
+! Read in the number of labels, i.e., binary, ternary, etc.
+read(11,'(i2)') k
+write(13,'("Number of labels (k): ",i2)') k 
+
+read(11,*) ! Skip starting and ending cell sizes
+read(11,*) eps
+write(13,'("Finite precision parameter (epsilon): ",g17.10)') eps 
+
+do 
+   read(11,*) dummy
+   if(dummy=="start") exit
+enddo
+write(13,'("Found ""start"" label. Now reading in structures line-by-line ")')  
+
+end subroutine read_in_list
 
 !!<summary></summary>
 !!<parameter name="LV"></parameter>
