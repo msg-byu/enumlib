@@ -58,9 +58,9 @@ error:
 	echo Error: makefile doesn\'t have flags for this compiler
 endif
 
-if type "python" > /dev/null; then
-    python irevision.py derivative_structure_generator.f90 version.enum	
-fi
+# if type "python" > /dev/null; then
+#     python irevision.py derivative_structure_generator.f90 version.enum	
+# fi
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 labeling_related.f90 \
       derivative_structure_generator.f90 enumeration_utilities.f90 #\
