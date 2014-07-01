@@ -2,10 +2,13 @@
 <fortpy mode="docstring">
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
     <group name="stuct_enum_tests" purpose="testing" staging="./testruns/">
-      <outcome target="./struct_enum.out" compare="./struct_enum.out.{}" 
-	       cases="001,002,003,004,005,006" sourcepath="./tests" 
-	       sources="struct_enum.in.{}" rename="struct_enum.in" 
-	       template="struct_enum.out.xml" comparepath="./tests" />
+      <test identifier="original" description="Original enumerations tests of basic structures"
+	    cases="001, 002, 003, 004, 005, 006" timed="true">
+	<input folder="./tests" file="struct_enum.in.{}" rename="struct_enum.in" />
+	<output folder="./tests" file="struct_enum.out.{}" template="struct_enum.out.xml"
+		identifier="struct_enum.out" />
+	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
       <global name="dFull" type="real(dp)" modifiers="pointer" default="> null()" 
 	      dimensions=":,:" />
       <global name="labelFull" type="integer" modifiers="pointer" 
@@ -24,7 +27,14 @@
 	      paramlist="title,LatDim,parLV,nDFull,dFull,k,equivalencies,
 			 nMin,nMax,eps,full,labelFull,digitFull,fname,
 			 cRange,conc_check" />
-      <instance name="platTyp" conditionals="LatDim==3:'b'|LatDim==2:'s'" />
+      <assignment name="platTyp">
+	<conditionals>
+	  <if condition="LatDim==3" value="bulkconstant" />
+	  <elseif condition="LatDim==2" value="surfconstant" />
+	</conditionals>
+	<value identifier="bulkconstant" constant="'b'" />
+	<value identifier="surfconstant" constant="'s'" />
+      </assignment>
     </group>
   </decorates>
 </fortpy>
