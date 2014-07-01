@@ -78,7 +78,7 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x 
+all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x compare_enum_files.x
 
 enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
@@ -110,7 +110,7 @@ makestructin.x: makeStrIn.o
 randReduceTest.x: random_lattice_driver.o
 	${F90} ${LDFLAGS} -o $@ random_lattice_driver.o libenum.a ${LIBS}
 
-compare_enum_files.x: compare_two_enum_files.o
+compare_enum_files.x:  compare_two_enum_files.o
 	${F90} ${LDFLAGS} -o $@ compare_two_enum_files.o libenum.a ${LIBS}
 
 .f95.o : 
@@ -124,7 +124,7 @@ compare_enum_files.x: compare_two_enum_files.o
 
 
 
-CLEAN  = *.o *.mod *.a *.x
+CLEAN  = *.o *.mod *.a *.x svn-commit.*
 clean : 
 	rm -f ${CLEAN}
 clobber : 
