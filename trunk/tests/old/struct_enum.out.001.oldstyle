@@ -1,11 +1,12 @@
 2D square 
+surf
  1.0000000     0.00000000     0.00000000        # a1 parent lattice vector
 0.00000000      1.0000000     0.00000000        # a2 parent lattice vector
 0.00000000     0.00000000      1.0000000        # a3 parent lattice vector
  2-nary case
    8   8 # Starting and ending cell sizes for search
 Partial list of labelings (complete labelings only) is used
-        #tot     #size nAt  pg    SNF             HNF                 Left transform                 labeling
+start   #tot     #size nAt  pg    SNF             HNF                 Left transform                 labeling
           1         1   8    4   1  1  8    1  0  1  0  0  8      1   0   0   0   1   0   0   0   1  00000001
           2         2   8    4   1  1  8    1  0  1  0  0  8      1   0   0   0   1   0   0   0   1  00000011
           3         3   8    4   1  1  8    1  0  1  0  0  8      1   0   0   0   1   0   0   0   1  00000101
