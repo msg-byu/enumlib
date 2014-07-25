@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+  <decorates name="tree_class.enumerate_unique_permutations">
+    <group name="enum4_tests" purpose="testing" staging="./unittests/">
+      <test identifier="enum4fortran" description="Test the fortran translation of enum4 against python enum4" timed="true"
+	    cases="Z10_Z10_5_5_10">
+	<output identifier="enum4.out" folder="./tests" file="enum4.out.{}"
+		template="integer.xml" />
+	<target name="uqperms" compareto="enum4.out" varfile="enum4.out" when="each" />
+      </test>
+      <assignment name="colors" value="colorsFile" allocate="true"> 
+	<value identifier="colorsFile" folder="./tests" file="colors.in.{}" rename="colors.in"/>
+      </assignment>
+      <assignment name="generators" value="generatorsFile"> 
+	<value identifier="generatorsFile" folder="./tests" file="generators.in.{}" rename="generators.in"/>
+      </assignment>
+      <assignment name="makeG" value=".true."/> 
+    </group>
+  </decorates>
+</fortpy>

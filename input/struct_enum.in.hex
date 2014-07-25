@@ -1,8 +1,8 @@
 hex
 surf
 1 0 0                         # a1 parent lattice vector
-0 .5 0.86602540378444 	      # a2 parent lattice vector
 0 1 0              	      # a3 parent lattice vector
+0 .5 0.86602540378444 	      # a2 parent lattice vector
  2 -nary case
     1 # Number of points in the multilattice
 # Cartesian coordinates: 
@@ -11,4 +11,3 @@ surf
 0.10000000E-06 # Epsilon (finite precision parameter)
 full list of labelings
 # Concentration ranges?
-1 1 16

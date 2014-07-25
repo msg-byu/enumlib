@@ -18,10 +18,13 @@ endtype perm_list
 !!as an index to which list of permutations apply to this structure. It also contains a labeling
 !!(list of atoms, one atom for each site in the structure) that is unique to the structure. </summary>
 type structure
-   integer :: SNFidx
-   integer :: HNFidx
-   integer :: Lidx
-   integer :: permIdx
+!!<member name="SNF"> List of diagonal entries of the SNF matrix.First index is list position,
+!!</member>
+!!<member name="HNF"> List of lower triangular entries of the HNF matrix. First index is list position,
+!!second index (1-6) is for the HNF entries.</member>
+   integer, dimension(3):: SNF 
+   integer, dimension(6):: HNF
+!   type(perm_list), pointer, dimension(:) :: perm
    integer, pointer, dimension(:) :: labeling
 endtype structure
 
@@ -79,10 +82,6 @@ type enum_list
    !!</member>  
    type(lattice) :: parLat
    integer :: k
-   integer, pointer, dimension(:,:,:):: SNF
-   integer, pointer, dimension(:,:,:):: HNF
-   integer, pointer, dimension(:,:,:):: L
-   type(perm_list), pointer, dimension(:) :: perm
    type(structure), pointer, dimension(:) :: str
 contains
   procedure, public :: read_in_list
@@ -119,14 +118,14 @@ character(len=:), allocatable, intent(in) :: fname ! Name of file to read in fro
 
 real(dp) :: p(3,3) ! Lattice vectors of the parent lattice
 integer ioerr ! Stores code for file i/o error
-character(80) title, dummy  ! Comment in line 1 of the enum file, dummy variable
+character(800) title, dummy  ! Comment in line 1 of the enum file, dummy variable
 character(1) :: bulksurf ! Lattice type (bulk 3D or surf 2D)
 integer nD ! Number of sites in the basis (i.e., number of points in the multilattice)
 real(dp), pointer :: dvec(:,:) => null() ! Atomic basis vectors in the unit cell
 integer k ! Number of colors/label types (i.e., binary, ternary, etc.)
 real(dp)  eps ! Finite precision parameter
-integer i ! generic loop counter
-
+integer i, j, n ! generic loop counters
+type(structure), pointer :: struct_list
 
 open(13,file="readcheck_read_in_struct_enum_list.out")
 write(13,'(5(/),"This file echoes the input for the read_in_list routine and")')
@@ -154,12 +153,6 @@ write(13,'("bulk/surf: ",a1)') bulksurf
 ! Read in the parent lattice vectors
 do i = 1,3; read(11,*) p(:,i); enddo
 write(13,'("Parent Lattice Vectors:",/,3(f8.3,1x))') (p(i,:),i=1,3)
-!GHcall matrix_inverse(p,Ainv)
-!GHif (.not. equal(determinant(pLV),determinant(p),eps)) then
-!GH   write(13,'("Volume of input structure parent: ",f7.3)') determinant(pLV)
-!GH   write(13,'("Volume of struct_enum parent: ",f7.3)') determinant(p)
-!GH   !stop "Volumes of parent lattices don't match"
-!GHendif
 !if (.not. equal(matmul(Ainv,pLV),nint(matmul(Ainv,pLV)),eps)) stop "Parent lattices don't match"
 
 ! Read in the number of d-vectors, then read each one in
@@ -184,10 +177,29 @@ do
    if(dummy=="start") exit
 enddo
 write(13,'("Found ""start"" label. Now reading in structures line-by-line ")')  
+nS = 0 ! Count number of structures in the list
+do 
+   read(11,'(a800)',iostat=ioerr) dummy
+   if (ioerr/=0) then ! end of file
+      exit
+   end if
+   nS = nS + 1
+enddo
+!Now that we know how many structures are in the file, allocate the storage and back up in the file
+!so that we can read them into memory.
+do j = 1, nS
+   backspace(11)
+end do
+allocate(struct_list,nS)
 
+
+
+
+close(13)
+close(11)
 end subroutine read_in_list
 
-!!<summary></summary>
+!!<summary>Gets the space group for the parent lattice of an enum_list</summary>
 !!<parameter name="LV"></parameter>
 !!<parameter name="dvec"></parameter>
 !!<parameter name="dLab"></parameter>
