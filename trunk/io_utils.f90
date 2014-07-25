@@ -8,17 +8,17 @@ use rational_mathematics, only: HermiteNormalForm, SmithNormalForm
 implicit none
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file, &
-       read_struct_enum_out   
+       read_struct_enum_out, read_struct_enum_out_oldstyle   
 CONTAINS
 
 !***************************************************************************************************
 ! This file reads from struct_enum.*out* file. Used by the compare code
 ! 
 ! It's a partial copy and paste from "read_input"
-subroutine read_struct_enum_out(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full&
-     &,label,digit,fname,cRange)
+subroutine read_struct_enum_out(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname,cRange)
+
 character(80) :: title, pLatTyp, fullpart
-character(80), optional :: fname
+character(len=:),allocatable, optional :: fname
 integer,intent(out):: Nmin, Nmax, k, LatDim, nD
 real(dp),intent(out) :: pLV(3,3), eps
 real(dp), pointer :: d(:,:)
@@ -32,7 +32,7 @@ character(100) line
 
 open(99,file="readcheck_enum.out")
 if(.not. present(fname)) then
-   open(10,file='struct_enum.in',status='old')
+   open(10,file='struct_enum.out',status='old')
 else
    open(10,file=fname,status='old')
 endif
@@ -54,7 +54,7 @@ call co_ca(10,err)
 call co_ca(10,err)
 read(10,*)  nD
 write(99,'("Number of d-vectors: ",i3)') nD
-label = -1
+!!label = -1 ! What was this line doing? label hasn't even be allocated yet!
 do iD = 1, nD ! skip over all the d-vectors
    read (10,*) line
 enddo
@@ -144,60 +144,95 @@ else; stop 'Specify "surf" or "bulk" in input file';endif
 if (fullpart(1:4).eq.'FULL') then; full = .true.
 else if(fullpart(1:4).eq.'PART') then; full = .false.
 else; stop 'Specify "full" or "part" in the input file';endif
-
-!%%GH! Read in the concentration ranges
-!%%GHallocate(cRange(k,3))
-!%%GHcRange = 0
-!%%GHdo i = 1, k
-!%%GH   print *, "here3"
-!%%GH   call co_ca(10,err)
-!%%GH   read(10,*,iostat=status) cRange(i,:)
-!%%GH   conc_check = .true.
-!%%GH   if (status/=0) then ! concentration is not specificed
-!%%GH      write(*,'("Concentration ranges are not specified")')
-!%%GH      cRange = 0 
-!%%GH      conc_check = .false.
-!%%GH      if (i>1) then
-!%%GH         write(*,'(//,"--<< WARNING: Concentration ranges are partially specified   >>--")')
-!%%GH         write(*,'(   "--<< WARNING: If you intended to specify them, fix the input >>--",//)')
-!%%GH      endif
-!%%GH      exit
-!%%GH   endif
-!%%GHenddo
-!%%GHopen(98,file="debug_conc_check.out")
-!%%GHclose(98,status="delete")
-!%%GHopen(98,file="debug_site_restrictions.out")
-!%%GHclose(98,status="delete")
-!%%GHopen(98,file="debug_label_table.out")
-!%%GHclose(98,status="delete")
-!%%GH
-!
-! Write to the debug file
-!GHif (conc_check) then
-!GH   write(99,'("Concentration ranges are specified. Will run with using &
-!GH   & the fixed-concentration algorithm.")')
-!GH   do i = 1, k
-!GH      write(99,'("Type",i2," conc:",i2,"/",i2,"--",i2,"/",i2)') i,cRange(i,(/1,3/)),cRange(i,2:3)
-!GH   enddo
-!GHelse
-!GH   write(99,'("Concentration ranges are *not* specified. Using &
-!GH   & the full-conc-range algorithm (original enum algorithm).")')
-!GHendif
-!GHclose(10)
-
-!GHif (any(cRange<0)) stop "ERROR: negative input on concentrations in read_input"
-!GHdo i = 1, k
-!GH   if (maxval(cRange(i,1:2))>cRange(i,3)) then
-!GH      write(*,'("ERROR: Numerator is larger than denominator.")')
-!GH      write(*,'("ERROR: Check the concentration input for element #:",i2)') i
-!GH      stop
-!GH   endif
-!GHenddo
-!GH
-!GHwrite(99,'(/,"--<< Successfully read the struct_enum.in file >>--",/)')
-!GHclose(99)
+close(99)
+close(10)
 end subroutine read_struct_enum_out
 
+
+!***************************************************************************************************
+! This file reads from struct_enum.*out* file. Used by the compare code
+! 
+! This version reads from a struct_enum.out generated with the first version of the code whose fast
+! index was over configurations, rather than over HNFs with the same group structure.
+! 
+! This code is only needed for checking that new versions of the code still generate a list of
+! structures equivalent to the first version.
+subroutine read_struct_enum_out_oldstyle(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname,cRange)
+
+character(80) :: title, pLatTyp, fullpart
+character(800), optional :: fname
+integer,intent(out):: Nmin, Nmax, k, LatDim, nD
+real(dp),intent(out) :: pLV(3,3), eps
+real(dp), pointer :: d(:,:)
+integer, pointer :: label(:,:), digit(:)
+integer, pointer :: eq(:), cRange(:,:)
+!logical, intent(out):: conc_check
+
+logical full, err
+integer iD, i, status
+character(100) line
+
+open(99,file="readcheck_enum.out")
+if(.not. present(fname)) then
+   open(10,file='struct_enum.in',status='old')
+else
+   open(10,file=fname,status='old')
+endif
+call co_ca(10,err)
+read(10,'(a80)') title
+write(99,'("Title: ",a80)') title
+call co_ca(10,err)
+read(10,'(a4)') pLatTyp
+call ucase(pLatTyp)
+write(99,'("Lattice type (bulk or surface): ",a4)') pLatTyp
+call co_ca(10,err)
+read(10,*) pLV(:,1)
+call co_ca(10,err)
+read(10,*) pLV(:,2)
+call co_ca(10,err)
+read(10,*) pLV(:,3)
+write(99,'(3(f7.3,1x))') transpose(pLV)
+call co_ca(10,err)
+call co_ca(10,err)
+!read(10,*)  nD
+!write(99,'("Number of d-vectors: ",i3)') nD
+!label = -1
+!do iD = 1, nD ! skip over all the d-vectors
+!   read (10,*) line
+!enddo
+! Read the number of components in the enumeration 
+read(10,'(i2)') k
+allocate(label(k,1)) ! Assumes only 1 d-vector (OK for old files?)
+call co_ca(10,err)
+! Read in the starting and stopping cell sizes 
+read(10,*) Nmin, Nmax
+write(99,'("Min and Max cell sizes: ",2(i2,1x))') Nmin, Nmax
+call co_ca(10,err)
+!read(10,*) eps
+!write(99,'("Epsilon: ",g12.4)') eps 
+!
+call co_ca(10,err)
+read(10,*) fullpart
+fullpart = adjustl(fullpart)
+call ucase(fullpart)
+write(99,'("full/part mode: ",a4)') fullpart
+
+if (pLatTyp(1:4).eq.'SURF') then; LatDim = 2
+   if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
+        stop 'For "surf" setting, first component of second and third &
+               & must be zero'
+else if(pLatTyp(1:4).eq.'BULK') then; LatDim = 3
+else; stop 'Specify "surf" or "bulk" in input file';endif
+write(99,'("Latdim = ",i1)') LatDim
+close(99)
+close(10)
+nD = 1
+eps = 1e-10_dp
+allocate(d(3,1))
+d = 0._dp ! The code will expect the lattice to have at least one
+! lattice point in the unit cell.
+
+end subroutine read_struct_enum_out_oldstyle
 
 !***************************************************************************************************
 ! If the user specifies one or more fixed cells in which to do the
