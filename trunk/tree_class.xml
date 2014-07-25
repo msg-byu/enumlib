@@ -3,7 +3,7 @@
   <decorates name="tree_class.enumerate_unique_permutations">
     <group name="enum4_tests" purpose="testing" staging="./unittests/">
       <test identifier="enum4fortran" description="Test the fortran translation of enum4 against python enum4" timed="true"
-	    cases="Z10_Z10_5_5_10">
+	    cases="Z10_Z10_5_5_10, 1110, 576_9">
 	<output identifier="enum4.out" folder="./tests" file="enum4.out.{}"
 		template="integer.xml" />
 	<target name="uqperms" compareto="enum4.out" varfile="enum4.out" when="each" />
@@ -15,6 +15,9 @@
 	<value identifier="generatorsFile" folder="./tests" file="generators.in.{}" rename="generators.in"/>
       </assignment>
       <assignment name="makeG" value=".true."/> 
+      <assignment name="self" value="initialize">
+	<value identifier="initialize" embedded="init" />
+      </assignment>
     </group>
   </decorates>
 </fortpy>
