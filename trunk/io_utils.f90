@@ -8,7 +8,7 @@ use rational_mathematics, only: HermiteNormalForm, SmithNormalForm
 implicit none
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file, &
-       read_struct_enum_out, read_struct_enum_out_oldstyle   
+       read_struct_enum_out, read_struct_enum_out_oldstyle, co_ca
 CONTAINS
 
 !***************************************************************************************************
