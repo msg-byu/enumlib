@@ -6,10 +6,11 @@ use vector_matrix_utilities
 use numerical_utilities
 use enumeration_utilities ! This maps structures from real space into the group
 use enumeration_types, only: maxLabLength
+use io_utils, only: co_ca
 implicit none
 character(80) fname, title, strname, strNstring
 character(maxLabLength) :: labeling
-integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt, jAt, iSpec, nSpec, idx
+integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt, jAt, iSpec, nSpec, idx, foutput_unit
 integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, nType
 integer HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen
 integer, pointer :: gIndx(:)
@@ -20,7 +21,7 @@ character(1) bulksurf
 character(80) dummy, specAtoms 
 integer, pointer :: spin(:) ! Occupation variable of the positions
 real(dp), pointer :: x(:) ! Concentration of each component
-logical :: file_exists
+logical :: file_exists, co_ca_error
 
 open(13,file="readcheck_makestr.out")
 write(13,'(5(/),"This file echoes the input for the makestr.x program and")')
@@ -28,17 +29,23 @@ write(13,'("prints some of the computed quantities as well. It is intended to")'
 write(13,'("be useful for debugging and fixing bad input")')
 write(13,'("***************************************************")')
 
-if(iargc()/=2 .and. iargc()/=3) stop "makestr.x requires two (optional three)  arguments: &
+if(iargc()/=2 .and. (iargc()/=3 .and. iargc()/=4)) stop "makestr.x requires two (optional three or four)  arguments: &
                & the filename to read from and the number of the structure (to start and to stop at)"
 call getarg(1,dummy)
 read(dummy,'(a80)') fname
 call getarg(2,dummy)
 read(dummy,*) strNi
-if (iargc()==3) then
+if (iargc()>=3) then
   call getarg(3,dummy)
   read(dummy,*) strNf
 else
   strNf=strNi
+endif
+if (iargc()==4) then
+  call getarg(4, dummy)
+  read(dummy, *) foutput_unit
+else
+  foutput_unit = 12
 endif
 
 ! Modifications made by GLWH 03/05/2014.
@@ -87,6 +94,7 @@ end if
 !call read_nth_line_from_enumlist()
 open(11,file=fname,status='old',iostat=ioerr)
 if(ioerr/=0)then; write(*,'("Input file doesn''t exist:",a80)') trim(fname);stop;endif
+call co_ca(11, co_ca_error)
 ! Read in the title from the struct_enum.out file
 read(11,'(a80)') title; title = trim(title)
 write(13,'("Title: ",a80)') title
@@ -169,12 +177,14 @@ do istrN=strNi,strNf
    call map_enumStr_to_real_space(k,n,HNF,labeling,p,dvec,eps,sLV,aBas,spin,gIndx,x,L,diag,minkowskiReduce=.false.)
    write(strname,'("vasp.",i6.6)') strN
    write(strNstring,*) strN
-   open(12,file=strname)
-   write(12,'(a80)') trim(adjustl(title)) // " str #: " // adjustl(strNstring)
-   !GH write(12,'("scale factor")')
-   write(12,'("1.00")')
+   if (foutput_unit /= 6) then
+      open(foutput_unit, file=strname)
+   endif
+   write(foutput_unit,'(a80)') trim(adjustl(title)) // " str #: " // adjustl(strNstring)
+   !GH write(foutput_unit,'("scale factor")')
+   write(foutput_unit,'("1.00")')
    do i = 1,3
-      write(12,'(3f12.8)') sLV(:,i)
+      write(foutput_unit,'(3f12.8)') sLV(:,i)
    enddo
    call matrix_inverse(sLV,sLVinv)
    write(13,'("New inverse after reduction",/,3(3(f7.3,1x),/))') (sLVinv(i,:),i=1,3) 
@@ -188,13 +198,13 @@ do istrN=strNi,strNf
             write(13,'("Atom #: ",i2," given label #",i2," label: ",a1)') iAt, ic,labeling(gIndx(iAt):gIndx(iAt))
          endif
       enddo
-      write(12,'(i3,1x)',advance='no') ic
+      write(foutput_unit,'(i3,1x)',advance='no') ic
       write(13,'(i3," atoms of label type ",i2," found")') ic, i
    enddo
    write(13,'("Finished counting the atoms of each type")')  
    ! Write the number of spectator atoms on line 6 of the poscar
    !if (file_exists) write(12,'(100(i4,1x))',advance="no") nSpecType*n
-   write(12,'(/,"D")')
+   write(foutput_unit,'(/,"D")')
    
    ! This part lists the atomic basis vectors that we found in the triple z1, z2, z3 loops above.
    ! For vasp, UNCLE it needs to list the vectors in blocks of atoms that have the same label.
@@ -203,7 +213,7 @@ do istrN=strNi,strNf
       do iAt = 1, n*(nD+nSpec)
          if (labeling(gIndx(iAt):gIndx(iAt))==char(ilab+48)) then ! We have a match to the current
             ! label so print it
-           write(12,'(3(f12.8,1x))') aBas(:,iAt)
+           write(foutput_unit,'(3(f12.8,1x))') aBas(:,iAt)
            write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,">")') iAt, aBas(:,iAt), labeling(gIndx(iAt):gIndx(iAt))
          endif
       enddo
@@ -217,9 +227,9 @@ do istrN=strNi,strNf
 !!GH            read(14,*) shift
 !!GH            if (any(shift >= 1.0_dp)) stop "ERROR: In the 'spectators.in' file, coordinates should be direct coordinates"
 !!GH            do iAt = 1, n               
-!!GH!                write(12,'(3(f12.8,1x),"spectator type:",i2,1x," cell#",i4)')&
+!!GH!                write(foutput_unit,'(3(f12.8,1x),"spectator type:",i2,1x," cell#",i4)')&
 !!GH!                    & aBas(:,iAt) + shift, iSpec, iAt
-!!GH               write(12,'(3(f12.8,1x))') fraction(aBas(:,iAt) + shift)
+!!GH               write(foutput_unit,'(3(f12.8,1x))') fraction(aBas(:,iAt) + shift)
 !!GH               write(13,'("At. #: ",i2," position:",3(f7.3,1x),"<",a1,"&
 !!GH                    &>",3x,"Cell #",i3,2x,"Type ",i2)') iAt, aBas(:&
 !!GH                    &,iAt), labeling(gIndx(iAt):gIndx(iAt)), iAt, iSpec
@@ -231,7 +241,7 @@ do istrN=strNi,strNf
 !!GH      close(14)
 !!GH   end if
 
-   close(12);
+   close(foutput_unit);
    deallocate(spin,x,gIndx,aBas)
 enddo ! structure loop
 if (file_exists) close(14)
