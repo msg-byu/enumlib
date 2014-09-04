@@ -51,7 +51,7 @@ cd celib/trunk
 Set an environment variable to identify your fortran compiler:
 [in the bash shell, gfortran compiler]
 export F90=gfortran
-[the make file also recognizes ifort]
+[the Makefile also recognizes ifort]
 
 Then compile using the Makefile:
 make

@@ -6,6 +6,6 @@ surf              # Surface case (instead of bulk)
 2                 # ternary case
 1                 # One lattice point/unit cell
  0 0 0   0/1    # That lattice point is at the origin
-1 10              # Cell sizes to enumerate
+16 16              # Cell sizes to enumerate
 .0001             # Finite precision parameter
 part              # generate a partial listing (e.g., consider AAAB==BBBA)

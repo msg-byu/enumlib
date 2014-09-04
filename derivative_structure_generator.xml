@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
-    <group name="stuct_enum_tests" purpose="testing" staging="./testruns/">
+    <group name="stuct_enum_tests" purpose="htesting" staging="./testruns/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="001, 002, 003, 004, 005, 006" timed="true">
 	<input folder="./tests" file="struct_enum.in.{}" rename="struct_enum.in" />

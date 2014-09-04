@@ -25,6 +25,7 @@ type :: tree
    !!<member name="loc"> Location in the tree. k components, each component the branch number</member>
    !!<member name="branches"> Number of branches at each layer in the tree (k-1 components; last
    !!layer not needed) </member>
+   !!<member name="done"> The entire tree has been traversed </member>
    integer, pointer :: colors(:) => null()
    integer          :: k 
    integer          :: n 
@@ -32,6 +33,7 @@ type :: tree
    integer, pointer :: Gsize(:) => null()
    integer, pointer :: loc(:) => null()
    integer, pointer :: branches(:) => null()
+   logical          :: done = .false.
 contains
    procedure, public :: init => initializeTree
    procedure, public :: coloring => generateColoringFromLocation 
@@ -55,6 +57,7 @@ endtype permList
 CONTAINS
 !!<summary>Enumerate symmetrically-distinct labelings using the "surjective resolution" approach
 !!(enum4).</summary>
+!!<parameter name="self" regular="true"></parameter>
 !!<parameter name="colors" regular="true">A list of the numbers of each color in the enumeration</parameter>
 !!<parameter name="generators" regular="true">Symmetry operators (permutations) that generate the group (but may
 !!contain the whole group)</parameter>
@@ -83,13 +86,16 @@ allocate(labeling(self%n),rlabeling(self%n))
 call self%increment_location()
 cuq = 0
 
-do while (any(self%loc /= -1))
+!do while (any(self%loc(self%k-1)<self%branches))
+do while (.not. self%done)
    call self%coloring(labeling) ! Copy the current labeling (the coloring for current location in the tree)
    ! Apply the group operations to this labeling. If the index of the rotated labeling is less
    ! than the index of the unrotated labeling, then it has already been hit in the list. It's a
    ! symmetrically-equivalent duplicate shouldn't be included in the list.
    dup = .false.
-!   write(*,'("<< loc >>  :: ",10(i2,1x))') self%loc
+!   write(*,'("<< loc >> ",10(i5,1x))') self%loc
+!   write(*,'(" || depth || ",i5)') self%depth()
+   self%Gsize(self%depth()+1) = 0
    groupCheck: do ig = 1, self%Gsize(self%depth())
       ! Use the ig-th permutation to rearrarange "labeling" (i.e., the permutation is a vector subscript)
       rlabeling = labeling(self%G%layer(self%depth())%perms(ig,:))
@@ -113,6 +119,7 @@ do while (any(self%loc /= -1))
    if (.not. dup) then ! if the labeling is a complete one, it is a survivor (unique)
       if (self%depth() == self%k - 1) then ! Labeling is complete
          cuq = cuq + 1
+!         print*,"found survivor",cuq,self%loc
          if (cuq > size(tempPerms1,1)) then ! Need more storage, so expand the survivor list
             allocate(tempPerms2(cuq*2,self%k))
             tempPerms2(:size(tempPerms1,1),:self%k) = tempPerms1
@@ -123,10 +130,10 @@ do while (any(self%loc /= -1))
       call self%increment_location()
    endif
 enddo
-
 ! Allocate uqperms to the actual number of survivors
-allocate(uqperms(cuq,self%k))
-uqperms = tempPerms1(1:cuq,:)
+allocate(uqperms(cuq,self%k-1))
+uqperms = tempPerms1(1:cuq,:self%k-1)
+
 endsubroutine enumerate_unique_permutations
 
 
@@ -169,8 +176,8 @@ if (present(makeG)) then
 else
    allocate(self%G%layer(1)%perms(size(generators,1),self%n))
 endif
-self%Gsize(1) = size(self%G%layer(1)%perms,1)
-self%Gsize(2:self%k) = 0
+self%Gsize(3:self%k) = 0
+self%Gsize(1:2) = size(self%G%layer(1)%perms,1)
 endsubroutine initializeTree
 
 !!<summary>Generate the coloring associated with the current location in the tree</summary>
@@ -244,11 +251,11 @@ if (any(configList==-1)) stop "Error in integer2coloring: -1's remaining in conf
 integer2coloring = configList
 endfunction integer2coloring
 
-!!<summary>Return the depth of the current location in the tree. Depth is indexed from 0 to k-1.</summary>
+!!<summary>Return the depth of the current location in the tree. Depth is indexed from 1 to k.</summary>
 function depth(self)
 integer     :: depth
 class(tree) :: self
-depth = minloc(self%loc,1,self%loc==-1)-1
+depth = minloc(self%loc,1,self%loc==-1)-1 ! Subtract 1 because the depth is 1 less that location of first -1
 endfunction depth
 
 !!<summary>Increment the location in tree. Either move across branches at the same depth or move up
@@ -266,18 +273,20 @@ if (d < self%k - 1) then ! we can still go down in the tree
    allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n)) ! Set next stabilizer to be as big as previous
 else ! We are at the bottom of the tree (2nd lowest layer, but lowest always has just one coloring)
    self%loc(d) = self%loc(d) + 1
-   self%Gsize(d+1) = 0 ! Reset the number of stabilizer elements for next level down
+!GLWH> Don't need to reset this stabilizer because we are on the lowest layer?
+!   self%Gsize(d+1) = 0 ! Reset the number of stabilizer elements for next level down
    do while (self%loc(d) >= self%branches(d))! If at the end of branches on this layer, move
       d = d - 1                            ! up until we can go down again
+      if (d < 1) then
+         self%done = .true.
+         exit ! All done with the tree
+      endif
       deallocate(self%G%layer(d+1)%perms) ! reset the stabilizer for this depth
       self%Gsize(d+1) = 0
       self%loc(d+1) = -1
-      if (d < 1) then
-         exit ! All done with the tree
-      endif
       self%loc(d) = self%loc(d) + 1
    enddo
-   allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n))
+   if (d > 0) allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n))
 endif
 endsubroutine increment_location
 
@@ -290,6 +299,7 @@ integer :: d, nSg
 d = self%depth()
 self%loc(d) = self%loc(d) + 1 ! Move one branch to the right
 self%Gsize(d+1) = 0 ! Reset the counter for the number of group ops in the stabilizer
+!GLWH Not sure the next if block really does anything. Rethink this when the rest is working
 if (associated(self%G%layer(d+1)%perms)) then
    deallocate(self%G%layer(d+1)%perms) ! Reset the stabilizer one level below here
    nSg = size(self%G%layer(d)%perms,1) ! How many stabilizer elements at this level? Use that at next (upper limit)
@@ -298,10 +308,11 @@ endif
 do while (self%loc(d) >= self%branches(d)) ! We are at the end of the branches at this level so go up
    d = d - 1
    self%loc(d+1) = -1
-   deallocate(self%G%layer(d+1)%perms)
    if (d < 1) then ! All done with the tree, exit loop
+      self%done = .true.
       exit 
    endif
+   deallocate(self%G%layer(d+1)%perms)
    self%loc(d) = self%loc(d) + 1
    self%Gsize(d+1) = 0 ! Reset the counter for the stabilizer ops
    allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n))
@@ -312,9 +323,10 @@ subroutine listGroup(self)
 class(tree) :: self
 integer :: i
 
-write(*,'("Group size",2(i4,1x))') shape(self%G%layer(1)%perms)
+write(*,'("Group size: ",2(i4,1x))') shape(self%G%layer(1)%perms)
 do i = 1, size(self%G%layer(1)%perms,1)
-   write(*,'(i3,1x,10(i2,1x))') i, self%G%layer(1)%perms(i,:)
+   write(*,'(i3,1x,100(i2,1x))') i, self%G%layer(1)%perms(i,:)
 enddo
+
 endsubroutine listGroup
 END MODULE tree_class
