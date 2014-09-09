@@ -3,7 +3,7 @@
   <decorates name="tree_class.enumerate_unique_permutations">
     <group name="enum4_tests" purpose="testing" staging="./unittests/">
       <test identifier="enum4fortran" description="Test the fortran translation of enum4 against python enum4" timed="true"
-	    cases="120_5_5a, 120_5_5b, Z10_Z10_5_5_10, 1110, 576_9"> 
+	    cases="120_5_5a, 120_5_5b, Z10_Z10_5_5_10, 1110, 576_9, 228_8, 216_12, 1152_12, 256_16, 16_8, 64_8, 360_6, 20_10, 50_10, 120_10, 32_16, 1024_16, 441_20, 40_20, 200_20, 2500_20"> 
 	<output identifier="enum4.out" folder="./tests" file="enum4.out.{}"
 		template="integer.xml" />
 	<target name="uqperms" compareto="enum4.out" varfile="enum4.out" when="each" />
