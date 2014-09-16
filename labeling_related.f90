@@ -6,14 +6,45 @@ use vector_matrix_utilities
 use numerical_utilities
 use rational_mathematics, only: gcd
 use combinatorics
+use tree_class
 implicit none
 private
 public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
         generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
-        write_labelings, generate_disjoint_permutation_labelings
+        write_labelings, generate_permutation_labelings_new
 CONTAINS
+
+!***************************************************************************************************
+! This subroutine uses the "recursively stabilized" enumeration algorithm (enum4) to enumerate the
+! number of symmetrically-distinct colors of a lattice for a given symmetry group. 
+!
+! 
+! GLWH Fall 2014
+SUBROUTINE generate_permutation_labelings_new(n,nD,perms,colors,fixed_cells)
+integer, intent(in)          :: n        ! Index of the superlattice (volume factor)
+integer, intent(in)          :: nD       ! Number of sites in the parent lattice (parent lattice is an nD-lattice)
+integer, intent(in), pointer :: perms(:,:)! list of translation and rotation permutations
+integer, intent(in)          :: colors(:) ! concentration; the numerator of each rational number that is the
+                                          ! concentration for each label
+logical, intent(in)          :: fixed_cells ! if this is true, then superperiodic cells are not removed from the list
+class(tree), pointer         :: t ! a tree structure to use for the enumeration
+integer, pointer, dimension(:,:):: labelings ! on output contains the symmetrically-distinct labelings
+integer i
+write(*,'("n,nd,colors  ",i2,1x,i1,1x,20(i2,1x))')n,nd,colors
+write(*,'("shape(perms)",2(i4,1x))') shape(perms)
+do i = 1,size(perms,1)
+   write(*,'("perm #",i3," :",20(i2,1x))') i,perms(i,:)
+enddo
+allocate(t)
+call t%enumerate_unique_permutations(colors,perms,.false.,labelings)
+write(*,'("shape(labelings) ",2(i4))') shape(labelings)
+do i = 1, size(labelings,1)
+   write(*,'("labeling #:",i3," <>",20(i5,1x))') i,labelings(i,:)
+enddo
+
+ENDSUBROUTINE generate_permutation_labelings_new
 
 !***************************************************************************************************
 !  This subroutine is conceptually the same as generate_unique_labelings. That routine generates
@@ -129,10 +160,10 @@ do while (flag) ! Loop over digits (place holders) in the labeling
 !             if(.not. is_valid_multiplicity(a(perm(q,:)),iConc)) cycle
              call generate_index_from_labeling(a(perm(q,:)),iConc,idx) ! permute the labeling then get new index
              if (.not. fixed_cells) then
-                if (idx==idxOrig .and. q <= n) then                              ! This will happen if the coloring is superperiodic
-                   degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1           ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
-                   lab(idx)='N'                                                  ! "translation" permutation and not a rotation permutation (they're ordered in the
-                end if                                                           ! list...and there are n. The first is the identity so skip that one.)
+                if (idx==idxOrig .and. q <= n) then                      ! This will happen if the coloring is superperiodic
+                   degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1   ! (i.e., non-primitive superstructure). The q=<n condition makes sure we are considering a
+                   lab(idx)='N'                                          ! "translation" permutation and not a rotation permutation (they're ordered in the
+                end if                                                   ! list...and there are n. The first is the identity so skip that one.)
              end if
              ! This is a failsafe and should never trigger if the algorithm is properly implemented
              if (idx > nL) then
@@ -333,13 +364,12 @@ write(dummy,'(I3)') n*nAllD
 
 struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
 do il = 1, nl ! Loop over the unique labelings
-!   labIndx = vsL(il)-1 ! Get the base-10 index of the next unique labeling from the vector subscript array
    ! Now convert the base-10 number (labIndx) to the correct labeling
-!   print *, labIndx, "CHECK THIS NUMBER-----------------------------------------------------------------------------------------------"
    if(conc_check) then
       labIndx = vsL(il)
       call generate_labeling_from_index(labIndx,concVect,labeling)
    else
+      ! Get the base-10 index of the next unique labeling from the vector subscript array
       labIndx = vsL(il)-1
       do ilab=1,n*nD
         quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
