@@ -1,0 +1,5 @@
+<str>
+# This is a test input for the fixed cell enumeration functionality of multienum.x
+3 0 0                    # First lattice vector 
+1.5 2.59807621135 0   # Second lattice vector
+0 0 4.89897948557   # Third lattice vector
