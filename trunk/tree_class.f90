@@ -41,7 +41,7 @@ contains
    procedure, public :: depth 
    procedure, public :: increment_location
    procedure, public :: next_branch
-   procedure, public :: uniq => enumerate_unique_permutations
+   procedure, public :: enumerate_unique_permutations
    procedure, public :: listGroup
 endtype tree
 
@@ -55,7 +55,7 @@ endtype permList
 
 
 CONTAINS
-!!<summary>Enumerate symmetrically-distinct labelings using the "surjective resolution" approach
+!!<summary>Enumerate symmetrically-distinct labelings using the "recursive stabilizer" approach
 !!(enum4).</summary>
 !!<parameter name="self" regular="true"></parameter>
 !!<parameter name="colors" regular="true">A list of the numbers of each color in the enumeration</parameter>
@@ -85,7 +85,6 @@ allocate(tempPerms1(100,self%k)) ! Start with 100 possible survivors (doubles ea
 allocate(labeling(self%n),rlabeling(self%n))
 call self%increment_location()
 cuq = 0
-
 !do while (any(self%loc(self%k-1)<self%branches))
 do while (.not. self%done)
    call self%coloring(labeling) ! Copy the current labeling (the coloring for current location in the tree)
@@ -133,7 +132,6 @@ enddo
 ! Allocate uqperms to the actual number of survivors
 allocate(uqperms(cuq,self%k-1))
 uqperms = tempPerms1(1:cuq,:self%k-1)
-
 endsubroutine enumerate_unique_permutations
 
 
