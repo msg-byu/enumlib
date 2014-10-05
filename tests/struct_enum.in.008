@@ -1,0 +1,13 @@
+hcp binary case
+bulk       # 3D case (instead of surface)
+1 0 0                    # First lattice vector 
+.5 0.866025403784439 0   # Second lattice vector
+0 0 1.6329931618554521   # Third lattice vector
+2             # binary case
+2             # Two lattice points/unit cell
+ 0 0 0  0/1   # first lattice point is at the origin, can take both types of atoms
+.5 0.28867513459  0.81649658093 0/1 # second points
+12 12        # Enumerate 8-atom cells only (quadrupled cells)
+.0001      # Finite precision parameter
+full       # Generate a complete listing (e.g., don't consider AAAB==BBBA)
+
