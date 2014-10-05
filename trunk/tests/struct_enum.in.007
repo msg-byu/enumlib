@@ -1,0 +1,12 @@
+BCC ternary
+bulk       # Bulk case (i.e., 3D not 2D)
+-.5 .5 .5    # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used
+.5 -.5 .5    # Second lattice vector
+.5 .5 -.5    # Third lattice vector
+3          # ternary case
+1          # One lattice point/unit cell
+ 0 0 0 0/1/2 # That lattice point is at the origin
+16 16       # Enumerate all cells up to 10-atom cells 
+.0001      # Finite precision parameter
+part       # Label exchanges are equal (AACB==BBAC) and don't include binary labelings too
+
