@@ -294,7 +294,11 @@ call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 
 call matrix_inverse(pLVtemp,parLattTest,err)
 if(err) stop "Problem inverting parent lattice basis"
-if (nD/=size(aTypTemp))then;
+if (nD<size(aTypTemp))then;
+  write(*,'(/,A)') "WARNING: maybe your epsilon is too small"
+  allocate(hnf(1,1,1)); HNF = 0
+  return
+else if (nD>size(aTypTemp))then;
 ! Note: we should try to find a better solution here. The problem here is that we
 ! can define a lattice with >1 dvector that can be effectively reduced to a 
 ! different lattice with only 1 dvector. If this happens, all structures
