@@ -855,6 +855,7 @@ enddo ! im
 !write (*,'(30i3)') perm
 if (any(perm==0)) then
    write(*,'(5x,"perm: ",200(i2,1x))') perm
+   write(*,'(A)') "Maybe your epsilon is too large, and so some d-vectors appear to be the same after mapping in find_labeling_from_atom_basis"
    stop "mapping failed in find_permutation_of_group_and_dset";endif
 ENDSUBROUTINE find_permutation_of_group_and_dset
 
