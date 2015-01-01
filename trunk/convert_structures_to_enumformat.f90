@@ -835,7 +835,7 @@ if (ioerr/=0) then
   print *
 endif
 nStr=iStr
-write(*,'("read_input_structures found ",i3," input structures.")') nStr
+write(*,'("read_input_structures found ",i6," input structures.")') nStr !bch increased to i6
 CE%totalstructures = nStr
 !--------------------------------------------------------------------------------
 ! End Counting structures
