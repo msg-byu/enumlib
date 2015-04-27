@@ -973,6 +973,7 @@ logical fixed_cells ! This is set to true if we are giving a list of cells from 
 integer, pointer :: iRange(:,:) ! Rows: List of the number of atoms of each type ("color vector"). Cols: sweep over concentration range.
 logical err
 integer, pointer :: hnf_degen(:), lab_degen(:)
+character(12) :: string
 
 ! Divide the dset into members that are enumerated and those that are not
 nD = count( (/(i,i=1,nDFull)/)==equivalencies)
@@ -1137,9 +1138,11 @@ do ivol = nMin, nMax
    Scnt = 0 ! Keep track of the number of structures at this size   
    do iBlock = 1, maxval(RPLindx)
       !call cpu_time(blockstart)
-      filename = "debug_temp_perms.out"
+!      filename = "debug_temp_perms.out"
+      write (string,'("debug",I3,".out")') (iBlock)
+      filename = string
 
-      call write_rotperms_list(rdRPList(iBlock),filename)
+      call write_rotperms_list(rdRPList(iBlock),filename) 
       if (conc_check) then
          do iC = 1, size(iRange,1) ! loop over each concentration in the range
             write(*,'("HNF: ",6(i2,1x))') (RDhnf(i,:,iBlock),i=1,3)
@@ -1161,7 +1164,7 @@ do ivol = nMin, nMax
    enddo! iBlock
    !call cpu_time(writetime)
    call cpu_time(tend)
-   write(*,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
+   write(14,'(i4,1x,f14.4,1x,i8,3x,i3,3x,i7,7x,f7.4,i12,i12)')ivol,tend-tstart,size(HNF,3),&
         size(uqSNF,3),size(rdHNF,3),1-size(rdHNF,3)/real(size(HNF,3)),Scnt, Tcnt
 enddo ! loop over cell sizes (ivol)
 close(14)
