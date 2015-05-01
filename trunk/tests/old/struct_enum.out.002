@@ -1,3 +1,4 @@
+ # <fortpy version="2" template="struct_enum.out.xml"></fortpy>
 2D square 
  1.0000000     0.00000000     0.00000000        # a1 parent lattice vector
 0.00000000      1.0000000     0.00000000        # a2 parent lattice vector
