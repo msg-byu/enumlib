@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+  <decorates name="enumeration_utilities.map_enumStr_to_real_space">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="original_sLV"
+	    description="Original tests of mapping structure to real space." cases="[1-100]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="map_enumStr_to_real_space_sLV.out.{}" template="float.xml"
+		identifier="sLV.out" />
+	<target name="sLV" compareto="sLV.out" />
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="spin" type="integer" modifiers="pointer"  
+	      dimensions=":" />
+      <global name="gIndx" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="x" type="real(dp)" modifiers="pointer" 
+	      dimensions=":" />
+      <assignment name="k" value="kfile">
+	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
+	       folder="../tests/enumeration_utilities" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+	<value identifier="nfile" file="map_enumStr_to_real_space_n.in"
+	       folder="../tests/enumeration_utilities" rename="n.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="map_enumStr_to_real_space_HNF.in"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="map_enumStr_to_real_space_labeling.in"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="map_enumStr_to_real_space_pLV.in"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="map_enumStr_to_real_space_eps.in"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="pBas" value="pBasfile" allocate="true">
+	<value identifier="pBasfile" file="map_enumStr_to_real_space_pBas.in"
+	       folder="../tests/enumeration_utilities" rename="pBas.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="map_enumStr_to_real_space_L.in"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="S" value="Sfile">
+	<value identifier="Sfile" file="map_enumStr_to_real_space_S.in"
+	       folder="../tests/enumeration_utilities" rename="S.in"/>
+      </assignment>
+      <assignment name="minkowskiReduce" value="minkowskiReducefile">
+	<value identifier="minkowskiReducefile"
+	       file="map_enumStr_to_real_space_minkowskiReduce.in"
+	       folder="../tests/enumeration_utilities" rename="minkowskiReduce.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.map_enumStr_to_real_space">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="original_gIndx"
+	    description="Original tests of mapping structure to real space." cases="[1-100]"
+	    timed="true">
+	<output folder="../tests" file="map_enumStr_to_real_space_gIndx.out.{}"
+		template="float.xml" identifier="gIndx.out" />
+	<target name="gIndx" compareto="gIndx.out" />
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="spin" type="integer" modifiers="pointer"  
+	      dimensions=":" />
+      <global name="gIndx" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="x" type="real(dp)" modifiers="pointer" 
+	      dimensions=":" />
+      <assignment name="k" value="kfile">
+	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
+	       folder="../tests/enumeration_utilities" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+	<value identifier="nfile" file="map_enumStr_to_real_space_n.in"
+	       folder="../tests/enumeration_utilities" rename="n.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="map_enumStr_to_real_space_HNF.in"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="map_enumStr_to_real_space_labeling.in"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="map_enumStr_to_real_space_pLV.in"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="map_enumStr_to_real_space_eps.in"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="pBas" value="pBasfile" allocate="true">
+	<value identifier="pBasfile" file="map_enumStr_to_real_space_pBas.in"
+	       folder="../tests/enumeration_utilities" rename="pBas.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="map_enumStr_to_real_space_L.in"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="S" value="Sfile">
+	<value identifier="Sfile" file="map_enumStr_to_real_space_S.in"
+	       folder="../tests/enumeration_utilities" rename="S.in"/>
+      </assignment>
+      <assignment name="minkowskiReduce" value="minkowskiReducefile">
+	<value identifier="minkowskiReducefile"
+	       file="map_enumStr_to_real_space_minkowskiReduce.in"
+	       folder="../tests/enumeration_utilities" rename="minkowskiReduce.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.map_enumStr_to_real_space">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="original_spin"
+	    description="Original tests of mapping structure to real space." cases="[1-100]"
+	    timed="true">
+	<output folder="../tests" file="map_enumStr_to_real_space_spin.out.{}"
+		template="float.xml" identifier="spin.out" />
+	<target name="spin" compareto="spin.out" />
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="spin" type="integer" modifiers="pointer"  
+	      dimensions=":" />
+      <global name="gIndx" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="x" type="real(dp)" modifiers="pointer" 
+	      dimensions=":" />
+      <assignment name="k" value="kfile">
+	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
+	       folder="../tests/enumeration_utilities" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+	<value identifier="nfile" file="map_enumStr_to_real_space_n.in"
+	       folder="../tests/enumeration_utilities" rename="n.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="map_enumStr_to_real_space_HNF.in"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="map_enumStr_to_real_space_labeling.in"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="map_enumStr_to_real_space_pLV.in"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="map_enumStr_to_real_space_eps.in"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="pBas" value="pBasfile" allocate="true">
+	<value identifier="pBasfile" file="map_enumStr_to_real_space_pBas.in"
+	       folder="../tests/enumeration_utilities" rename="pBas.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="map_enumStr_to_real_space_L.in"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="S" value="Sfile">
+	<value identifier="Sfile" file="map_enumStr_to_real_space_S.in"
+	       folder="../tests/enumeration_utilities" rename="S.in"/>
+      </assignment>
+      <assignment name="minkowskiReduce" value="minkowskiReducefile">
+	<value identifier="minkowskiReducefile"
+	       file="map_enumStr_to_real_space_minkowskiReduce.in"
+	       folder="../tests/enumeration_utilities" rename="minkowskiReduce.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.map_enumStr_to_real_space">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="original_aBas"
+	    description="Original tests of mapping structure to real space." cases="[1-100]"
+	    timed="true">
+	<output folder="../tests" file="map_enumStr_to_real_space_aBas.out.{}"
+		template="float.xml" identifier="aBas.out" />
+	<target name="aBas" compareto="aBas.out" />
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="spin" type="integer" modifiers="pointer"  
+	      dimensions=":" />
+      <global name="gIndx" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="x" type="real(dp)" modifiers="pointer" 
+	      dimensions=":" />
+      <assignment name="k" value="kfile">
+	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
+	       folder="../tests/enumeration_utilities" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+	<value identifier="nfile" file="map_enumStr_to_real_space_n.in"
+	       folder="../tests/enumeration_utilities" rename="n.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="map_enumStr_to_real_space_HNF.in"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="map_enumStr_to_real_space_labeling.in"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="map_enumStr_to_real_space_pLV.in"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="map_enumStr_to_real_space_eps.in"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="pBas" value="pBasfile" allocate="true">
+	<value identifier="pBasfile" file="map_enumStr_to_real_space_pBas.in"
+	       folder="../tests/enumeration_utilities" rename="pBas.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="map_enumStr_to_real_space_L.in"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="S" value="Sfile">
+	<value identifier="Sfile" file="map_enumStr_to_real_space_S.in"
+	       folder="../tests/enumeration_utilities" rename="S.in"/>
+      </assignment>
+      <assignment name="minkowskiReduce" value="minkowskiReducefile">
+	<value identifier="minkowskiReducefile"
+	       file="map_enumStr_to_real_space_minkowskiReduce.in"
+	       folder="../tests/enumeration_utilities" rename="minkowskiReduce.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.map_enumStr_to_real_space">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="original_x"
+	    description="Original tests of mapping structure to real space." cases="[1-100]"
+	    timed="true">
+	<output folder="../tests" file="map_enumStr_to_real_space_x.out.{}"
+		template="float.xml" identifier="x.out" />
+	<target name="x" compareto="x.out" />
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="spin" type="integer" modifiers="pointer"  
+	      dimensions=":" />
+      <global name="gIndx" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="x" type="real(dp)" modifiers="pointer" 
+	      dimensions=":" />
+      <assignment name="k" value="kfile">
+	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
+	       folder="../tests/enumeration_utilities" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+	<value identifier="nfile" file="map_enumStr_to_real_space_n.in"
+	       folder="../tests/enumeration_utilities" rename="n.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="map_enumStr_to_real_space_HNF.in"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="map_enumStr_to_real_space_labeling.in"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="map_enumStr_to_real_space_pLV.in"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="map_enumStr_to_real_space_eps.in"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="pBas" value="pBasfile" allocate="true">
+	<value identifier="pBasfile" file="map_enumStr_to_real_space_pBas.in"
+	       folder="../tests/enumeration_utilities" rename="pBas.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="map_enumStr_to_real_space_L.in"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="S" value="Sfile">
+	<value identifier="Sfile" file="map_enumStr_to_real_space_S.in"
+	       folder="../tests/enumeration_utilities" rename="S.in"/>
+      </assignment>
+      <assignment name="minkowskiReduce" value="minkowskiReducefile">
+	<value identifier="minkowskiReducefile"
+	       file="map_enumStr_to_real_space_minkowskiReduce.in"
+	       folder="../tests/enumeration_utilities" rename="minkowskiReduce.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.cartesian2direct">
+    <group name="enum_utils" purpose="testingp" staging="../unittests/">
+      <test identifier="cartesian2direct"
+	    description="Original tests of mapping structure to real space." cases="[1-100]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities" file="cartesian2direct_aBas.out.{}"
+		template="float.xml" identifier="aBas.out" />
+	<target name="aBas" compareto="aBas.out" varfile="aBas.out" when="each"/>
+      </test>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="cartesian2direct_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile" allocate="true">
+	<value identifier="aBasfile" file="cartesian2direct_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="cartesian2direct_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.read_poscar">
+    <group name="enum_utils" purpose="testing?fortpy_bug?" staging="../unittests/">
+      <test identifier="read_poscar_title"
+	    description="Original tests of mapping structure to real space." cases="[1-1000]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities" file="read_poscar_title.out.{}"
+		template="string.xml" identifier="title.out" />
+	<target name="title" compareto="title.out" varfile="title.out" when="each"/>
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aTyp" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="read_poscar_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.read_poscar">
+    <group name="enum_utils" purpose="testing?fortyp_bug?" staging="../unittests/">
+      <test identifier="read_poscar_sLV"
+	    description="Original tests of mapping structure to real space." cases="[1-1000]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities" file="read_poscar_sLV.out.{}"
+		template="float.xml" identifier="sLV.out" />
+	<target name="sLV" compareto="sLV.out" varfile="sLV.out" when="each"/>
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aTyp" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="read_poscar_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.read_poscar">
+    <group name="enum_utils" purpose="testing?fortpy_bug?" staging="../unittests/">
+      <test identifier="read_poscar_aBas"
+	    description="Original tests of mapping structure to real space." cases="[1-1000]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities" file="read_poscar_aBas.out.{}"
+		template="float.xml" identifier="aBas.out" />
+	<target name="aBas" compareto="aBas.out" varfile="aBas.out" when="each"/>
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aTyp" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="read_poscar_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.read_poscar">
+    <group name="enum_utils" purpose="testing?fortpy_bug?" staging="../unittests/">
+      <test identifier="read_poscar_aTyp"
+	    description="Original tests of mapping structure to real space." cases="[1-1000]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities" file="read_poscar_aTyp.out.{}"
+		template="float.xml" identifier="aTyp.out" />
+	<target name="aTyp" compareto="aTyp.out" varfile="aTyp.out" when="each"/>
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aTyp" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="read_poscar_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
+    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+      <test identifier="get_HNF_of_derivative_structure_aBas"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_HNF_of_derivative_structure_aBas.out.{}"
+		template="float.xml" identifier="aBas.out" />
+	<target name="aBas" compareto="aBas.out" varfile="aBas.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="HNF" type="integer" modifiers="pointer" dimensions=":,:,:" />
+      <assignment name="title" value="titlefile">
+	<value identifier="titlefile" file="get_HNF_of_derivative_structure_title.in.{}"
+	       folder="../tests/enumeration_utilities" rename="title.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_HNF_of_derivative_structure_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_HNF_of_derivative_structure_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_HNF_of_derivative_structure_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_HNF_of_derivative_structure_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_HNF_of_derivative_structure_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
+    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+      <test identifier="get_HNF_of_derivative_structure_dset"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_HNF_of_derivative_structure_dset.out.{}"
+		template="float.xml" identifier="dset.out" />
+	<target name="dset" compareto="dset.out" varfile="dset.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="HNF" type="integer" modifiers="pointer" dimensions=":,:,:" />
+      <assignment name="title" value="titlefile">
+	<value identifier="titlefile" file="get_HNF_of_derivative_structure_title.in.{}"
+	       folder="../tests/enumeration_utilities" rename="title.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_HNF_of_derivative_structure_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_HNF_of_derivative_structure_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_HNF_of_derivative_structure_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_HNF_of_derivative_structure_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_HNF_of_derivative_structure_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
+    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+      <test identifier="get_HNF_of_derivative_structure_HNF"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_HNF_of_derivative_structure_HNF.out.{}"
+		template="float.xml" identifier="HNF.out" />
+	<target name="HNF" compareto="HNF.out" varfile="HNF.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="HNF" type="integer" modifiers="pointer" dimensions=":,:,:" />
+      <assignment name="title" value="titlefile">
+	<value identifier="titlefile" file="get_HNF_of_derivative_structure_title.in.{}"
+	       folder="../tests/enumeration_utilities" rename="title.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_HNF_of_derivative_structure_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_HNF_of_derivative_structure_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_HNF_of_derivative_structure_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_HNF_of_derivative_structure_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_HNF_of_derivative_structure_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
+    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+      <test identifier="get_HNF_of_derivative_structure_SNF"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_HNF_of_derivative_structure_SNF.out.{}"
+		template="float.xml" identifier="SNF.out" />
+	<target name="SNF" compareto="SNF.out" varfile="SNF.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="HNF" type="integer" modifiers="pointer" dimensions=":,:,:" />
+      <assignment name="title" value="titlefile">
+	<value identifier="titlefile" file="get_HNF_of_derivative_structure_title.in.{}"
+	       folder="../tests/enumeration_utilities" rename="title.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_HNF_of_derivative_structure_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_HNF_of_derivative_structure_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_HNF_of_derivative_structure_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_HNF_of_derivative_structure_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_HNF_of_derivative_structure_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
+    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+      <test identifier="get_HNF_of_derivative_structure_L"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_HNF_of_derivative_structure_L.out.{}"
+		template="float.xml" identifier="L.out" />
+	<target name="L" compareto="L.out" varfile="L.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="HNF" type="integer" modifiers="pointer" dimensions=":,:,:" />
+      <assignment name="title" value="titlefile">
+	<value identifier="titlefile" file="get_HNF_of_derivative_structure_title.in.{}"
+	       folder="../tests/enumeration_utilities" rename="title.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_HNF_of_derivative_structure_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_HNF_of_derivative_structure_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_HNF_of_derivative_structure_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_HNF_of_derivative_structure_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_HNF_of_derivative_structure_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+</fortpy>
