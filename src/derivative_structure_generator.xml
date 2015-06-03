@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+  <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
+    <group name="stuct_enum_tests" purpose="htesting" staging="../unittests/">
+      <test identifier="original" description="Original enumerations tests of basic structures"
+	    cases="001, 002, 003, 004, 005, 006" timed="true">
+	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+	       rename="struct_enum.in" />
+	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
+		template="struct_enum.out.xml" identifier="struct_enum.out" />
+	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
+      <global name="dFull" type="real(dp)" modifiers="pointer" default="> null()" 
+	      dimensions=":,:" />
+      <global name="labelFull" type="integer" modifiers="pointer" 
+	      dimensions=":,:" />
+      <global name="digitFull" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="equivalencies" type="integer" modifiers="pointer" 
+	      dimensions=":" />
+      <global name="fname" type="character" kind="80" 
+	      default=" 'struct_enum.in'" />
+      <global name="cRange" type="integer" modifiers="pointer" 
+	      dimensions=":,:" />
+      <global name="LatDim" type="integer" />
+      <global name="title" type="character" kind="80" />
+      <prereq method="io_utils.read_input" 
+	      paramlist="title,LatDim,parLV,nDFull,dFull,k,equivalencies,
+			 nMin,nMax,eps,full,labelFull,digitFull,fname,
+			 cRange,conc_check" />
+      <assignment name="platTyp">
+	<conditionals>
+	  <if condition="LatDim==3" value="bulkconstant" />
+	  <elseif condition="LatDim==2" value="surfconstant" />
+	</conditionals>
+	<value identifier="bulkconstant" constant="'b'" />
+	<value identifier="surfconstant" constant="'s'" />
+      </assignment>
+    </group>
+  </decorates>
+</fortpy>

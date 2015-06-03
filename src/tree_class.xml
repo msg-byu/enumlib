@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+  <decorates name="tree_class.enumerate_unique_permutations">
+    <group name="enum4_tests" purpose="testing" staging="../unittests/">
+      <test identifier="enum4fortran"
+	    description="Test the fortran translation of enum4 against python enum4" timed="true"
+	    cases="120_5_5a, 120_5_5b, Z10_Z10_5_5_10, 1110, 576_9, 228_8, 216_12, 1152_12,
+		   256_16, 16_8, 64_8, 360_6, 20_10, 50_10, 120_10, 32_16, 1024_16, 441_20, 40_20,
+		   200_20, 2500_20, 118_44_fcc, 118_44_32_fcc, 111_22_fcc, 111_13_fcc, 111_53_fcc,
+		   111_233_fcc, 111_2222_fcc, 111_512_fcc, 651_88_fcc, 651_448_fcc, 651_646_fcc,
+		   651_4444_fcc, 114_22_sc, 118_26_sc, 118_44_sc, 1110_55_sc, 1110_433_sc,
+		   1116_88_sc, 1116_655_sc, 1116_4426_sc, 114_22_bcc, 118_44_bcc, 118_323_bcc,
+		   1116_88_bcc, 1116_358_bcc, 1116_3544_bcc, 113_33_hcp, 113_222_hcp, 116_66_hcp,
+		   116_633_hcp, 116_3333_hcp"> 
+	<output identifier="enum4.out" folder="../tests/tree_class" file="enum4.out.{}"
+		template="integer.xml" />
+	<target name="uqperms" compareto="enum4.out" varfile="enum4.out" when="each" />
+      </test>
+      <assignment name="colors" value="colorsFile" allocate="true"> 
+	<value identifier="colorsFile" folder="../tests/tree_class" file="colors.in.{}"
+	       rename="colors.in"/>
+      </assignment>
+      <assignment name="generators" value="generatorsFile"> 
+	<value identifier="generatorsFile" folder="../tests/tree_class"
+	       file="generators.in.{}" rename="generators.in"/>
+      </assignment>
+      <assignment name="makeG" value=".true."/> 
+      <assignment name="self" value="initialize">
+	<value identifier="initialize" embedded="init" />
+      </assignment>
+    </group>
+  </decorates>
+</fortpy>
