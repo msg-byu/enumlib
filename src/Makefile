@@ -6,7 +6,7 @@
 # Shell
 SHELL		= /bin/bash
 
-LBDR = ../../celib/trunk
+LBDR = ../../symlib/src
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
   ifeq (${DEBUG},false)
