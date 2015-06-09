@@ -307,7 +307,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.cartesian2direct">
-    <group name="enum_utils" purpose="testingp" staging="../unittests/">
+    <group name="enum_utils" purpose="testing" staging="../unittests/">
       <test identifier="cartesian2direct"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
