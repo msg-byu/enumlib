@@ -999,6 +999,7 @@
     </group>   
   </decorates>
 
+  <skip reason="Indirectly tested by the other input reading routines." />
   <decorates name="io_utils.co_ca">
     <group name="co_ca_tests" purpose="testingf" staging="../unittests/">
       <test identifier="co_ca" description="Tests skipping comments in files."
