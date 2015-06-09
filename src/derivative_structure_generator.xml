@@ -447,9 +447,9 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.map_dvector_permutation">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing_fortpy_bug" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-119]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="map_dvector_permutation_RP.out.{}" template="integer.xml"
 		identifier="map_dvector_permutation_RP.out" />
@@ -472,9 +472,9 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_diagonals">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-100]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="get_HNF_diagonals_diagonals.out.{}" template="integer.xml"
 		identifier="get_HNF_diagonals.out" />
@@ -490,7 +490,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_all_HNFs">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -508,7 +508,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_SNF">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -535,7 +535,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.remove_duplicate_lattices">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -572,7 +572,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_sLV_fixing_operations">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -613,7 +613,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_all_2D_HNFs">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -631,25 +631,25 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_2D_diagonals">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-50]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
-		file="get_HNF_2D_diagonals_diagonals.out.{}" template="integer.xml"
+		file="get_HNF_diagonals_2D_diagonals.out{}" template="integer.xml"
 		identifier="get_HNF_2D_diagonals.out" />
 	<target name="diagonals" compareto="get_HNF_2D_diagonals.out"
 		varfile="get_HNF_2D_diagonals.out" when="each"/>
       </test>
       <global name="diagonals" type="integer" modifiers="pointer" dimensions=":,:"/>
       <assignment name="detS" value="detSfile">
-	<value identifier="detSfile" file="get_HNF_2D_diagonals_detS.in.{}"
+	<value identifier="detSfile" file="get_HNF_2D_diagonals_detS.in{}"
 	       folder="../tests/derivative_structure_generator" rename="detS.in"/>
       </assignment>
     </group>
   </decorates>
 
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic
 					       structures. Used to test enum3 against enum4."
 	    cases="001, 002, 003, 004, 005, 006" timed="true">
