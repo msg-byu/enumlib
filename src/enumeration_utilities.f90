@@ -45,12 +45,12 @@ CONTAINS
   !!perform a minkowski reduction or not.  (inserted by tk, need it in
   !!UNCLE). Problem is that the minkowski reduction may exchange the
   !!LVs of the supercell, which causes trouble for surface-slab
-  !!reference structuresit.  </parameter>
+  !!reference structuresit.</parameter>
   SUBROUTINE map_enumStr_to_real_space(k, n, HNF, labeling, pLV, pBas, eps, sLV, aBas, spin, gIndx, x, L, S, minkowskiReduce)
     integer, intent(in) :: k 
     integer, intent(in) :: n 
     integer, intent(in) :: HNF(3,3) 
-    character(maxLabLength), intent(in) :: labeling 
+    character(500), intent(in) :: labeling 
     real(dp), intent(in) :: pLV(3,3), eps 
     real(dp), intent(in) :: pBas(:,:) 
     real(dp), intent(out) :: sLV(3,3) 

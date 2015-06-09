@@ -307,7 +307,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.cartesian2direct">
-    <group name="enum_utils" purpose="testingp" staging="../unittests/">
+    <group name="enum_utils" purpose="testing" staging="../unittests/">
       <test identifier="cartesian2direct"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -593,6 +593,700 @@
       <assignment name="eps" value="epsfile">
 	<value identifier="epsfile" file="get_HNF_of_derivative_structure_eps.in.{}"
 	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_labeling_from_atom_basis">
+    <group name="enum_utils" purpose="testing_fortpy_bug" staging="../unittests/">
+      <test identifier="find_labeling_from_atom_basis_aBas"
+	    description="Original tests of mapping structure to real space." cases="[1-129]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_labeling_from_atom_basis_aBas.out.{}"
+		template="float.xml" identifier="aBas.out" />
+	<target name="aBas" compareto="aBas.out" varfile="aBas.out" when="each"/>
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="labeling" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="find_labeling_from_atom_basis_L.in.{}"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="A" value="Afile">
+	<value identifier="Afile" file="find_labeling_from_atom_basis_A.in.{}"
+	       folder="../tests/enumeration_utilities" rename="A.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="find_labeling_from_atom_basis_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="find_labeling_from_atom_basis_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="find_labeling_from_atom_basis_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="find_labeling_from_atom_basis_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFfile">
+	<value identifier="SNFfile" file="find_labeling_from_atom_basis_SNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="SNF.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_labeling_from_atom_basis">
+    <group name="enum_utils" purpose="testing_fortpy_bug" staging="../unittests/">
+      <test identifier="find_labeling_from_atom_basis_labeling"
+	    description="Original tests of mapping structure to real space." cases="[1-129]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_labeling_from_atom_basis_labeling.out.{}"
+		template="float.xml" identifier="labeling.out" />
+	<target name="labeling" compareto="labeling.out" varfile="labeling.out" when="each"/>
+      </test>
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="labeling" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="L" value="Lfile">
+	<value identifier="Lfile" file="find_labeling_from_atom_basis_L.in.{}"
+	       folder="../tests/enumeration_utilities" rename="L.in"/>
+      </assignment>
+      <assignment name="A" value="Afile">
+	<value identifier="Afile" file="find_labeling_from_atom_basis_A.in.{}"
+	       folder="../tests/enumeration_utilities" rename="A.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="find_labeling_from_atom_basis_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="find_labeling_from_atom_basis_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="find_labeling_from_atom_basis_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="find_labeling_from_atom_basis_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFfile">
+	<value identifier="SNFfile" file="find_labeling_from_atom_basis_SNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="SNF.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_permutation_of_group_and_dset">
+    <group name="enum_utils" purpose="testing_fortpy_bug_allocatable" staging="../unittests/">
+      <test identifier="find_permutation_of_group_and_dset"
+	    description="Original tests of mapping structure to real space." cases="[1-129]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_permutation_of_group_and_dset_perm.out.{}"
+		template="integer.xml" identifier="perm.out" />
+	<target name="perm" compareto="perm.out" varfile="perm.out" when="each"/>
+      </test>
+      <assignment name="g" value="gfile" allocate="true">
+	<value identifier="gfile" file="find_permutation_of_group_and_dset_g.in.{}"
+	       folder="../tests/enumeration_utilities" rename="g.in"/>
+      </assignment>
+      <assignment name="gp" value="gpfile" allocate="true">
+	<value identifier="gpfile" file="find_permutation_of_group_and_dset_gp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="gp.in"/>
+      </assignment>
+      <assignment name="d" value="dfile" allocate="true">
+	<value identifier="dfile" file="find_permutation_of_group_and_dset_d.in.{}"
+	       folder="../tests/enumeration_utilities" rename="d.in"/>
+      </assignment>
+      <assignment name="perm" value="permfile">
+	<value identifier="permfile" file="find_permutation_of_group_and_dset_perm.in.{}"
+	       folder="../tests/enumeration_utilities" rename="perm.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_gspace_representation">
+    <group name="enum_utils" purpose="testingf_rank_3_array" staging="../unittests/">
+      <test identifier="get_gspace_representation_dset"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_gspace_representation_dset.out.{}"
+		template="integer.xml" identifier="dset.out" />
+	<target name="dset" compareto="dset.out" varfile="dset.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="rotProdLabeling" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="get_gspace_representation_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_gspace_representation_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_gspace_representation_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_gspace_representation_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_gspace_representation_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="get_gspace_representation_HNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_gspace_representation_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="get_gspace_representation_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="get_gspace_representation_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="rotProdLabeling" value="rotProdLabelingfile">
+	<value identifier="rotProdLabelingfile"
+	       file="get_gspace_representation_rotProdLabeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="rotProdLabeling.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_gspace_representation">
+    <group name="enum_utils" purpose="testingf_rank_3_array" staging="../unittests/">
+      <test identifier="get_gspace_representation_aBas"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_gspace_representation_aBas.out.{}"
+		template="integer.xml" identifier="aBas.out" />
+	<target name="aBas" compareto="aBas.out" varfile="aBas.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="rotProdLabeling" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="get_gspace_representation_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_gspace_representation_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_gspace_representation_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_gspace_representation_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_gspace_representation_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="get_gspace_representation_HNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_gspace_representation_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="get_gspace_representation_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="get_gspace_representation_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="rotProdLabeling" value="rotProdLabelingfile">
+	<value identifier="rotProdLabelingfile"
+	       file="get_gspace_representation_rotProdLabeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="rotProdLabeling.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_gspace_representation">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="get_gspace_representation_pLabel"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_gspace_representation_pLabel.out.{}"
+		template="integer.xml" identifier="pLabel.out" />
+	<target name="pLabel" compareto="pLabel.out" varfile="pLabel.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="rotProdLabeling" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="get_gspace_representation_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_gspace_representation_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_gspace_representation_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_gspace_representation_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_gspace_representation_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="get_gspace_representation_HNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_gspace_representation_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="get_gspace_representation_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="get_gspace_representation_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="rotProdLabeling" value="rotProdLabelingfile">
+	<value identifier="rotProdLabelingfile"
+	       file="get_gspace_representation_rotProdLabeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="rotProdLabeling.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.get_gspace_representation">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="get_gspace_representation_rotProdLabeling"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="get_gspace_representation_rotProdLabeling.out.{}"
+		template="integer.xml" identifier="rotProdLabeling.out" />
+	<target name="rotProdLabeling" compareto="rotProdLabeling.out"
+		varfile="rotProdLabeling.out" when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="aBas" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="rotProdLabeling" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="get_gspace_representation_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="get_gspace_representation_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="sLV" value="sLVfile">
+	<value identifier="sLVfile" file="get_gspace_representation_sLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="sLV.in"/>
+      </assignment>
+      <assignment name="aBas" value="aBasfile">
+	<value identifier="aBasfile" file="get_gspace_representation_aBas.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aBas.in"/>
+      </assignment>
+      <assignment name="aTyp" value="aTypfile">
+	<value identifier="aTypfile" file="get_gspace_representation_aTyp.in.{}"
+	       folder="../tests/enumeration_utilities" rename="aTyp.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+	<value identifier="HNFfile" file="get_gspace_representation_HNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNF.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="get_gspace_representation_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="get_gspace_representation_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="get_gspace_representation_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="rotProdLab" value="rotProdLabfile">
+	<value identifier="rotProdLabfile" file="find_equivalent_labelings_rotProdLab.in.{}"
+	       folder="../tests/enumeration_utilities" rename="rotProdLab.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_equivalent_labelings">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="find_equivalent_labelings_lab"
+	    description="Original tests of mapping structure to real space." cases="[1-129]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_labelings_lab.out.{}"
+		template="integer.xml" identifier="lab.out" />
+	<target name="lab" compareto="lab.out" varfile="lab.out" when="each"/>
+      </test>
+      <global name="lab" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="rotProdLab" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="find_equivalent_labelings_labeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="rotPerm" member = "perm" value="rotPermfile">
+	<value identifier="rotPermfile" file="find_equivalent_labelings_rotPerm.in.{}"
+	       folder="../tests/enumeration_utilities" rename="rotPerm.in"/>
+      </assignment>
+      <assignment name="lab" value="labfile">
+	<value identifier="labfile" file="find_equivalent_labelings_lab.in.{}"
+	       folder="../tests/enumeration_utilities" rename="lab.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_equivalent_labelings">
+    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+      <test identifier="find_equivalent_labelings_rotProdLab"
+	    description="Original tests of mapping structure to real space." cases="[1-129]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_rotProdLabelings_rotProdLab.out.{}"
+		template="integer.xml" identifier="rotProdLab.out" />
+	<target name="rotProdLab" compareto="rotProdLab.out" varfile="rotProdLab.out"
+		when="each"/>
+      </test>
+      <global name="lab" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="rotProdLab" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="labeling" value="labelingfile">
+	<value identifier="labelingfile" file="find_equivalent_labelings_labeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="labeling.in"/>
+      </assignment>
+      <assignment name="rotPerm" member = "perm" value="rotPermfile">
+	<value identifier="rotPermfile" file="find_equivalent_labelings_rotPerm.in.{}"
+	       folder="../tests/enumeration_utilities" rename="rotPerm.in"/>
+      </assignment>
+      <assignment name="lab" value="labfile">
+	<value identifier="labfile" file="find_equivalent_labelings_lab.in.{}"
+	       folder="../tests/enumeration_utilities" rename="lab.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_match_in_structenumout">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="find_match_in_structenumout_dset"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_dsetelings_dset.out.{}"
+		template="integer.xml" identifier="dset.out" />
+	<target name="dset" compareto="dset.out" varfile="dset.out"
+		when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="HNFin" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="find_match_in_structenumout_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="find_match_in_structenumout_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFfile">
+	<value identifier="SNFfile" file="find_match_in_structenumout_SNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="SNF.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="find_match_in_structenumout_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="find_match_in_structenumout_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="HNFin" value="HNFinfile">
+	<value identifier="HNFinfile" file="find_match_in_structenumout_HNFin.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNFin.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="find_match_in_structenumout_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="find_match_in_structenumout_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_match_in_structenumout">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="find_match_in_structenumout_pLabel"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_pLabelelings_pLabel.out.{}"
+		template="integer.xml" identifier="pLabel.out" />
+	<target name="pLabel" compareto="pLabel.out" varfile="pLabel.out"
+		when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="HNFin" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="find_match_in_structenumout_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="find_match_in_structenumout_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFfile">
+	<value identifier="SNFfile" file="find_match_in_structenumout_SNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="SNF.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="find_match_in_structenumout_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="find_match_in_structenumout_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="HNFin" value="HNFinfile">
+	<value identifier="HNFinfile" file="find_match_in_structenumout_HNFin.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNFin.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="find_match_in_structenumout_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="find_match_in_structenumout_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_match_in_structenumout">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="find_match_in_structenumout_HNFin"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_HNFinelings_HNFin.out.{}"
+		template="integer.xml" identifier="HNFin.out" />
+	<target name="HNFin" compareto="HNFin.out" varfile="HNFin.out"
+		when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="HNFin" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="find_match_in_structenumout_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="find_match_in_structenumout_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFfile">
+	<value identifier="SNFfile" file="find_match_in_structenumout_SNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="SNF.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="find_match_in_structenumout_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="find_match_in_structenumout_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="HNFin" value="HNFinfile">
+	<value identifier="HNFinfile" file="find_match_in_structenumout_HNFin.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNFin.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="find_match_in_structenumout_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="find_match_in_structenumout_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.find_match_in_structenumout">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="find_match_in_structenumout_match"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_dsetelings_match.out.{}"
+		template="integer.xml" identifier="match.out" />
+	<target name="match" compareto="match.out" varfile="match.out"
+		when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <global name="pLabel" type="integer" modifiers="pointer" dimensions=":,:" />
+      <global name="HNFin" type="integer" modifiers="pointer" dimensions=":" />
+      <assignment name="fname" value="fnamefile">
+	<value identifier="fnamefile" file="find_match_in_structenumout_fname.in.{}"
+	       folder="../tests/enumeration_utilities" rename="fname.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="find_match_in_structenumout_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFfile">
+	<value identifier="SNFfile" file="find_match_in_structenumout_SNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="SNF.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="find_match_in_structenumout_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="pLabel" value="pLabelfile">
+	<value identifier="pLabelfile" file="find_match_in_structenumout_pLabel.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLabel.in"/>
+      </assignment>
+      <assignment name="HNFin" value="HNFinfile">
+	<value identifier="HNFinfile" file="find_match_in_structenumout_HNFin.in.{}"
+	       folder="../tests/enumeration_utilities" rename="HNFin.in"/>
+      </assignment>
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="find_match_in_structenumout_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="find_match_in_structenumout_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.compare_two_gstructures">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="compare_two_gstructures_dset"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_dsetelings_dset.out.{}"
+		template="integer.xml" identifier="dset.out" />
+	<target name="dset" compareto="dset.out" varfile="dset.out"
+		when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="compare_two_gstructures_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="compare_two_gstructures_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="compare_two_gstructures_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="compare_two_gstructures_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="A_HNF" value="A_HNFfile">
+	<value identifier="A_HNFfile" file="compare_two_gstructures_A_HNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="A_HNF.in"/>
+      </assignment>
+      <assignment name="A_labeling" value="A_labelingfile">
+	<value identifier="A_labelingfile" file="compare_two_gstructures_A_labeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="A_labeling.in"/>
+      </assignment>
+      <assignment name="B_HNFlist" value="B_HNFlistfile">
+	<value identifier="B_HNFlistfile" file="compare_two_gstructures_B_HNFlist.in.{}"
+	       folder="../tests/enumeration_utilities" rename="B_HNFlist.in"/>
+      </assignment>
+      <assignment name="B_labelinglist" value="B_labelinglistfile">
+	<value identifier="B_labelinglistfile"
+	       file="compare_two_gstructures_B_labelinglist.in.{}"
+	       folder="../tests/enumeration_utilities" rename="B_labelinglist.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="enumeration_utilities.compare_two_gstructures">
+    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="compare_two_gstructures_match"
+	    description="Original tests of mapping structure to real space." cases="[]"
+	    timed="true">
+	<output folder="../tests/enumeration_utilities"
+		file="find_equivalent_matchelings_match.out.{}"
+		template="integer.xml" identifier="match.out" />
+	<target name="match" compareto="match.out" varfile="match.out"
+		when="each"/>
+      </test>
+      <global name="dset" type="real(dp)" modifiers="pointer" dimensions=":,:" />
+      <assignment name="LatDim" value="LatDimfile">
+	<value identifier="LatDimfile" file="compare_two_gstructures_LatDim.in.{}"
+	       folder="../tests/enumeration_utilities" rename="LatDim.in"/>
+      </assignment>
+      <assignment name="pLV" value="pLVfile">
+	<value identifier="pLVfile" file="compare_two_gstructures_pLV.in.{}"
+	       folder="../tests/enumeration_utilities" rename="pLV.in"/>
+      </assignment>
+      <assignment name="dset" value="dsetfile">
+	<value identifier="dsetfile" file="compare_two_gstructures_dset.in.{}"
+	       folder="../tests/enumeration_utilities" rename="dset.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+	<value identifier="epsfile" file="compare_two_gstructures_eps.in.{}"
+	       folder="../tests/enumeration_utilities" rename="eps.in"/>
+      </assignment>
+      <assignment name="A_HNF" value="A_HNFfile">
+	<value identifier="A_HNFfile" file="compare_two_gstructures_A_HNF.in.{}"
+	       folder="../tests/enumeration_utilities" rename="A_HNF.in"/>
+      </assignment>
+      <assignment name="A_labeling" value="A_labelingfile">
+	<value identifier="A_labelingfile" file="compare_two_gstructures_A_labeling.in.{}"
+	       folder="../tests/enumeration_utilities" rename="A_labeling.in"/>
+      </assignment>
+      <assignment name="B_HNFlist" value="B_HNFlistfile">
+	<value identifier="B_HNFlistfile" file="compare_two_gstructures_B_HNFlist.in.{}"
+	       folder="../tests/enumeration_utilities" rename="B_HNFlist.in"/>
+      </assignment>
+      <assignment name="B_labelinglist" value="B_labelinglistfile">
+	<value identifier="B_labelinglistfile"
+	       file="compare_two_gstructures_B_labelinglist.in.{}"
+	       folder="../tests/enumeration_utilities" rename="B_labelinglist.in"/>
       </assignment>
     </group>
   </decorates>

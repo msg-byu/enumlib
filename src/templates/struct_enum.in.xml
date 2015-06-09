@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="template" direction="input" versions="1,2">
+  <comments versions="1,2">#</comments>
+  <line id="name" type="string" values="*" versions="1,2"
+	comment="Label for identifying structure in output" />
+  <line id="lattype" choices="bulk,surf" type="string" values="1" versions="1,2"
+	comment="Whether to do a surface or bulk enumeration" />
+  <group name="lattice" versions="1,2" repeat="3"
+	 comment="Lattice vectors; for surface only y and z components are used.">
+    <line id="vector" type="float" values="3" />
+  </group>
+  <line id="colors" type="int" values="1" versions="1,2"
+	comment="The number of colors for the enumeration, binary = 2 etc." />
+  <line id="pointcount" from="points" operator="count" type="int"
+	comment="The number of points per unit cell." />
+  <group name="points" versions="1,2" repeat="*"
+	 comment="The positions of the lattice points." >
+    <line id="point" type="float, string" values="3,1" />
+  </group>
+  <line id="searchsize" type="int" values="2" versions="1,2"
+	comment="Starting and ending cell sizes for search" />
+  <line id="eps" type="float" values="1" versions="1,2"
+	comment="Tolerance for finite precision arithmetic" />
+  <line id="labels" type="string" choices="full,part" versions="1,2"
+	comment="Generate a full or partial listing" values="1" />
+</fortpy>
