@@ -14,8 +14,6 @@ use numerical_utilities
 use vector_matrix_utilities, only: determinant, matrix_inverse
 use sorting
 
-! use fortpy, only: pysave_real_2d, pysave_real_1d, pysave_real, pysave_logical
-
 implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&

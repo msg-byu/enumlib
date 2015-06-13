@@ -649,7 +649,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
-    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
+    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic
 					       structures. Used to test enum3 against enum4."
 	    cases="001, 002, 003, 004, 005, 006" timed="true">
