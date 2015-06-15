@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+
+  <decorates name="sorting.sort_permutations_list">
+    <group name="sort_tests" purpose="testing" staging="../unittests/">
+      <test identifier="sort_permutations_list" description="Sorting tests."
+	    timed="true" cases="[1-264]">
+	<output identifier="sort_permutations_list.out" folder="../tests/sorting"
+		file="sort_permutations_list_key.out.{}" 
+		template="integer" />
+	<target name="key" compareto="sort_permutations_list.out"
+		varfile="sort_permutations_list.out" when="each" />
+      </test>
+      <global name="key" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="key" value="keyfile" allocate="true">
+  	<value identifier="keyfile" file="sort_permutations_list_key.in.{}"
+  	       folder="../tests/sorting" rename="key.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="sorting.greater_than">
+    <group name="sorting_tests" purpose="testingf_too_deep" staging="../unittests/">
+      <test identifier="greater_than" description="Sorting tests."
+	    timed="true" cases="[1-999]">
+	<output identifier="greater_than.out" folder="../tests/sorting"
+		file="greater_than.out.{}" 
+		template="string.xml" />
+	<target name="[default]" compareto="greater_than.out" varfile="greater_than.out"
+		when="each" />
+      </test>
+      <assignment name="vecA" value="vecAfile" allocate="true">
+  	<value identifier="vecAfile" file="greater_than_vecA.in.{}"
+  	       folder="../tests/sorting" rename="vecA.in"/>
+      </assignment>
+      <assignment name="vecB" value="vecBfile" allocate="true">
+  	<value identifier="vecBfile" file="greater_than_vecB.in.{}"
+  	       folder="../tests/sorting" rename="vecB.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="sorting.heapsort_records_int">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="heapsort_records_int_key" description="Sorting tests."
+	    timed="true" cases="[]">
+	<output identifier="heapsort_records_int_key.out" folder="../tests/sorting"
+		file="heapsort_records_int_key.out.{}" 
+		template="integer" />
+	<target name="key" compareto="heapsort_records_int_key.out"
+		varfile="heapsort_records_int_key.out" when="each" />
+      </test>
+      <global name="list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="key" value="keyfile" allocate="true">
+  	<value identifier="keyfile" file="heapsort_records_int_key.in.{}"
+  	       folder="../tests/sorting" rename="key.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="sorting.heapsort_records_int">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="heapsort_records_int_list" description="Sorting tests."
+	    timed="true" cases="[]">
+	<output identifier="heapsort_records_int_list.out" folder="../tests/sorting"
+		file="heapsort_records_int_list.out.{}" 
+		template="integer" />
+	<target name="key" compareto="heapsort_records_int_list.out"
+		varfile="heapsort_records_int_list.out" when="each" />
+      </test>
+      <global name="list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="key" value="keyfile" allocate="true">
+  	<value identifier="keyfile" file="heapsort_records_int_key.in.{}"
+  	       folder="../tests/sorting" rename="key.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="sorting.heapsort_records_dp">
+    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="heapsort_records_dp_key" description="Sorting tests."
+	    timed="true" cases="[]">
+	<output identifier="heapsort_records_dp_key.out" folder="../tests/sorting"
+		file="heapsort_records_dp_key.out.{}" 
+		template="integer" />
+	<target name="key" compareto="heapsort_records_dp_key.out"
+		varfile="heapsort_records_dp_key.out" when="each" />
+      </test>
+      <global name="list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="key" value="keyfile" allocate="true">
+  	<value identifier="keyfile" file="heapsort_records_dp_key.in.{}"
+  	       folder="../tests/sorting" rename="key.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="sorting.heapsort_records_dp">
+    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="heapsort_records_dp_list" description="Sorting tests."
+	    timed="true" cases="[]">
+	<output identifier="heapsort_records_dp_list.out" folder="../tests/sorting"
+		file="heapsort_records_dp_list.out.{}" 
+		template="integer" />
+	<target name="key" compareto="heapsort_records_dp_list.out"
+		varfile="heapsort_records_dp_list.out" when="each" />
+      </test>
+      <global name="list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="key" value="keyfile" allocate="true">
+  	<value identifier="keyfile" file="heapsort_records_dp_key.in.{}"
+  	       folder="../tests/sorting" rename="key.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+</fortpy>

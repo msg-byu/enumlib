@@ -1,0 +1,1056 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+
+  <decorates name="labeling_related.generate_permutation_labelings_new">
+  <skip reason="This routine is not finished or used yet"/>
+    <group name="labeling tests" purpose="testing_not_finished" staging="../unittests/">
+      <test identifier="original" description="New permutation routine tests."
+  	    timed="true" cases="[]">
+  	<output identifier="" folder="../tests/labeling_related" file=""
+  		template="" />
+  	<target name="[default]" compareto="" varfile="" when="each" />
+      </test>
+      <global name="perms" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file=""
+  	       folder="../tests/labeling_related" rename=""/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file=""
+  	       folder="../tests/labeling_related" rename=""/>
+      </assignment>
+      <assignment name="perm" value="permfile">
+  	<value identifier="permfile" file=""
+  	       folder="../tests/labeling_related" rename=""/>
+      </assignment>
+      <assignment name="colors" value="colorsfile">
+  	<value identifier="colorsfile" file=""
+  	       folder="../tests/labeling_related" rename=""/>
+      </assignment>
+      <assignment name="fixed_cells" value="fixed_cellsfile">
+  	<value identifier="fixed_cellsfile" file=""
+  	       folder="../tests/labeling_related" rename=""/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_permutation_labelings">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testing_not_used" staging="../unittests/">
+      <test identifier="generate_permutation_labelings_lab"
+  	    description="Finds all possible labels at fixed concentration." timed="true"
+  	    cases="[]">
+  	<output identifier="generate_permutation_labelings_lab.out"
+  		folder="../tests/labeling_related" file="nchoosek.out" template="string.xml" />
+  	<target name="lab" compareto="generate_permutation_labelings_lab.out"
+  		varfile="generate_permutation_labelings_lab.out" when="each" />
+      </test>
+      <global name="lab" type="character" modifiers="pointer" dimensions=":"/>
+      <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="generate_permutation_labelings_k.in{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="generate_permutation_labelings_n.in{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="generate_permutation_labelings_nD.in{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="perm" value="permfile">
+  	<value identifier="permfile" file="generate_permutation_labelings_perm.in{}"
+  	       folder="../tests/labeling_related" rename="perm.in"/>
+      </assignment>
+      <assignment name="iConc" value="iConcfile">
+  	<value identifier="iConcfile" file="generate_permutation_labelings_iConc.in{}"
+  	       folder="../tests/labeling_related" rename="iConc.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile">
+  	<value identifier="parLabelfile" file="generate_permutation_labelings_parLabel.in{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile">
+  	<value identifier="parDigitfile" file="generate_permutation_labelings_parDigit.in{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+      <assignment name="fixed_cells" value="fixed_cellsfile">
+  	<value identifier="fixed_cellsfile"
+  	       file="generate_permutation_labelings_fixed_cells.in{}"
+  	       folder="../tests/labeling_related" rename="fixed_cells.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_permutation_labelings">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testing_not_used" staging="../unittests/">
+      <test identifier="generate_permutation_labelings_degeneracy_list"
+  	    description="Finds all possible labels at fixed concentration." timed="true"
+  	    cases="[]">
+  	<output identifier="generate_permutation_labelings_degeneracy_list.out"
+  		folder="../tests/labeling_related" file="nchoosek.out" template="string.xml" />
+  	<target name="degeneracy_list"
+  		compareto="generate_permutation_labelings_degeneracy_list.out"
+  		varfile="generate_permutation_labelings_degeneracy_list.out" when="each" />
+      </test>
+      <global name="lab" type="character" modifiers="pointer" dimensions=":"/>
+      <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="generate_permutation_labelings_k.in{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="generate_permutation_labelings_n.in{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="generate_permutation_labelings_nD.in{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="perm" value="permfile">
+  	<value identifier="permfile" file="generate_permutation_labelings_perm.in{}"
+  	       folder="../tests/labeling_related" rename="perm.in"/>
+      </assignment>
+      <assignment name="iConc" value="iConcfile">
+  	<value identifier="iConcfile" file="generate_permutation_labelings_iConc.in{}"
+  	       folder="../tests/labeling_related" rename="iConc.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile">
+  	<value identifier="parLabelfile" file="generate_permutation_labelings_parLabel.in{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile">
+  	<value identifier="parDigitfile" file="generate_permutation_labelings_parDigit.in{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+      <assignment name="fixed_cells" value="fixed_cellsfile">
+  	<value identifier="fixed_cellsfile"
+  	       file="generate_permutation_labelings_fixed_cells.in{}"
+  	       folder="../tests/labeling_related" rename="fixed_cells.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.is_valid_multiplicity">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testing_too_deep" staging="../unittests/">
+      <test identifier="is_valid_multiplicity" description="" timed="true" cases="[]">
+  	<output identifier="is_valid_multiplicity.out" folder="../tests/labeling_related"
+  		file="is_valid_multiplicity.out.{}" template="string.xml" />
+  	<target name="[default]" compareto="is_valid_multiplicity.out"
+  		varfile="is_valid_multiplicity.out" when="each" />
+      </test>
+      <assignment name="labeling" value="labelingfile" allocate="true">
+  	<value identifier="labelingfile" file="is_valid_multiplicity_labeling.in{}"
+  	       folder="../tests/labeling_related" rename="labeling.in"/>
+      </assignment>
+      <assignment name="concList" value="concListfile" allocate="true">
+  	<value identifier="concListfile" file="is_valid_multiplicity_concList.in{}"
+  	       folder="../tests/concList_related" rename="concList.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.setup_mixed_radix_multiplier">
+    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+      <test identifier="setup_mixed_radix_multiplier_label"
+	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
+  	<output identifier="setup_mixed_radix_multiplier_label.out"
+		folder="../tests/labeling_related"
+		file="setup_mixed_radix_multiplier_label.out.{}" template="integer.xml" />
+  	<target name="label" compareto="setup_mixed_radix_multiplier_label.out"
+		varfile="setup_mixed_radix_multiplier_label.out" when="each" />
+      </test>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="multiplier" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="setup_mixed_radix_multiplier_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="setup_mixed_radix_multiplier_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="parLabelfile" file="setup_mixed_radix_multiplier_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="setup_mixed_radix_multiplier_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.setup_mixed_radix_multiplier">
+    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+      <test identifier="setup_mixed_radix_multiplier_digit"
+	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
+  	<output identifier="setup_mixed_radix_multiplier_digit.out"
+		folder="../tests/labeling_related"
+		file="setup_mixed_radix_multiplier_digit.out.{}" template="integer.xml" />
+  	<target name="digit" compareto="setup_mixed_radix_multiplier_digit.out"
+		varfile="setup_mixed_radix_multiplier_digit.out" when="each" />
+      </test>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="multiplier" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="setup_mixed_radix_multiplier_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="setup_mixed_radix_multiplier_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="parLabelfile" file="setup_mixed_radix_multiplier_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="setup_mixed_radix_multiplier_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.setup_mixed_radix_multiplier">
+    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+      <test identifier="setup_mixed_radix_multiplier_multiplier"
+	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
+  	<output identifier="setup_mixed_radix_multiplier_multiplier.out"
+		folder="../tests/labeling_related"
+		file="setup_mixed_radix_multiplier_multiplier.out.{}" template="integer.xml" />
+  	<target name="multiplier" compareto="setup_mixed_radix_multiplier_multiplier.out"
+		varfile="setup_mixed_radix_multiplier_multiplier.out" when="each" />
+      </test>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="multiplier" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="setup_mixed_radix_multiplier_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="setup_mixed_radix_multiplier_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="parLabelfile" file="setup_mixed_radix_multiplier_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="setup_mixed_radix_multiplier_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.write_labelings">
+    <group name="label_tests" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="write_labelings_Tcnt"
+  	    description="Get info for writing out labelings." timed="true" cases="[]">
+  	<output identifier="write_labelings_Tcnt.out" folder="../tests/labeling_related"
+  		file="write_labelings_Tcnt.out.{}" template="integer.xml" />
+  	<target name="Tcnt" compareto="write_labelings_Tcnt.out"
+  		varfile="write_labelings_Tcnt.out" when="each" />
+      </test>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="write_labelings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="write_labelings_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="write_labelings_nD.in.{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="paraLabelfile" file="write_labelings_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="write_labelings_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+      <assignment name="HNFi" value="HNFifile">
+  	<value identifier="HNFifile" file="write_labelings_HNFi.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFi.in"/>
+      </assignment>
+      <assignment name="HNFlist" value="HNFlistfile" allocate="true">
+  	<value identifier="HNFlistfile" file="write_labelings_HNFlist.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFlist.in"/>
+      </assignment>
+      <assignment name="SNFlist" value="SNFlistfile" allocate="true">
+  	<value identifier="SNFlistfile" file="write_labelings_SNFlist.in.{}"
+  	       folder="../tests/labeling_related" rename="SNFlist.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile" allocate="true">
+  	<value identifier="Lfile" file="write_labelings_L.in.{}"
+  	       folder="../tests/labeling_related" rename="L.in"/>
+      </assignment>
+      <assignment name="fixOp" value="fixOpfile" allocate="true">
+  	<value identifier="fixOpfile" file="write_labelings_fixOp.in.{}"
+  	       folder="../tests/labeling_related" rename="fixOp.in"/>
+      </assignment>
+      <assignment name="Tcnt" value="Tcntfile">
+  	<value identifier="Tcntfile" file="write_labelings_Tcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Tcnt.in"/>
+      </assignment>
+      <assignment name="Scnt" value="Scntfile">
+  	<value identifier="Scntfile" file="write_labelings_Scnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Scnt.in"/>
+      </assignment>
+      <assignment name="Hcnt" value="Hcntfile">
+  	<value identifier="Hcntfile" file="write_labelings_Hcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Hcnt.in"/>
+      </assignment>
+      <assignment name="permIndx" value="permIndxfile" allocate="true">
+  	<value identifier="permIndxfile" file="write_labelings_permIndx.in.{}"
+  	       folder="../tests/labeling_related" rename="permIndx.in"/>
+      </assignment>
+      <assignment name="lm" value="lmfile" allocate="true">
+  	<value identifier="lmfile" file="write_labelings_lm.in.{}"
+  	       folder="../tests/labeling_related" rename="lm.in"/>
+      </assignment>
+      <assignment name="equivalencies" value="equivalenciesfile" allocate="true">
+  	<value identifier="equivalenciesfile" file="write_labelings_equivalencies.in.{}"
+  	       folder="../tests/labeling_related" rename="equivalencies.in"/>
+      </assignment>
+      <assignment name="hnf_degen" value="hnf_degenfile" allocate="true">
+  	<value identifier="hnf_degenfile" file="write_labelings_hnf_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="hnf_degen.in"/>
+      </assignment>
+      <assignment name="lab_degen" value="lab_degenfile" allocate="true">
+  	<value identifier="lab_degenfile" file="write_labelings_lab_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="lab_degen.in"/>
+      </assignment>
+      <assignment name="concVect" value="concVectfile" allocate="true">
+  	<value identifier="concVectfile" file="write_labelings_concVect.in.{}"
+  	       folder="../tests/labeling_related" rename="concVect.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.write_labelings">
+    <group name="label_tests" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="write_labelings_Scnt"
+  	    description="Get info for writing out labelings." timed="true" cases="[]">
+  	<output identifier="write_labelings_Scnt.out" folder="../tests/labeling_related"
+  		file="write_labelings_Scnt.out.{}" template="integer.xml" />
+  	<target name="Scnt" compareto="write_labelings_Scnt.out"
+  		varfile="write_labelings_Scnt.out" when="each" />
+      </test>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="write_labelings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="write_labelings_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="write_labelings_nD.in.{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="paraLabelfile" file="write_labelings_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="write_labelings_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+      <assignment name="HNFi" value="HNFifile">
+  	<value identifier="HNFifile" file="write_labelings_HNFi.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFi.in"/>
+      </assignment>
+      <assignment name="HNFlist" value="HNFlistfile" allocate="true">
+  	<value identifier="HNFlistfile" file="write_labelings_HNFlist.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFlist.in"/>
+      </assignment>
+      <assignment name="SNFlist" value="SNFlistfile" allocate="true">
+  	<value identifier="SNFlistfile" file="write_labelings_SNFlist.in.{}"
+  	       folder="../tests/labeling_related" rename="SNFlist.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile" allocate="true">
+  	<value identifier="Lfile" file="write_labelings_L.in.{}"
+  	       folder="../tests/labeling_related" rename="L.in"/>
+      </assignment>
+      <assignment name="fixOp" value="fixOpfile" allocate="true">
+  	<value identifier="fixOpfile" file="write_labelings_fixOp.in.{}"
+  	       folder="../tests/labeling_related" rename="fixOp.in"/>
+      </assignment>
+      <assignment name="Tcnt" value="Tcntfile">
+  	<value identifier="Tcntfile" file="write_labelings_Tcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Tcnt.in"/>
+      </assignment>
+      <assignment name="Scnt" value="Scntfile">
+  	<value identifier="Scntfile" file="write_labelings_Scnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Scnt.in"/>
+      </assignment>
+      <assignment name="Hcnt" value="Hcntfile">
+  	<value identifier="Hcntfile" file="write_labelings_Hcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Hcnt.in"/>
+      </assignment>
+      <assignment name="permIndx" value="permIndxfile" allocate="true">
+  	<value identifier="permIndxfile" file="write_labelings_permIndx.in.{}"
+  	       folder="../tests/labeling_related" rename="permIndx.in"/>
+      </assignment>
+      <assignment name="lm" value="lmfile" allocate="true">
+  	<value identifier="lmfile" file="write_labelings_lm.in.{}"
+  	       folder="../tests/labeling_related" rename="lm.in"/>
+      </assignment>
+      <assignment name="equivalencies" value="equivalenciesfile" allocate="true">
+  	<value identifier="equivalenciesfile" file="write_labelings_equivalencies.in.{}"
+  	       folder="../tests/labeling_related" rename="equivalencies.in"/>
+      </assignment>
+      <assignment name="hnf_degen" value="hnf_degenfile" allocate="true">
+  	<value identifier="hnf_degenfile" file="write_labelings_hnf_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="hnf_degen.in"/>
+      </assignment>
+      <assignment name="lab_degen" value="lab_degenfile" allocate="true">
+  	<value identifier="lab_degenfile" file="write_labelings_lab_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="lab_degen.in"/>
+      </assignment>
+      <assignment name="concVect" value="concVectfile" allocate="true">
+  	<value identifier="concVectfile" file="write_labelings_concVect.in.{}"
+  	       folder="../tests/labeling_related" rename="concVect.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.write_labelings">
+    <group name="label_tests" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="write_labelings_Hcnt"
+  	    description="Get info for writing out labelings." timed="true" cases="[]">
+  	<output identifier="write_labelings_Hcnt.out" folder="../tests/labeling_related"
+  		file="write_labelings_Hcnt.out.{}" template="integer.xml" />
+  	<target name="Hcnt" compareto="write_labelings_Hcnt.out"
+  		varfile="write_labelings_Hcnt.out" when="each" />
+      </test>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="write_labelings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="write_labelings_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="write_labelings_nD.in.{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="paraLabelfile" file="write_labelings_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="write_labelings_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+      <assignment name="HNFi" value="HNFifile">
+  	<value identifier="HNFifile" file="write_labelings_HNFi.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFi.in"/>
+      </assignment>
+      <assignment name="HNFlist" value="HNFlistfile" allocate="true">
+  	<value identifier="HNFlistfile" file="write_labelings_HNFlist.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFlist.in"/>
+      </assignment>
+      <assignment name="SNFlist" value="SNFlistfile" allocate="true">
+  	<value identifier="SNFlistfile" file="write_labelings_SNFlist.in.{}"
+  	       folder="../tests/labeling_related" rename="SNFlist.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile" allocate="true">
+  	<value identifier="Lfile" file="write_labelings_L.in.{}"
+  	       folder="../tests/labeling_related" rename="L.in"/>
+      </assignment>
+      <assignment name="fixOp" value="fixOpfile" allocate="true">
+  	<value identifier="fixOpfile" file="write_labelings_fixOp.in.{}"
+  	       folder="../tests/labeling_related" rename="fixOp.in"/>
+      </assignment>
+      <assignment name="Tcnt" value="Tcntfile">
+  	<value identifier="Tcntfile" file="write_labelings_Tcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Tcnt.in"/>
+      </assignment>
+      <assignment name="Scnt" value="Scntfile">
+  	<value identifier="Scntfile" file="write_labelings_Scnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Scnt.in"/>
+      </assignment>
+      <assignment name="Hcnt" value="Hcntfile">
+  	<value identifier="Hcntfile" file="write_labelings_Hcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="Hcnt.in"/>
+      </assignment>
+      <assignment name="permIndx" value="permIndxfile" allocate="true">
+  	<value identifier="permIndxfile" file="write_labelings_permIndx.in.{}"
+  	       folder="../tests/labeling_related" rename="permIndx.in"/>
+      </assignment>
+      <assignment name="lm" value="lmfile" allocate="true">
+  	<value identifier="lmfile" file="write_labelings_lm.in.{}"
+  	       folder="../tests/labeling_related" rename="lm.in"/>
+      </assignment>
+      <assignment name="equivalencies" value="equivalenciesfile" allocate="true">
+  	<value identifier="equivalenciesfile" file="write_labelings_equivalencies.in.{}"
+  	       folder="../tests/labeling_related" rename="equivalencies.in"/>
+      </assignment>
+      <assignment name="hnf_degen" value="hnf_degenfile" allocate="true">
+  	<value identifier="hnf_degenfile" file="write_labelings_hnf_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="hnf_degen.in"/>
+      </assignment>
+      <assignment name="lab_degen" value="lab_degenfile" allocate="true">
+  	<value identifier="lab_degenfile" file="write_labelings_lab_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="lab_degen.in"/>
+      </assignment>
+      <assignment name="concVect" value="concVectfile" allocate="true">
+  	<value identifier="concVectfile" file="write_labelings_concVect.in.{}"
+  	       folder="../tests/labeling_related" rename="concVect.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.postprocess_labeling">
+    <group name="label_tests" purpose="testing_too_deep" staging="../unittests/">
+      <test identifier="postprocess_labeling" description="Testing of k array building routine."
+  	    timed="true" cases="[]" >
+  	<output identifier="postprocess_labeling_newlabeling.out"
+  		folder="../tests/labeling_related"
+		file="postprocess_labeling_newlabeling.out.{}" template="integer.xml" />
+  	<target name="newlabeling" compareto="postprocess_labeling_newlabeling.out"
+  		varfile="postprocess_labeling_newlabeling.out" when="each" />
+      </test>
+      <assignment name="nUC" value="nUCfile">
+  	<value identifier="nUCfile" file="postprocess_labeling_nUC.in.{}"
+  	       folder="../tests/labeling_related" rename="nUC.in"/>
+      </assignment>
+      <assignment name="nAllD" value="nAllDfile">
+  	<value identifier="nAllDfile" file="postprocess_labeling_nAllD.in.{}"
+  	       folder="../tests/labeling_related" rename="nAllD.in"/>
+      </assignment>
+      <assignment name="oldlabeling" value="oldlabelingfile" allocate="true">
+  	<value identifier="oldlabelingfile" file="postprocess_labeling_oldlabeling.in.{}"
+  	       folder="../tests/labeling_related" rename="oldlabeling.in"/>
+      </assignment>
+      <assignment name="newD2oldD" value="newD2oldDfile" allocate="true">
+  	<value identifier="newD2oldDfile" file="postprocess_labeling_newD2oldD.in.{}"
+  	       folder="../tests/labeling_related" rename="newD2oldD.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_labeling_from_index">
+    <group name="labeling_tests" purpose="testingf_can't_get_too_ungle_bug"
+	   staging="../unittests/">
+      <test identifier="generate_labeling_from_index"
+  	    description="Testing of get labeling form index routine." timed="true"
+  	    cases="[]">
+  	<output identifier="generate_labeling_from_index_l.out"
+  		folder="../tests/labeling_related" file="generate_labeling_from_index_l.out.{}"
+  		template="integer.xml" />
+  	<target name="l" compareto="generate_labeling_from_index_l.out"
+  		varfile="generate_labeling_from_index_l.out" when="each" />
+      </test>
+      <assignment name="conc" value="concfile" allocate="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="generate_labeling_from_index_conc.in.{}" rename="conc.in"/>
+      </assignment>
+      <assignment name="INindx" value="INindxfile">
+  	<value identifier="INindxfile" folder="../tests/labeling_related"
+  	       file="generate_labeling_from_index_INindx.in.{}" rename="INindx.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_index_from_labeling">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="generate_index_from_labeling"
+  	    description="Testing of the hash function routine." timed="true" >
+  	<output identifier="generate_index_from_labeling_idx.out"
+  		folder="../tests/labeling_related"
+  		file="generate_index_from_labeling_idx.out.{}" template="integer.xml" />
+  	<target name="idx" compareto="generate_index_from_labeling_idx.out"
+  		varfile="generate_index_from_labeling_idx.out" when="each" />
+      </test>
+      <assignment name="conc" value="concfile" allocate="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="generate_index_from_labeling_conc.in.{}" rename="conc.in"/>
+      </assignment>
+      <assignment name="l" value="lfile" allocate="true">
+  	<value identifier="lfile" folder="../tests/labeling_related"
+  	       file="generate_index_from_labeling_l.in.{}" rename="l.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.get_Cs">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="get_Cs" description="Testing of the find concentration routine."
+  	    timed="true" cases="[]">
+  	<output identifier="get_Cs_C.out" folder="../tests/labeling_related"
+  		file="get_Cs_C.out.{}" template="integer.xml" />
+  	<target name="C" compareto="get_Cs_C.out" varfile="get_Cs_C.out" when="each" />
+      </test>
+      <assignment name="conc" value="concfile" allocate="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="get_Cs_conc.in.{}" rename="conc.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.get_Xs_from_labeling">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testing?_fortpy_bug" staging="../unittests/">
+      <test identifier="get_Xs_from_labeling"  description="Testing."
+  	    timed="true" cases="[]">
+  	<output identifier="get_Xs_from_labeling.out" folder="../tests/labeling_related"
+  		file="get_Xs_from_labeling_X.out.{}" template="integer.xml" />
+  	<target name="X" compareto="get_Xs_from_labeling.out"
+  		varfile="get_Xs_from_labeling.out" when="each" />
+      </test>
+      <assignment name="conc" value="concfile" allocat="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="get_Xs_from_labeling_conc.in.{}" rename="conc.in"/>
+      </assignment>
+      <assignment name="l" value="lfile" allocat="true">
+  	<value identifier="lfile" folder="../tests/labeling_related"
+  	       file="get_Xs_from_labeling_l.in.{}" rename="l.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_BitStringEqv">
+    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+	   staging="../unittests/">
+      <test identifier="generate_BitStringEqv"
+  	    description="Testing of bit string routine." timed="true" cases="[]">
+  	<output identifier="generate_BitStringEqv.out" folder="../tests/labeling_related"
+  		file="generate_BitStringEqv_mask.out.{}" template="integer.xml" />
+  	<target name="mask" compareto="generate_BitStringEqv.out"
+  		varfile="generate_BitStringEqv.out" when="each" />
+      </test>
+      <assignment name="idx" value="idxfile">
+  	<value identifier="idxfile" folder="../tests/labeling_related"
+  	       file="generate_BitStringEqv_idx.in.{}" rename="idx.in"/>
+      </assignment>
+      <assignment name="m" value="mfile">
+  	<value identifier="mfile" folder="../tests/labeling_related"
+  	       file="generate_BitStringEqv_m.in.{}" rename="m.in"/>
+      </assignment>
+      <assignment name="j" value="jfile">
+  	<value identifier="jfile" folder="../tests/labeling_related"
+  	       file="generate_BitStringEqv_j.in.{}" rename="j.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.get_Xmj_for_labeling">
+    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+	   staging="../unittests/">
+      <test identifier="get_Xmj_for_labeling_x"
+  	    description="Testing of the get X's, m's, and j's."
+  	    timed="true" cases="[]">
+  	<output identifier="get_Xmj_for_labeling_x.out" folder="../tests/labeling_related"
+  		file="get_Xmj_for_labeling_x.out.{}" template="integer.xml" />
+  	<target name="x" compareto="get_Xmj_for_labeling_x.out"
+  		varfile="get_Xmj_for_labeling_x.out" when="each" />
+      </test>
+      <assignment name="idx" value="idxfile">
+  	<value identifier="idxfile" folder="../tests/labeling_related"
+  	       file="get_Xmj_for_labeling_idx.in.{}" rename="idx.in"/>
+      </assignment>
+      <assignment name="conc" value="concfile" allocate="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="get_Xmj_for_labeling_conc.in.{}" rename="conc.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.get_Xmj_for_labeling">
+    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+	   staging="../unittests/">
+      <test identifier="get_Xmj_for_labeling_m"
+  	    description="Testing of the get X's, m's, and j's."
+  	    timed="true" cases="[]">
+  	<output identifier="get_Xmj_for_labeling_m.out" folder="../tests/labeling_related"
+  		file="get_Xmj_for_labeling_m.out.{}" template="integer.xml" />
+  	<target name="m" compareto="get_Xmj_for_labeling_m.out"
+  		varfile="get_Xmj_for_labeling_m.out" when="each" />
+      </test>
+      <assignment name="idx" value="idxfile">
+  	<value identifier="idxfile" folder="../tests/labeling_related"
+  	       file="get_Xmj_for_labeling_idx.in.{}" rename="idx.in"/>
+      </assignment>
+      <assignment name="conc" value="concfile" allocate="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="get_Xmj_for_labeling_conc.in.{}" rename="conc.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.get_Xmj_for_labeling">
+    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+	   staging="../unittests/">
+      <test identifier="get_Xmj_for_labeling_j"
+  	    description="Testing of the get X's, m's, and j's."
+  	    timed="true" cases="[]">
+  	<output identifier="get_Xmj_for_labeling_j.out" folder="../tests/labeling_related"
+  		file="get_Xmj_for_labeling_j.out.{}" template="integer.xml" />
+  	<target name="j" compareto="get_Xmj_for_labeling_j.out"
+  		varfile="get_Xmj_for_labeling_j.out" when="each" />
+      </test>
+      <assignment name="idx" value="idxfile">
+  	<value identifier="idxfile" folder="../tests/labeling_related"
+  	       file="get_Xmj_for_labeling_idx.in.{}" rename="idx.in"/>
+      </assignment>
+      <assignment name="conc" value="concfile" allocate="true">
+  	<value identifier="concfile" folder="../tests/labeling_related"
+  	       file="get_Xmj_for_labeling_conc.in.{}" rename="conc.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.make_label_rotation_table">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="make_label_rotation_table_lrTab"
+  	    description="Testing." timed="true" cases="[]">
+  	<output identifier="make_label_rotation_table_lrTab.out"
+  		folder="../tests/labeling_related" file="make_label_rotation_table_lrTab.out.{}"
+  		template="integer.xml" />
+  	<target name="lrTab" compareto="make_label_rotation_table_lrTab.out"
+  		varfile="make_label_rotation_table_lrTab.out" when="each" />
+      </test>
+      <assignment name="HNF" value="HNFfile" allocate="true">
+  	<value identifier="HNFfile" file="make_label_rotation_table_HNF.in.{}"
+  	       folder="../tests/labeling_related" rename="HNF.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile" allocate="true">
+  	<value identifier="HNFfile" file="make_label_rotation_table_HNF.in.{}"
+  	       folder="../tests/labeling_related" rename="HNF.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile" allocate="true">
+  	<value identifier="Lfile" file="make_label_rotation_table_L.in.{}"
+  	       folder="../tests/labeling_related" rename="L.in"/>
+      </assignment>
+      <assignment name="R" value="Rfile" allocate="true">
+  	<value identifier="Rfile" file="make_label_rotation_table_R.in.{}"
+  	       folder="../tests/labeling_related" rename="R.in"/>
+      </assignment>
+      <assignment name="A" value="Afile" allocate="true">
+  	<value identifier="Afile" file="make_label_rotation_table_A.in.{}"
+  	       folder="../tests/labeling_related" rename="A.in"/>
+      </assignment>
+      <assignment name="G" value="Gfile" allocate="true">
+  	<value identifier="Gfile" file="make_label_rotation_table_G.in.{}"
+  	       folder="../tests/labeling_related" rename="G.in"/>
+      </assignment>
+      <assignment name="d" value="dfile" allocate="true">
+  	<value identifier="dfile" file="make_label_rotation_table_d.in.{}"
+  	       folder="../tests/labeling_related" rename="d.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+  	<value identifier="epsfile" file="make_label_rotation_table_eps.in.{}"
+  	       folder="../tests/labeling_related" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.make_label_rotation_table">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf_rank3_array" staging="../unittests/">
+      <test identifier="make_label_rotation_table_lrIndx"
+  	    description="Testing." timed="true" cases="[]">
+  	<output identifier="make_label_rotation_table_lrIndx.out"
+  		folder="../tests/labeling_related"
+		file="make_label_rotation_table_lrIndx.out.{}" template="integer.xml" />
+  	<target name="lrIndx" compareto="make_label_rotation_table_lrIndx.out"
+  		varfile="make_label_rotation_table_lrIndx.out" when="each" />
+      </test>
+      <assignment name="HNF" value="HNFfile" allocate="true">
+  	<value identifier="HNFfile" file="make_label_rotation_table_HNF.in.{}"
+  	       folder="../tests/labeling_related" rename="HNF.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile" allocate="true">
+  	<value identifier="HNFfile" file="make_label_rotation_table_HNF.in.{}"
+  	       folder="../tests/labeling_related" rename="HNF.in"/>
+      </assignment>
+      <assignment name="L" value="Lfile" allocate="true">
+  	<value identifier="Lfile" file="make_label_rotation_table_L.in.{}"
+  	       folder="../tests/labeling_related" rename="L.in"/>
+      </assignment>
+      <assignment name="R" value="Rfile" allocate="true">
+  	<value identifier="Rfile" file="make_label_rotation_table_R.in.{}"
+  	       folder="../tests/labeling_related" rename="R.in"/>
+      </assignment>
+      <assignment name="A" value="Afile" allocate="true">
+  	<value identifier="Afile" file="make_label_rotation_table_A.in.{}"
+  	       folder="../tests/labeling_related" rename="A.in"/>
+      </assignment>
+      <assignment name="G" value="Gfile" allocate="true">
+  	<value identifier="Gfile" file="make_label_rotation_table_G.in.{}"
+  	       folder="../tests/labeling_related" rename="G.in"/>
+      </assignment>
+      <assignment name="d" value="dfile" allocate="true">
+  	<value identifier="dfile" file="make_label_rotation_table_d.in.{}"
+  	       folder="../tests/labeling_related" rename="d.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+  	<value identifier="epsfile" file="make_label_rotation_table_eps.in.{}"
+  	       folder="../tests/labeling_related" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.lists_match">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="lists_match" description="Testing of matching labels routine."
+  	    timed="true" cases="[]">
+  	<output identifier="lists_match.out" folder="../tests/labeling_related"
+  		file="lists_match.out.{}" template="logical.xml" />
+  	<target name="[default]" compareto="lists_match.out"
+  		varfile="lists_match.out" when="each" />
+      </test>
+      <assignment name="list1" value="list1file" allocate="true">
+  	<value identifier="list1file" file="lists_match_list1.in.{}"
+  	       folder="../tests/labeling_related" rename="list1.in"/>
+      </assignment>
+      <assignment name="list2" value="list2file" allocate="true">
+  	<value identifier="list2file" file="lists_match_list2.in.{}"
+  	       folder="../tests/labeling_related" rename="list2.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.labeling_is_legal">
+    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+      <test identifier="labeling_is_legal" description="Testing of matching labels routine."
+  	    timed="true" cases="[1-999]">
+  	<output identifier="labeling_is_legal.out" folder="../tests/labeling_related"
+  		file="labeling_is_legal.out.{}" template="string.xml" />
+  	<target name="[default]" compareto="labeling_is_legal.out"
+  		varfile="labeling_is_legal.out" when="each" />
+      </test>
+      <assignment name="labeling" value="labelingfile" allocate="true">
+  	<value identifier="labelingfile" file="labeling_is_legal_labeling.in.{}"
+  	       folder="../tests/labeling_related" rename="labeling.in"/>
+      </assignment>
+      <assignment name="siteLabels" value="siteLabelsfile" allocate="true">
+  	<value identifier="siteLabelsfile" file="labeling_is_legal_siteLabels.in.{}"
+  	       folder="../tests/labeling_related" rename="siteLabels.in"/>
+      </assignment>
+      <assignment name="digitN" value="digitNfile" allocate="true">
+  	<value identifier="digitNfile" file="labeling_is_legal_digitN.in.{}"
+  	       folder="../tests/labeling_related" rename="digitN.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_unique_labelings">
+    <group name="labeling_tests" purpose="testingf_fortpy_character" staging="../unittests/">
+      <test identifier="generate_unique_labelings_lab" description="Testing of label generation."
+  	    timed="true" cases="[]">
+  	<output identifier="generate_unique_labelings_lab.out" folder="../tests/labeling_related"
+  		file="generate_unique_labelings_lab.out.{}" template="string.xml" />
+  	<target name="lab" compareto="generate_unique_labelings_lab.out"
+  		varfile="generate_unique_labelings_lab.out" when="each" />
+      </test>
+      <global name="lab" type="character" modifiers="pointer" dimensions=":"/>
+      <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="generate_unique_labelings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="generate_unique_labelings_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="generate_unique_labelings_nD.in.{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="full" value="fullfile">
+  	<value identifier="fullfile" file="generate_unique_labelings_full.in.{}"
+  	       folder="../tests/labeling_related" rename="full.in"/>
+      </assignment>
+      <assignment name="fixed_cells" value="fixed_cellsfile">
+  	<value identifier="fixed_cellsfile" file="generate_unique_labelings_fixed_cells.in.{}"
+  	       folder="../tests/labeling_related" rename="fixed_cells.in"/>
+      </assignment>
+      <assignment name="perm" value="permfile" allocate="true">
+  	<value identifier="permfile" file="generate_unique_labelings_perm.in.{}"
+  	       folder="../tests/labeling_related" rename="perm.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="parLabelfile" file="generate_unique_labelings_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="generate_unique_labelings_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_unique_labelings">
+    <group name="labeling_tests" purpose="testingf_fortpy_character" staging="../unittests/">
+      <test identifier="generate_unique_labelings_degeneracy_list"
+  	    description="Testing of label generation." timed="true" cases="[]">
+  	<output identifier="generate_unique_labelings_degeneracy_list.out"
+  		folder="../tests/labeling_related"
+  		file="generate_unique_labelings_degeneracy_list.out.{}" template="integer.xml" />
+  	<target name="degeneracy_list" compareto="generate_unique_labelings_degeneracy_list.out"
+  		varfile="generate_unique_labelings_degeneracy_list.out" when="each" />
+      </test>
+      <global name="lab" type="character" modifiers="pointer" dimensions=":"/>
+      <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="generate_unique_labelings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="generate_unique_labelings_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="generate_unique_labelings_nD.in.{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="full" value="fullfile">
+  	<value identifier="fullfile" file="generate_unique_labelings_full.in.{}"
+  	       folder="../tests/labeling_related" rename="full.in"/>
+      </assignment>
+      <assignment name="fixed_cells" value="fixed_cellsfile">
+  	<value identifier="fixed_cellsfile" file="generate_unique_labelings_fixed_cells.in.{}"
+  	       folder="../tests/labeling_related" rename="fixed_cells.in"/>
+      </assignment>
+      <assignment name="perm" value="permfile" allocate="true">
+  	<value identifier="permfile" file="generate_unique_labelings_perm.in.{}"
+  	       folder="../tests/labeling_related" rename="perm.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="parLabelfile" file="generate_unique_labelings_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile" file="generate_unique_labelings_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.make_member_list">
+    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+      <test identifier="make_member_list"
+  	    description="Testing of making permutations." timed="true" cases="[1-112]">
+  	<output identifier="make_member_list.out" folder="../tests/labeling_related"
+  		file="make_member_list_p.out.{}" template="integer.xml" />
+  	<target name="p" compareto="make_member_list.out" varfile="make_member_list.out"
+  		when="each" />
+      </test>
+      <global name="p" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="make_member_list_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.make_translation_group">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="make_translation_group"
+  	    description="Testing of making permutations." timed="true" cases="[]">
+  	<output identifier="make_translation_group.out" folder="../tests/labeling_related"
+  		file="make_translation_group_trans.out.{}" template="integer.xml" />
+  	<target name="trans" compareto="make_translation_group.out"
+  		varfile="make_translation_group.out" when="each" />
+      </test>
+      <global name="trans" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="d" value="dfile">
+  	<value identifier="dfile" file="make_translation_group_d.in.{}"
+  	       folder="../tests/labeling_related" rename="d.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.count_full_colorings">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="count_full_colorings"
+  	    description="Testing of counting of possible configurations." timed="true"
+  	    cases="[]">
+  	<output identifier="count_full_colorings.out" folder="../tests/labeling_related"
+  		file="count_full_colorings_count.out.{}" template="integer.xml" />
+  	<target name="count" compareto="count_full_colorings.out"
+  		varfile="count_full_colorings.out" when="each" />
+      </test>
+      <assignment name="d" value="dfile">
+  	<value identifier="dfile" file="count_full_colorings_d.in.{}"
+  	       folder="../tests/labeling_related" rename="d.in"/>
+      </assignment>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="count_full_colorings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="full" value="fullfile">
+  	<value identifier="fullfile" file="count_full_colorings_full.in.{}"
+  	       folder="../tests/labeling_related" rename="full.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="labeling_related.generate_disjoint_permutation_labelings">
+  <skip reason="This routine is not currently used in UNCLE"/>
+    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+      <test identifier="generate_disjoint_permutation_labelings"
+  	    description="Testing of counting of possible configurations." timed="true"
+  	    cases="[]">
+  	<output identifier="generate_disjoint_permutation_labelings.out"
+  		folder="../tests/labeling_related"
+  		file="generate_disjoint_permutation_labelings_lab.out.{}"
+  		template="integer.xml" />
+  	<target name="lab" compareto="generate_disjoint_permutation_labelings.out"
+  		varfile="generate_disjoint_permutation_labelings.out" when="each" />
+      </test>
+      <global name="lab" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="generate_disjoint_permutation_labelings_n.in.{}"
+  	       folder="../tests/labeling_related" rename="n.in"/>
+      </assignment>
+      <assignment name="k" value="kfile">
+  	<value identifier="kfile" file="generate_disjoint_permutation_labelings_k.in.{}"
+  	       folder="../tests/labeling_related" rename="k.in"/>
+      </assignment>
+      <assignment name="nD" value="nDfile">
+  	<value identifier="nDfile" file="generate_disjoint_permutation_labelings_nD.in.{}"
+  	       folder="../tests/labeling_related" rename="nD.in"/>
+      </assignment>
+      <assignment name="perm" value="permfile" allocate="true">
+  	<value identifier="permfile" file="generate_disjoint_permutation_labelings_perm.in.{}"
+  	       folder="../tests/labeling_related" rename="perm.in"/>
+      </assignment>
+      <assignment name="parLabel" value="parLabelfile" allocate="true">
+  	<value identifier="parLabelfile"
+  	       file="generate_disjoint_permutation_labelings_parLabel.in.{}"
+  	       folder="../tests/labeling_related" rename="parLabel.in"/>
+      </assignment>
+      <assignment name="parDigit" value="parDigitfile" allocate="true">
+  	<value identifier="parDigitfile"
+  	       file="generate_disjoint_permutation_labelings_parDigit.in.{}"
+  	       folder="../tests/labeling_related" rename="parDigit.in"/>
+      </assignment>
+      <assignment name="iConc" value="iConcfile" allocate="true">
+  	<value identifier="iConcfile"
+  	       file="generate_disjoint_permutation_labelings_iConc.in.{}"
+  	       folder="../tests/labeling_related" rename="iConc.in"/>
+      </assignment>
+    </group>
+  </decorates>
+</fortpy>

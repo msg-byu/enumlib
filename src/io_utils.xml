@@ -1,0 +1,1084 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_title" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}" rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_title.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_title.out.{}" 
+		template="" />
+	<target name="title" compareto="read_struct_enum_out_title.out"
+		varfile="read_struct_enum_out_title.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_LatDim" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_LatDim.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_LatDim.out.{}" 
+		template="" />
+	<target name="LatDim" compareto="read_struct_enum_out_LatDim.out"
+		varfile="read_struct_enum_out_LatDim.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_pLV" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_pLV.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_pLV.out.{}" 
+		template="" />
+	<target name="pLV" compareto="read_struct_enum_out_pLV.out"
+		varfile="read_struct_enum_out_pLV.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_nD" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_nD.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_nD.out.{}" 
+		template="" />
+	<target name="nD" compareto="read_struct_enum_out_nD.out"
+		varfile="read_struct_enum_out_nD.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_d" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_d.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_d.out.{}" 
+		template="" />
+	<target name="d" compareto="read_struct_enum_out_d.out"
+		varfile="read_struct_enum_out_d.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_k" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_k.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_k.out.{}" 
+		template="" />
+	<target name="k" compareto="read_struct_enum_out_k.out"
+		varfile="read_struct_enum_out_k.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_eq" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_eq.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_eq.out.{}" 
+		template="" />
+	<target name="eq" compareto="read_struct_enum_out_eq.out"
+		varfile="read_struct_enum_out_eq.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_Nmin" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_Nmin.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_Nmin.out.{}" 
+		template="" />
+	<target name="Nmin" compareto="read_struct_enum_out_Nmin.out"
+		varfile="read_struct_enum_out_Nmin.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_Nmax" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_Nmax.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_Nmax.out.{}" 
+		template="" />
+	<target name="Nmax" compareto="read_struct_enum_out_Nmax.out"
+		varfile="read_struct_enum_out_Nmax.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_eps" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_eps.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_eps.out.{}" 
+		template="" />
+	<target name="eps" compareto="read_struct_enum_out_eps.out"
+		varfile="read_struct_enum_out_eps.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_full" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_full.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_full.out.{}" 
+		template="" />
+	<target name="full" compareto="read_struct_enum_out_full.out"
+		varfile="read_struct_enum_out_full.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_label" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_label.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_label.out.{}" 
+		template="" />
+	<target name="label" compareto="read_struct_enum_out_label.out"
+		varfile="read_struct_enum_out_label.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_digit" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_digit.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_digit.out.{}" 
+		template="" />
+	<target name="digit" compareto="read_struct_enum_out_digit.out"
+		varfile="read_struct_enum_out_digit.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_cRange" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_cRange.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_cRange.out.{}" 
+		template="" />
+	<target name="cRange" compareto="read_struct_enum_out_cRange.out"
+		varfile="read_struct_enum_out_cRange.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_title" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_title.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_title.out.{}" 
+		template="" />
+	<target name="title" compareto="read_struct_enum_out_oldstyle_title.out"
+		varfile="read_struct_enum_out_oldstyle_title.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_LatDim" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_LatDim.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_LatDim.out.{}" 
+		template="" />
+	<target name="LatDim" compareto="read_struct_enum_out_oldstyle_LatDim.out"
+		varfile="read_struct_enum_out_oldstyle_LatDim.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_pLV" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_pLV.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_pLV.out.{}" 
+		template="" />
+	<target name="pLV" compareto="read_struct_enum_out_oldstyle_pLV.out"
+		varfile="read_struct_enum_out_oldstyle_pLV.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_nD" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_nD.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_nD.out.{}" 
+		template="" />
+	<target name="nD" compareto="read_struct_enum_out_oldstyle_nD.out"
+		varfile="read_struct_enum_out_oldstyle_nD.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_d" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_d.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_d.out.{}" 
+		template="" />
+	<target name="d" compareto="read_struct_enum_out_oldstyle_d.out"
+		varfile="read_struct_enum_out_oldstyle_d.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_k" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_k.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_k.out.{}" 
+		template="" />
+	<target name="k" compareto="read_struct_enum_out_oldstyle_k.out"
+		varfile="read_struct_enum_out_oldstyle_k.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_eq" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_eq.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_eq.out.{}" 
+		template="" />
+	<target name="eq" compareto="read_struct_enum_out_oldstyle_eq.out"
+		varfile="read_struct_enum_out_oldstyle_eq.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_Nmin" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_Nmin.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_Nmin.out.{}" 
+		template="" />
+	<target name="Nmin" compareto="read_struct_enum_out_oldstyle_Nmin.out"
+		varfile="read_struct_enum_out_oldstyle_Nmin.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_Nmax" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_Nmax.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_Nmax.out.{}" 
+		template="" />
+	<target name="Nmax" compareto="read_struct_enum_out_oldstyle_Nmax.out"
+		varfile="read_struct_enum_out_oldstyle_Nmax.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_eps" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_eps.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_eps.out.{}" 
+		template="" />
+	<target name="eps" compareto="read_struct_enum_out_oldstyle_eps.out"
+		varfile="read_struct_enum_out_oldstyle_eps.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_full" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_full.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_full.out.{}" 
+		template="" />
+	<target name="full" compareto="read_struct_enum_out_oldstyle_full.out"
+		varfile="read_struct_enum_out_oldstyle_full.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_label" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_label.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_label.out.{}" 
+		template="" />
+	<target name="label" compareto="read_struct_enum_out_oldstyle_label.out"
+		varfile="read_struct_enum_out_oldstyle_label.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_digit" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_digit.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_digit.out.{}" 
+		template="" />
+	<target name="digit" compareto="read_struct_enum_out_oldstyle_digit.out"
+		varfile="read_struct_enum_out_oldstyle_digit.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_struct_enum_out_oldstyle">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_struct_cRange" description="Read struct_enum.out file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
+	       rename="struct_enum.out"/>
+	<output identifier="read_struct_enum_out_oldstyle_cRange.out" folder="../tests/io_utils"
+		file="read_struct_enum_out_oldstyle_cRange.out.{}" 
+		template="" />
+	<target name="cRange" compareto="read_struct_enum_out_oldstyle_cRange.out"
+		varfile="read_struct_enum_out_oldstyle_cRange.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="n" value="nfile" allocate="true">
+  	<value identifier="nfile" file="multinomial.in{}"
+  	       folder="../tests/io_utils" rename="multinomial.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_in_cells_from_file">
+    <group name="read_in_cells_from_file_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_cell" description="Calculates the binomial coefficients."
+  	    timed="true" >
+	<input folder="../tests/io_utils" file="read_in_cells_from_file.in.{}"
+	       rename="fixed_cells.in"/>
+  	<output identifier="read_in_cells_from_file.out" folder="../tests/io_utils"
+		file="nchoosek.out" template="integer.xml" />
+  	<target name="[default]" compareto="read_in_cells_from_file.out"
+		varfile="read_in_cells_from_file.out" when="each" />
+      </test>
+      <global name="HNFList" type="integer" modifiers="pointer" dimensions=":,:,:"/>
+      <assignment name="n" value="nfile">
+  	<value identifier="nfile" file="read_is_cells_from_file_n.in.{}"
+  	       folder="../tests/io_utils" rename="n.in"/>
+      </assignment>
+      <assignment name="pLat" value="pLatfile">
+  	<value identifier="pLatfile" file="read_is_cells_from_file_pLat.in.{}"
+  	       folder="../tests/io_utils" rename="pLat.in"/>
+      </assignment>
+      <assignment name="eps" value="epsfile">
+  	<value identifier="epsfile" file="read_is_cells_from_file_eps.in.{}"
+  	       folder="../tests/io_utils" rename="eps.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_title" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_title.out" folder="../tests/io_utils"
+		file="read_inpute_title.out.{}" 
+		template="" />
+	<target name="title" compareto="read_inpute_title.out"
+		varfile="read_input_title.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_LatDim" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_LatDim.out" folder="../tests/io_utils"
+		file="read_inpute_LatDim.out.{}" 
+		template="" />
+	<target name="LatDim" compareto="read_inpute_LatDim.out"
+		varfile="read_input_LatDim.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_pLV" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_pLV.out" folder="../tests/io_utils"
+		file="read_inpute_pLV.out.{}" 
+		template="" />
+	<target name="pLV" compareto="read_inpute_pLV.out"
+		varfile="read_input_pLV.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_nD" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_nD.out" folder="../tests/io_utils"
+		file="read_inpute_nD.out.{}" 
+		template="" />
+	<target name="nD" compareto="read_inpute_nD.out"
+		varfile="read_input_nD.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_d" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_d.out" folder="../tests/io_utils"
+		file="read_inpute_d.out.{}" 
+		template="" />
+	<target name="d" compareto="read_inpute_d.out"
+		varfile="read_input_d.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_k" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_k.out" folder="../tests/io_utils"
+		file="read_inpute_k.out.{}" 
+		template="" />
+	<target name="k" compareto="read_inpute_k.out"
+		varfile="read_input_k.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_eq" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_eq.out" folder="../tests/io_utils"
+		file="read_inpute_eq.out.{}" 
+		template="" />
+	<target name="eq" compareto="read_inpute_eq.out"
+		varfile="read_input_eq.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_Nmin" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_Nmin.out" folder="../tests/io_utils"
+		file="read_inpute_Nmin.out.{}" 
+		template="" />
+	<target name="Nmin" compareto="read_inpute_Nmin.out"
+		varfile="read_input_Nmin.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_Nmax" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_Nmax.out" folder="../tests/io_utils"
+		file="read_inpute_Nmax.out.{}" 
+		template="" />
+	<target name="Nmax" compareto="read_inpute_Nmax.out"
+		varfile="read_input_Nmax.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_eps" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_eps.out" folder="../tests/io_utils"
+		file="read_inpute_eps.out.{}" 
+		template="" />
+	<target name="eps" compareto="read_inpute_eps.out"
+		varfile="read_input_eps.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_full" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_full.out" folder="../tests/io_utils"
+		file="read_inpute_full.out.{}" 
+		template="" />
+	<target name="full" compareto="read_inpute_full.out"
+		varfile="read_input_full.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_label" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_label.out" folder="../tests/io_utils"
+		file="read_inpute_label.out.{}" 
+		template="" />
+	<target name="label" compareto="read_inpute_label.out"
+		varfile="read_input_label.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_digit" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_digit.out" folder="../tests/io_utils"
+		file="read_inpute_digit.out.{}" 
+		template="" />
+	<target name="digit" compareto="read_inpute_digit.out"
+		varfile="read_input_digit.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_cRange" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_cRange.out" folder="../tests/io_utils"
+		file="read_inpute_cRange.out.{}" 
+		template="" />
+	<target name="cRange" compareto="read_inpute_cRange.out"
+		varfile="read_input_cRange.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <decorates name="io_utils.read_input">
+    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="read_in_conc_check" description="Read struct_enum.in file."
+	    timed="true" cases="[]">
+	<input folder="../tests/io_utils" file="read_input.in.{}"
+	       rename="struct_enum.in"/>
+	<output identifier="read_input_conc_check.out" folder="../tests/io_utils"
+		file="read_inpute_conc_check.out.{}" 
+		template="" />
+	<target name="conc_check" compareto="read_inpute_conc_check.out"
+		varfile="read_input_conc_check.out" when="each" />
+      </test>
+      <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <global name="eq" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="label" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="digit" type="integer" modifiers="pointer" dimensions=":"/>
+      <global name="cRange" type="integer" modifiers="pointer" dimensions=":,:"/>
+    </group>   
+  </decorates>
+
+  <skip reason="Indirectly tested by the other input reading routines." />
+  <decorates name="io_utils.co_ca">
+    <group name="co_ca_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="co_ca" description="Tests skipping comments in files."
+  	    timed="true" cases="[]">
+  	<output identifier="" folder="../tests/io_utils"
+		file="" template="" />
+  	<target name="" compareto="" varfile=""
+		when="" />
+      </test>
+    </group>
+  </decorates>
+
+  <decorates name="io_utils.write_lattice_symmetry_ops">
+    <group name="write_lattice_sym_op_3D" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="write_lattice_symmetry_ops" description="Find unique subroutine testing"
+  	    timed="true" cases="[]">
+  	<output identifier="write_lattice_symmetry.out" folder="../tests/io_utils"
+		file="write_lattice_symmetry_ops.out.{}" template="" />
+  	<target name="./symops_enum_parent_lattice.out" compareto="write_lattice_symmetry.out"
+		varfile="write_lattice_symmetry.out" when="each" />
+      </test>
+      <assignment name="rot" value="rotfile" allocate="true">
+  	<value identifier="rotfile" file="write_lattice_symmetry_ops_rot.in.{}"
+  	       folder="../tests/io_utils" rename="rot.in"/>
+      </assignment>
+      <assignment name="shift" value="shiftfile" allocate="true">
+  	<value identifier="shiftfile" file="write_lattice_symmetry_ops_shift.in.{}"
+  	       folder="../tests/io_utils" rename="shift.in"/>
+      </assignment>
+      <assignment name="key" value="const_key">
+  	<value identifier="const_key" constant="3D"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="io_utils.write_lattice_symmetry_ops">
+    <group name="write_lattice_sym_op_2D" purpose="testingf_fortpy_bug" staging="../unittests/">
+      <test identifier="write_lattice_symmetry_ops" description="Find unique subroutine testing"
+  	    timed="true" cases="[]">
+  	<output identifier="write_lattice_symmetry.out" folder="../tests/io_utils"
+		file="write_lattice_symmetry_ops.out.{}" template="" />
+  	<target name="./symops_enum_2D_parent_lattice.out"
+		compareto="write_lattice_symmetry.out" varfile="write_lattice_symmetry.out"
+		when="each" />
+      </test>
+      <assignment name="rot" value="rotfile" allocate="true">
+  	<value identifier="rotfile" file="write_lattice_symmetry_ops_rot.in.{}"
+  	       folder="../tests/io_utils" rename="rot.in"/>
+      </assignment>
+      <assignment name="shift" value="shiftfile" allocate="true">
+  	<value identifier="shiftfile" file="write_lattice_symmetry_ops_shift.in.{}"
+  	       folder="../tests/io_utils" rename="shift.in"/>
+      </assignment>
+      <assignment name="key" value="const_key">
+  	<value identifier="const_key" constant="2D"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="io_utils.write_rot_perm_list">
+    <group name="write_rot_perm_list_tests" purpose="testingf_fortpy_bug"
+	   staging="../unittests/">
+      <test identifier="write_rot_perm_list"
+	    description="Testing of the write_rotperms_list subroutine." timed="true"
+	    cases="[]">
+  	<output identifier="write_rotperms_list.out" folder="../tests/io_utils"
+		file="write_rotperms_list.out.{}" template="" />
+  	<target name="./write_rotperms_list.out"
+		compareto="write_rotperms_list.out" varfile="get_permutaitons.out"
+		when="each" />
+      </test>
+      <assignment name="rpList" member="nL" value="rpList_nLfile">
+  	<value identifier="rpList_nLfile" file="write_rotperms_listrpList_nL.in.{}"
+  	       folder="../tests/io_utils" rename="nL.in"/>
+      </assignment>
+      <assignment name="rpList" member="perm" value="rpList_permfile" alloctate="true">
+  	<value identifier="rpList_permfile" file="write_rotperms_listrpList_perm.in.{}"
+  	       folder="../tests/io_utils" rename="perm.in"/>
+      </assignment>
+    </group>
+  </decorates>
+</fortpy>
