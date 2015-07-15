@@ -56,13 +56,13 @@ Set an environment variable to identify your fortran compiler:
 [the `Makefile` also recognizes `ifort`]
 
 Then compile using the Makefile:  
-make
+`make`
 
 (Alternatively, instead of setting the `F90` environmental variable first, you may just specify the variable during the make: `make F90=gfortran`.)
 
 Next, make the enumeration library  
 ```cd ../../enumlib/trunk```  
-make
+`make`
 
 Finally, to make a stand-alone executable for enumeration:  
 ```make enum.x```
