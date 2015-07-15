@@ -62,7 +62,7 @@ make
 
 Next, make the enumeration library  
 ```cd ../../enumlib/trunk```  
-```make```
+make
 
 Finally, to make a stand-alone executable for enumeration:  
 ```make enum.x```
