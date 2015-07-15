@@ -46,6 +46,7 @@ To compile the code, checkout the `symlib` repository from github, as
 well as this repository.
 
 ```git clone https://github.com/msg-byu/enumlib.git```
+
 ```git clone https://github.com/msg-byu/symlib.git```
 
 Both repositories should be at the same level in your folder
@@ -55,16 +56,21 @@ First, compile `symlib`. Go to the `symlib/src` directory:
 ```cd symlib/src```
 
 Set an environment variable to identify your fortran compiler:
+
 [in the bash shell, gfortran compiler]
+
 ```export F90=gfortran```
+
 [the Makefile also recognizes ifort]
 
 Then compile using the Makefile:
+
 ```make```
 
 Next, make the enumeration library
-```cd ../../enumlib/trunk
-make```
+```cd ../../enumlib/trunk```
+
+```make```
 
 Finally, to make a stand-alone executable for enumeration:
 ```make multienum.x```
