@@ -61,7 +61,7 @@ Then compile using the Makefile:
 (Alternatively, instead of setting the `F90` environmental variable first, you may just specify the variable during the make: `make F90=gfortran`.)
 
 Next, make the enumeration library  
-```cd ../../enumlib/trunk```  
+```cd ../../enumlib/src```  
 `make`
 
 Finally, to make a stand-alone executable for enumeration:  
