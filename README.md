@@ -72,11 +72,7 @@ assist you.  gus.hart@gmail.com, 801-422-7444
 
 ##HOW TO USE THE CODE:
 
-<<<<<<< HEAD
-Example input files are in the `input` (enumlib/support/input) directory. 
-=======
-Example input files are in the `input` directory. 
->>>>>>> ec0cd84e289a51334ee4e0b7c8ba63e448c01c89
+Example input files are in the `input` ('enumlib/support/input') directory. 
 
 There are also helper programs for making VASP POSCARs, pictures of
 2-D enumerations, etc.
@@ -86,8 +82,3 @@ There are also helper programs for making VASP POSCARs, pictures of
 
 If you have questions, email or call: gus.hart@gmail.com, 801-422-7444
 
-<<<<<<< HEAD
-For in-depth examples, please see the `EXAMPLES` file in the `support` directory.
-=======
-For in-depth examples, please see the `EXAMPLES` file in the `support` directory.
->>>>>>> ec0cd84e289a51334ee4e0b7c8ba63e448c01c89
