@@ -9,10 +9,6 @@ MODULE tree_class
   public tree, enumerate_unique_permutations
 
 
-  type :: GroupList
-     type(permList), pointer :: layer(:) => null()
-  endtype GroupList
-
   !!<summary>A "tree" object that contains all the members needed for
   !!enumerating derivative structures at a fixed
   !!concentration. Translated from the python version "enum4" in the
@@ -54,16 +50,6 @@ MODULE tree_class
   endtype tree
   
 
-  !!<summary>A list of group operations for each layer in the
-  !!tree. I.e., the list of stabilizer groups</summary>
-
-  !!<summary>Stores a list of permutations (for the atomic sites in
-  !!deriv. structure)</summary>
-  type :: permList
-     integer, pointer :: perms(:,:) => null()
-  endtype permList
-
-  
 CONTAINS
   !!<summary>Enumerate symmetrically-distinct labelings using the
   !!"recursive stabilizer" approach (enum4).</summary>
