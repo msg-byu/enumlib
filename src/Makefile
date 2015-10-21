@@ -63,12 +63,13 @@ endif
 # fi
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 tree_class.f90 labeling_related.f90 \
-      derivative_structure_generator.f90 enumeration_utilities.f90 #\
+      derivative_structure_generator.f90 enumeration_utilities.f90  #\
       #kgrid_utilities.f90 cwrapper.f90
 
 OBJS = ${SRC:.f90=.o}
 LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
-         ${LBDR}/librational.a ${LBDR}/libcombinatorics.a 
+         ${LBDR}/librational.a ${LBDR}/libcombinatorics.a
+VPATH:= ../aux_src: ../src 
 
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o

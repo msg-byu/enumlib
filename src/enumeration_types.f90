@@ -6,6 +6,18 @@ public derivCryst, opList, LabelRotationList, RotPermList, maxLabLength
 
 integer, parameter :: maxLabLength = 500  ! maximum length of the character string labeling
 
+!!<summary>A list of group operations for each layer in the
+!!tree. I.e., the list of stabilizer groups</summary>  
+type :: GroupList
+   type(permList), pointer :: layer(:) => null()
+endtype GroupList
+
+!!<summary>Stores a list of permutations (for the atomic sites in
+!!deriv. structure)</summary>
+type :: permList
+   integer, pointer :: perms(:,:) => null()
+endtype permList
+
 type RotPermList ! List of permutations that are equivalent 
    integer, pointer :: perm(:,:) => null() ! First index is the permutation number
    integer, pointer :: RotIndx(:) ! Which rotations in the list fix the superlattice

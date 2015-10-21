@@ -3,6 +3,7 @@
 MODULE tree_class
   use combinatorics
   use group_theory
+  use enumeration_types
   implicit none
   private
   public tree, enumerate_unique_permutations

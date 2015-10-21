@@ -381,7 +381,7 @@ type MC_variables ! variables for Monte Carlo
    integer :: boxSize(3)                      ! Size of the simulations cell (times unit cell in 3 directions)
    character(30) :: cboxSize                  ! character equivalent of boxSize (for printing)
    real(dp), pointer :: x(:)                  ! Concentration of each atom type in the simulation
-                                        !E!!!!!! NOTE: have to generalise the concentration and mu for coupled CEs
+                                        !E! NOTE: have to generalise the concentration and mu for coupled CEs
    real(dp), pointer :: mu(:)                 ! chemical potential for each atom type
    real(dp), pointer :: Dmu(:,:)              ! Difference in chemical potential (lookup-table)
    integer(si), pointer :: possibleNewSpins(:,:)  ! { index, current spin }: list (1st index)  of possible new spin
@@ -458,27 +458,27 @@ end type structure_prediction_t
 
 ! TK @ GH: can we remove this again???
 !
-!!
-!!CONTAINS
-!!! Don't call this routine, that is, don't deallocate things that 
-!!! have been copied *from*. The copied things just contain pointers to the original elements. So if
-!!  ! you deallocate the elements, those copied structures will become corrupted.
-!!subroutine deallocate_figure_array(fig)
-!!type(figure), pointer :: fig(:)
-!!integer i
-!!do i = 1, size(fig)
-!!   print *,"deallocating fig #",i
-!!   call deallocate_figure_elements(fig(i))
-!!enddo
-!!deallocate(fig)
-!!end subroutine deallocate_figure_array
-!!subroutine deallocate_figure_elements(fig)
-!!type(figure) fig
-!!if(associated(fig%vertex))deallocate(fig%vertex)
-!!if(associated(fig%label))deallocate(fig%label)
-!!if(associated(fig%gPt))deallocate(fig%gPt)
-!!if(associated(fig%S))deallocate(fig%S)
-!!end subroutine deallocate_figure_elements
+!
+!CONTAINS
+! Don't call this routine, that is, don't deallocate things that 
+! have been copied *from*. The copied things just contain pointers to the original elements. So if
+!  ! you deallocate the elements, those copied structures will become corrupted.
+!subroutine deallocate_figure_array(fig)
+!type(figure), pointer :: fig(:)
+!integer i
+!do i = 1, size(fig)
+!   print *,"deallocating fig #",i
+!   call deallocate_figure_elements(fig(i))
+!enddo
+!deallocate(fig)
+!end subroutine deallocate_figure_array
+!subroutine deallocate_figure_elements(fig)
+!type(figure) fig
+!if(associated(fig%vertex))deallocate(fig%vertex)
+!if(associated(fig%label))deallocate(fig%label)
+!if(associated(fig%gPt))deallocate(fig%gPt)
+!if(associated(fig%S))deallocate(fig%S)
+!end subroutine deallocate_figure_elements
 
 
 END MODULE
@@ -795,7 +795,7 @@ call get_SpinRank_mapping(CErank, gettype, rankSpace)
 !   c=c+1
 !   gettype(c) = iTyp
 !enddo
-!err = .false.  !! GH What did we need this for?
+!err = .false.  ! GH What did we need this for?
 
 
 !--------------------------------------------------------------------------------
@@ -1003,19 +1003,19 @@ if (.not. isReference .or. (isReference .and. .not. automaticReference)) then
   ! Determine concentration (legacy code, should be removed someday)
   !________________________________________________________________________________
 str%conc = -10000 ! let's see what happens....
-!!!! do we still need this? >  ! Binary CE
-!!!! do we still need this? >  if (CErank==2) then !! getting binary concentration
-!!!! do we still need this? >    str%conc = real(str%nTyp(1))/real(nAt)
-!!!! do we still need this? >  !________________________________________________________________________________
-!!!! do we still need this? >  ! Ternary CE
-!!!! do we still need this? >  else if (CErank == 3) then !! getting ternary concentrations
-!!!! do we still need this? >    str%conc = real(str%nTyp(1))/ &                    !! quasibinary concentration for 
-!!!! do we still need this? >         & real((str%nTyp(1)+str%nTyp(3))) !! cases, where 2nd atom type is a vacancy
-!!!! do we still need this? >    if ((str%nTyp(1)+str%nTyp(3))==0) str%conc = 0.0
-!!!! do we still need this? >    do i=1, 3
-!!!! do we still need this? >      str%con(i) = real(str%nTyp(i))/real(nAt)
-!!!! do we still need this? >    end do
-!!!! do we still need this? >  end if
+! do we still need this? >  ! Binary CE
+! do we still need this? >  if (CErank==2) then ! getting binary concentration
+! do we still need this? >    str%conc = real(str%nTyp(1))/real(nAt)
+! do we still need this? >  !________________________________________________________________________________
+! do we still need this? >  ! Ternary CE
+! do we still need this? >  else if (CErank == 3) then ! getting ternary concentrations
+! do we still need this? >    str%conc = real(str%nTyp(1))/ &                    ! quasibinary concentration for 
+! do we still need this? >         & real((str%nTyp(1)+str%nTyp(3))) ! cases, where 2nd atom type is a vacancy
+! do we still need this? >    if ((str%nTyp(1)+str%nTyp(3))==0) str%conc = 0.0
+! do we still need this? >    do i=1, 3
+! do we still need this? >      str%con(i) = real(str%nTyp(i))/real(nAt)
+! do we still need this? >    end do
+! do we still need this? >  end if
   !________________________________________________________________________________
   ! Remark: the general concentration str%x(:) is set in check_input_structures.
 
@@ -1164,7 +1164,7 @@ call read_pLV(fh,CE%pLV)
 call co_ca(fh, err)
 read(fh,*) CE%nBas
 
-!!----- surface
+!----- surface
 !if (CE%surface%isSurf) then
 !  call get_SpinRank_mapping(CE%CErank, SpinSpace, RankSpace)
 !  allocate(CE%surface%BasType(CE%nBas))
@@ -1172,7 +1172,7 @@ read(fh,*) CE%nBas
 !  allocate(CE%surface%BulkEnumRank(CE%nBas))
 !  allocate(CE%surface%BulkList(CE%nBas))
 !  CE%BasEnum = .false.  ! the correct enumeration will be determined later
-!!----- bulk
+!----- bulk
 !else
 !  CE%BasEnum = .true.   ! will enumerate all dset members
 !endif
@@ -1371,20 +1371,20 @@ subroutine read_dset(fh,k,nD,d,digit,label,xrel,eq)
   where (digit==1)
     xrel=.false.
   end where
-!!  call co_ca(fh,err)
-!!  read(fh,'(A100)') line
-!!  allocate(xrel(nD)); xrel=.false.
-!!  if (line(1:1)=='C') then
-!!    call co_ca(fh,err)
-!!    read(fh,'(A100)') line
-!!    call parse_line_for_numbers(line," ",maxEntries=nD,readEntries=nE,values=numbers)
-!!    allocate(xrelTmp(nE))
-!!    xrelTmp = nint(numbers(:nE))
-!!    do iD=1,nD; if (any(xrelTmp==iD)) xrel(iD)=.true.; enddo
-!!  else
-!!    xrel = .true.
-!!    backspace(fh)
-!!  endif
+!  call co_ca(fh,err)
+!  read(fh,'(A100)') line
+!  allocate(xrel(nD)); xrel=.false.
+!  if (line(1:1)=='C') then
+!    call co_ca(fh,err)
+!    read(fh,'(A100)') line
+!    call parse_line_for_numbers(line," ",maxEntries=nD,readEntries=nE,values=numbers)
+!    allocate(xrelTmp(nE))
+!    xrelTmp = nint(numbers(:nE))
+!    do iD=1,nD; if (any(xrelTmp==iD)) xrel(iD)=.true.; enddo
+!  else
+!    xrel = .true.
+!    backspace(fh)
+!  endif
 
   ! read equivalencies (if present, as denoted by "E")
   call co_ca(fh,err)
@@ -1898,6 +1898,7 @@ do iStr = 1, nStr-1
                           !     compare_arbitrary_structures, where it is set =.false. if
                           !     this optional argument is present. But it fails quite often. 
                           !     Don't ask ME about it...
+
       call compare_arbitrary_structures(str(iStr)%LV,str(iStr)%spin,str(iStr)%pos,&
                                         str(jStr)%LV,str(jStr)%spin,str(jStr)%pos,&
                                           CE%eps,mapped,identical=equivalent)
@@ -1913,9 +1914,9 @@ enddo
 close(100)
 endif ! is no Reference
 
-!! Check that each structure doesn't have two atoms on the same site
+! Check that each structure doesn't have two atoms on the same site
 !do iStr = 1, nStr ! Loop over each structures
-!!  call check_for_duplicate_atoms(str(iStr),iAt,jAt,CE%eps)
+!  call check_for_duplicate_atoms(str(iStr),iAt,jAt,CE%eps)
 !  
 !  if (iAt/=0 .or. jAt/=0) then
 !    if (.not. isReference) then

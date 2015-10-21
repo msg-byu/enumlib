@@ -3,3 +3,7 @@
 ## Initial Repository: Revision 0.0.0
 
 The first few commits were to get the repo up to scratch and nice and clean with installation instructions etc. This includes the commit for new revision number 0.0.0. It includes an update of the `*.xml` files defining the unit tests so that they work with the distribution directory's structure.
+
+## Revision 0.0.1
+
+This commit is to move the "extra" or "auxiliary" files in the src folder to the folder aux_src. These files may be useful for some users but are not necessary for the enumeration code to operate. We also updated the Makefile to reflect these changes, moved some types that aren't in enumeration_types.f90 but were declared inside specific programs so that the unit tests can run more smoothly, and added a README to the src and aux_src files.
