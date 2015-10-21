@@ -870,8 +870,6 @@ CONTAINS
     ! For each HNF in the list, see if it is a derivative lattice of a
     ! preceding HNF in the list. If so, don't include it in the list
     ! of unique ones.
-    print *, "in remove_dup"
-    print *, Nhnf,iuq,nRot
     iuq = 1
     do i = 2,Nhnf  ! Loop over each matrix in the original list
        duplicate = .false.
