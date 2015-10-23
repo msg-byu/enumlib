@@ -8,8 +8,10 @@ These files contain program's that can be useful for some users and need should 
 makestr.f90 is used for making POSCARs, it is accessed and used in the src directory by typing
 `make makestr.x`
 
-#make2Dplot.f90:
-This program is used to make a 2D plot of the enumeration results. It can also be compiled in the src directory by typing `make 2Dplot.x`.
+#make2Dplot.f90: This program is used to make a 2D plot of the
+enumeration results. It can also be compiled in the src directory by
+typing `make 2Dplot.x`. This program relies on splot.f which won't
+compile with gfortran. To use this program compile with ifort.
 
 #convert_structure_to_enumformat.f90:
 This program is designed to convert a structures.in file to structure.enum.out file. It can be compiled in the src directory using `make convert_structures_to_enumformat.x`

@@ -74,7 +74,7 @@ assist you.  gus.hart@gmail.com, 801-422-7444
 
 Example input files are in the `input` ('enumlib/support/input') directory. 
 
-There are also helper programs for making VASP POSCARs, pictures of
+There are also helper programs in the aux_src directory for making VASP POSCARs, pictures of
 2-D enumerations, etc.
 
 `make makestr.x`  <-- To make a program for making POSCARs  
