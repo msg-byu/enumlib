@@ -2,7 +2,7 @@ MODULE enumeration_types
 use num_types
 implicit none
 private
-public derivCryst, opList, LabelRotationList, RotPermList, maxLabLength
+public derivCryst, opList, LabelRotationList, RotPermList, maxLabLength, GroupList, permList
 
 integer, parameter :: maxLabLength = 500  ! maximum length of the character string labeling
 
