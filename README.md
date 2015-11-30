@@ -61,7 +61,7 @@ Then compile using the Makefile:
 (Alternatively, instead of setting the `F90` environmental variable first, you may just specify the variable during the make: `make F90=gfortran`.)
 
 Next, make the enumeration library  
-```cd ../../enumlib/trunk```  
+```cd ../../enumlib/src```  
 `make`
 
 Finally, to make a stand-alone executable for enumeration:  
@@ -72,9 +72,9 @@ assist you.  gus.hart@gmail.com, 801-422-7444
 
 ##HOW TO USE THE CODE:
 
-Example input files are in the `input` directory. 
+Example input files are in the `input` ('enumlib/support/input') directory. 
 
-There are also helper programs for making VASP POSCARs, pictures of
+There are also helper programs in the aux_src directory for making VASP POSCARs, pictures of
 2-D enumerations, etc.
 
 `make makestr.x`  <-- To make a program for making POSCARs  
@@ -82,4 +82,3 @@ There are also helper programs for making VASP POSCARs, pictures of
 
 If you have questions, email or call: gus.hart@gmail.com, 801-422-7444
 
-For in-depth examples, please see the `EXAMPLES` file in the `support` directory.
