@@ -174,7 +174,7 @@ do istrN=strNi,strNf
    HNF(3,1) = d; HNF(3,2) = e; HNF(3,3) = f
    write(13,'("HNF from file",6(1x,i3),//)') a,b,c,d,e,f
 
-   call map_enumStr_to_real_space(k,n,HNF,labeling,p,dvec,eps,sLV,aBas,spin,gIndx,x,L,diag,minkowskiReduce=.false.)
+   call map_enumStr_to_real_space(k,n,HNF,labeling,p,dvec,eps,sLV,aBas,spin,gIndx,x,L,diag,minkowskiReduce=.true.)
    write(strname,'("vasp.",i6.6)') strN
    write(strNstring,*) strN
    if (foutput_unit /= 6) then
