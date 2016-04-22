@@ -1,0 +1,19 @@
+HCP
+bulk
+1 0 0
+0.5 0.86602540 0
+0 0 1.6329932
+4 #
+2 # Number of points in the multilattice
+# Cartesian coordinates: 
+0 0 0    0/1/2/3
+.5 0.28897512 0.81649658    0/1/2
+   1 4    # Starting and ending cell sizes for search
+0.001    # eps
+full list of labelings (including incomplete labelings) is used
+# Concentration ranges
+# 0 5 5
+# 0 1 5
+# 1 2 5
+# 0 5 5
+# 0 1 5
