@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="template" versions="1,2,3">
-  <comments versions="1,2">#</comments>
-  <preamble versions="1,2">
+  <comments versions="1,2,3">#</comments>
+  <preamble versions="1,2,3">
     <line id="label" type="string" values="*" versions="1,2,3" />
     <line id="lattice_type" type="string" values="1" 
 	  versions="3" />
@@ -15,17 +15,24 @@
 	  store="points=$[0]" />
     <lines id="points" count="points" type="float" values="3" 
 	   versions="3" names="x,y,z" />
-    <line id="n-nary_case" type="string" values="1" versions="1,2,3" />
+    <line id="n-nary_case" type="string" values="1" versions="1,2,3" store="knary=int($[0].split('-')[0])"/>
     <line id="search_cell_sizes" type="int" values="2" versions="1,2,3" />
     <line id="eps" type="float" values="1" versions="3" />
-    <line id="conc_check_string" type="string" values="0" versions="3" />
-    <line id="conc_check" type="string" values="1" versions="3" />
+    <line id="conc_check_string" type="string" values="0" versions="3"
+	  />
+    <line id="conc_check" type="string" values="1" versions="3"
+	  store="conc=(True if operator.eq($[0].lower(), 't') else False)" />
+    <lines id="conc_check_header" type="string" values="0" versions="3"
+	  count="$(1 if conc else 0)" />
+    <lines id="conclist" type="string" values="*" versions="3"
+	   count="$(knary if conc else 0)" />
     <line id="separator" type="string" values="0" versions="1,2,3" />
     <line id="equivalency_list" type="string, int" values="2,1"
 	  versions="3" />
     <line id="headings" type="string" values="0" versions="1,2,3" />
   </preamble>
-  <body stop="EOF" key="structure.size" versions="1,2">
+  <body stop="EOF" key="structure.natoms, structure.SNF, structure.HNF,
+			structure.left_transform, structure.labeling" versions="1,2,3">
     <line id="structure" type="int" values="23" versions="1,2"
 	  names="numtot, size, natoms, pg, SNF*3, HNF*6, 
 		 left_transform*9, labeling" />
@@ -38,5 +45,8 @@
     <ignore id="separator" />
     <ignore id="conc_check_string" />
     <ignore id="headings" />
+    <ignore id="structure.numtot" />
+    <ignore id="structure.size" />
+    <ignore id="structure.pg" />
   </outcomes>
 </fortpy>

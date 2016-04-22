@@ -87,7 +87,7 @@ CONTAINS
     integer, allocatable :: label(:,:), a(:)
     real(dp), dimension(size(volTable,1)) :: minv, maxv, conc
     
-    open(98,file="debug_conc_check.out",access="append")
+    open(98,file="debug_conc_check.out",position="append")
     write(98,'(" Original concentration ranges:")')
     do i = 1, size(concTable,1)
        write(98,'(90(i4,1x))') concTable(i,:)
@@ -291,7 +291,7 @@ CONTAINS
   !!lists happen to be identical (is this possible?) then the
   !!labelings list will also be, so it's not necessary to create a
   !!separate list or index for them.</summary>
-  !!<parameter name="RPLists" regular="true"></parameter>
+  !!<parameter name="RPList" regular="true"></parameter>
   !!<parameter name="rdRPList"></parameter>
   !!<parameter name="RPLindx"></parameter>
   SUBROUTINE organize_rotperm_lists(RPList,rdRPList,RPLindx)
@@ -597,7 +597,7 @@ CONTAINS
   !!<parameter name="perm" regular="true">Permutation of gp.</parameter>
   SUBROUTINE find_permutation_of_group(g,gp,perm)
     integer, intent(in), dimension(:,:) :: g, gp 
-    integer, intent(out) :: perm(:) 
+    integer, intent(inout) :: perm(:) 
 
     integer n ! number of elements in the group (index of the superlattice)
     logical skip(size(g,2))
@@ -626,8 +626,8 @@ CONTAINS
   !!group effected by the rotation.</parameter>
   !!<parameter name="eps" regular="true">Finite precision tolerance.</parameter>
   SUBROUTINE map_dvector_permutation(rd,d,RP,eps)
-    real(dp), dimension(:,:) :: rd, d ! (both input)
-    integer :: RP(:) !(output)
+    real(dp), dimension(:,:), intent(in) :: rd, d ! (both input)
+    integer, intent(inout) :: RP(:) !(output)
     real(dp), intent(in) :: eps
 
     integer iD, jD, nD
@@ -729,7 +729,8 @@ CONTAINS
   !!<parameter name="A"></parameter>
   !!<parameter name="SNF"></parameter>
   !!<parameter name="B"></parameter>
-  !!<parameter name="RPList">List of rotation permutations for each HNF.</parameter>
+  !!<parameter name="RPList" regular="true">List of rotation
+  !!permutations for each HNF.</parameter>
   !!<parameter name="F"></parameter>
   !!<parameter name="SNF_label"></parameter>
   !!<parameter name="fixing_op" regular="true">List of operations that
@@ -737,8 +738,8 @@ CONTAINS
   SUBROUTINE get_SNF(HNF,A,SNF,B,RPList,F,SNF_label,fixing_op)
     integer, pointer :: HNF(:,:,:), SNF_label(:) ! HNF is an input list
     integer, pointer, dimension(:,:,:) :: A, SNF, B, F ! All these are output lists
-    type(opList) :: fixing_op(:) 
-    type(RotPermList) :: RPList(:) 
+    type(opList), intent(inout) :: fixing_op(:) 
+    type(RotPermList), intent(inout) :: RPList(:) 
 
     integer :: indx(size(HNF,3))
     integer ihnf, nHNF, nfound, ifound, status, ic, jc, i
@@ -1145,7 +1146,7 @@ CONTAINS
     character, pointer :: lm(:) ! labeling markers (use to generate the labelings
     !when writing results)
     character(80) filename ! String to pass filenames into output writing routines
-    character(80) formatstring
+    character(200) formatstring
     logical fixed_cells ! This is set to true if we are giving a list of cells from a file
     !instead of generating them all
     integer, pointer :: iRange(:,:) ! Rows: List of the number of atoms of each type
@@ -1179,7 +1180,7 @@ CONTAINS
        write(*,'(A)') "---------------------------------------------------------------------------------------------"
        write(*,'("Generating permutations for fixed cells. index n=",i2," to ",i2)') nMin, nMax
        write(*,'("Be aware: non-primitive structures (super-periodic configurations) are included",/,&
-            "in the final list in this mode.")')
+            &"in the final list in this mode.")')
        fixed_cells=.true.
     endif
     close(43)
@@ -1222,7 +1223,7 @@ CONTAINS
        formatstring='(3(g15.8,1x),3x,"# d",i2.2," d-vector, labels: "'
        do i=1,digitFull(iD); if (i>1) formatstring=trim(formatstring)//',"/"'; formatstring=trim(formatstring)//',i1'; enddo
        formatstring=trim(formatstring)//")"
-       ! (2) print the data            
+       ! (2) print the data
        write(14,formatstring) dFull(:,iD),iD, labelFull(1:digitFull(iD),iD)
     enddo
     write(14,'(i2,"-nary case")') k
@@ -1234,7 +1235,7 @@ CONTAINS
        write(14,'(A)') "Including only structures of which the concentration &
             &  of each atom is in the range:"
        do i = 1, k
-          write(14,'("Type ",i1": ",i4,"/",i4," -- ",i4,"/",i4)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
+          write(14,'("Type ",i1,": ",i4,"/",i4," -- ",i4,"/",i4)') i,cRange(i,1),cRange(i,3),cRange(i,2),cRange(i,3)
        enddo
     endif
     if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
@@ -1326,7 +1327,7 @@ CONTAINS
           call write_rotperms_list(rdRPList(iBlock),filename) 
           if (conc_check) then
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
-                write(*,'("HNF: ",6(i2,1x))') (RDhnf(i,:,iBlock),i=1,3)
+                ! write(*,'("HNF: ",6(i2,1x))') (RDhnf(i,:,iBlock),i=1,3)
                 ! call generate_permutation_labelings_new(ivol, nD, rdRPList(iBlock)%perm, iRange(iC,:), fixed_cells)
                 call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
                      lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
