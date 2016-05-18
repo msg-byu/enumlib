@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
   <decorates name="tree_class.enumerate_unique_permutations">
-    <group name="enum4_tests" purpose="testingp" staging="../unittests/">
+    <group name="enum4_tests1" purpose="testingp" staging="../unittests/">
       <test identifier="enum4fortran"
 	    description="Test the fortran translation of enum4 against python enum4" timed="true"
 	    cases="120_5_5a, 120_5_5b, Z10_Z10_5_5_10, 1110, 576_9, 228_8, 216_12, 1152_12,
@@ -32,7 +32,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests2" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_k" description="Test the fortran translation of enum4"
 	    timed="true" cases=""> 
 	<output identifier="initializeTree_k.out" folder="../tests/tree_class"
@@ -60,7 +60,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests3" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_colors"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="initializeTree_colors.out" folder="../tests/tree_class"
@@ -88,7 +88,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests4" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_n"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="initializeTree_n.out" folder="../tests/tree_class"
@@ -116,7 +116,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests5" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_Gsize" description="Test the fortran translation of enum4"
 	    timed="true" cases=""> 
 	<output identifier="initializeTree_Gsize.out" folder="../tests/tree_class"
@@ -144,7 +144,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests6" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_loc" description="Test the fortran translation of enum4"
 	    timed="true" cases=""> 
 	<output identifier="initializeTree_loc.out" folder="../tests/tree_class"
@@ -172,7 +172,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests7" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_branches"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="initializeTree_branches.out" folder="../tests/tree_class"
@@ -200,7 +200,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests8" purpose="testingf" staging="../unittests/">
       <test identifier="initializeTree_done" description="Test the fortran translation of enum4"
 	    timed="true" cases=""> 
 	<output identifier="initializeTree_done.out" folder="../tests/tree_class"
@@ -228,7 +228,7 @@
   </decorates>
 
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf_triple_embedded_types" staging="../unittests/">
+    <group name="enum4_tests9" purpose="testingf_triple_embedded_types" staging="../unittests/">
       <test identifier="initializeTree_G%layer%perm"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="initializeTree_G%layer%perm.out" folder="../tests/tree_class"
@@ -256,7 +256,7 @@
   </decorates>
 
   <decorates name="tree_class.generateColoringFromLocation">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests10" purpose="testingf" staging="../unittests/">
       <test identifier="generateColoringFromLocation"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="generateColoringFromLocation_labeling.out"
@@ -273,7 +273,7 @@
   </decorates>
 
   <decorates name="tree_class.indexOfCurrentColor">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests11" purpose="testingf" staging="../unittests/">
       <test identifier="indexOfCurrentColor"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="indexOfCurrentColor.out"
@@ -290,7 +290,7 @@
   </decorates>
 
   <decorates name="tree_class.integer2coloring">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests12" purpose="testingf" staging="../unittests/">
       <test identifier="integer2coloring"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="integer2coloring.out"
@@ -315,7 +315,7 @@
   </decorates>
 
   <decorates name="tree_class.depth">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests13" purpose="testingf" staging="../unittests/">
       <test identifier="depth"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="depth.out"
@@ -332,7 +332,7 @@
   </decorates>
 
   <decorates name="tree_class.increment_location">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests14" purpose="testingf" staging="../unittests/">
       <test identifier="increment_location"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="increment_location.out"
@@ -349,7 +349,7 @@
   </decorates>
 
   <decorates name="tree_class.next_branch">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests15" purpose="testingf" staging="../unittests/">
       <test identifier="next_branch"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="next_branch.out"
@@ -366,7 +366,7 @@
   </decorates>
 
   <decorates name="tree_class.listGroup">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests16" purpose="testingf" staging="../unittests/">
       <test identifier="listGroup"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="listGroup.out"

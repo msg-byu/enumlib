@@ -30,10 +30,11 @@ CONTAINS
   !!<parameter name="digit"></parameter>
   !!<parameter name="fname" regular="true"></parameter>
   !!<parameter name="cRange"></parameter>
-  subroutine read_struct_enum_out(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname,cRange)
+  subroutine read_struct_enum_out(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit &
+       & ,fname,cRange)
 
     character(80) :: title, pLatTyp, fullpart
-    character(len=:),allocatable, optional :: fname
+    character(len=:), allocatable, optional :: fname
     integer,intent(out):: Nmin, Nmax, k, LatDim, nD
     real(dp),intent(out) :: pLV(3,3), eps
     real(dp), pointer :: d(:,:)
@@ -41,9 +42,9 @@ CONTAINS
     integer, pointer :: eq(:), cRange(:,:)
     !logical, intent(out):: conc_check
     
-    logical full, err
-    integer iD, i, status
-    character(100) line
+    logical :: full, err
+    integer :: iD, i, status
+    character(100) :: line
     
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
@@ -198,9 +199,9 @@ CONTAINS
     integer, pointer :: eq(:), cRange(:,:)
     !logical, intent(out):: conc_check
     
-    logical full, err
-    integer iD, i, status
-    character(100) line
+    logical :: full, err
+    integer :: iD, i, status
+    character(100) :: line
     
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
@@ -376,7 +377,7 @@ CONTAINS
   !!<parameter name="fname" regular="true"></parameter>
   !!<parameter name="cRange"></parameter>
   !!<parameter name="conc_check" regular="true"></parameter>
-  subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full&
+  subroutine read_input(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full &
        &,label,digit,fname,cRange,conc_check)
     character(80) :: title, pLatTyp, fullpart
     character(80), optional :: fname
@@ -387,9 +388,9 @@ CONTAINS
     integer, pointer :: eq(:), cRange(:,:)
     logical, intent(out):: conc_check
     
-    logical full, err
-    integer iD, i, status
-    character(100) line
+    logical :: full, err
+    integer :: iD, i, status
+    character(100) :: line
     
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
@@ -632,10 +633,10 @@ CONTAINS
     nP = rpList%nL
     if(size(rpList%perm,1)/=rpList%nL) stop "rp list not initialized correctly (write_rotperms_list in io_utils)"
     write(11,'("The integer vectors in the final columns of each",/,&
-         "permutation listing describe how a list 1, 2, ...",/,&
-         "gets permuted. So ""2 1"" implies that element 2 is",/,&
-         "mapped to position 1, and the first one ends up in ",/,&
-         "second position.")')
+         &"permutation listing describe how a list 1, 2, ...",/,&
+         &"gets permuted. So ""2 1"" implies that element 2 is",/,&
+         &"mapped to position 1, and the first one ends up in ",/,& 
+         &"second position.")')
     write(11,'("Number of permutations: ",i4)') nP
     do iP = 1, nP
        write(11,'("Perm #: ",i5,1x,"Perm: ",40(i4,1x))') iP, rpList%perm(iP,:)

@@ -138,7 +138,7 @@ CONTAINS
        end if
     end do; end do
     ! Write a file containing the mask for site restrictions
-    open(22,file="debug_site_restrictions.out",access="append")
+    open(22,file="debug_site_restrictions.out",position="append")
     write(22,'("site #   parent site #        Mask")') 
     do iD = 1, n*nD
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
@@ -708,8 +708,7 @@ CONTAINS
     integer,     intent(out):: m(:), j(:)
     
     integer k, n, iL
-    integer(li) :: quot
-    integer c
+    integer(li) :: quot, c
     
     quot = idx
     j = conc
@@ -918,7 +917,7 @@ CONTAINS
   !!super-periodic labelings (non-primitive superstructures). If the
   !!"full" variable is false, it also removes "label-permutation"
   !!duplicates---labelings that are not unique when the labels
-  !!themselves (not their positions) are permuted (e.g., 00111 &lt--&gt
+  !!themselves (not their positions) are permuted (e.g., 00111 &lt;--&gt;
   !!11000).  The basic idea of the routine is to run like an
   !!"odometer", generating all numbers (base k) from 0 to k^n - 1, and
   !!then use rotation and translation permutations to eliminate
@@ -935,8 +934,8 @@ CONTAINS
   !!<parameter name="full" regular="true">specify whether the full
   !!labelings list should be used or not.</parameter>
   !!<parameter name="lab">Array to store markers for every raw
-  !!labeling I=&gt incomplete labeling, U=&gt unique, D=&gt rot/trans
-  !!duplicate, N=&gt non-primitive, E=&gt label exchange Need to pass lab
+  !!labeling I=&gt; incomplete labeling, U=&gt; unique, D=&gt; rot/trans
+  !!duplicate, N=&gt; non-primitive, E=&gt; label exchange Need to pass lab
   !!out to write out the labelings.</parameter>
   !!<parameter name="parLabel" regular="true">The *labels* (index 1)
   !!for each d-vector (index 2) in the parent.</parameter>
@@ -1202,7 +1201,7 @@ CONTAINS
     do im = 2,product(n)  ! Loop over the members of the translation group
        p(:,im) = p(:,im-1) ! Start with the same digits as in the previous increment
        p(3,im) = mod(p(3,im-1)+1,n(3))  ! Increment the first cyclic group
-       if (p(3,im)==0) then             ! If it rolled over then 
+       if (p(3,im)==0) then             ! If it rolled over then
           p(2,im) = mod(p(2,im-1)+1,n(2))! increment the next cyclic group
           if (p(2,im)==0) then          ! If this one rolled over too
              p(1,im) = mod(p(1,im-1)+1,n(1)) ! Then increment the third one
@@ -1376,7 +1375,7 @@ CONTAINS
        end if
     end do; end do
     ! Write a file containing the mask for site restrictions
-    open(22,file="debug_site_restrictions.out",access="append")
+    open(22,file="debug_site_restrictions.out",position="append")
     write(22,'("site #   parent site #        Mask")') 
     do iD = 1, n*nD
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
@@ -1406,7 +1405,7 @@ CONTAINS
     !   -1 -1 -1 -1
     forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
     ! Write a file containing the table of allowed labels/site
-    open(22,file="debug_label_table.out",access="append")
+    open(22,file="debug_label_table.out",position="append")
     write(22,'("label #     Label table (k.n*nD)")') 
     do ik = 1, k
        write(22,'(i4,8x,30(i2,1x))') ik,label(ik,:)
@@ -1434,7 +1433,7 @@ CONTAINS
              ! one digit (i.e., go left one "wheel")
              cycle
           endif
-          write(*,'("DEBUG: sp,dig,E:" 3(i2,1x))') sitepointer,digit(sitepointer),E(sitePointer,digit(sitepointer))
+          write(*,'("DEBUG: sp,dig,E:", 3(i2,1x))') sitepointer,digit(sitepointer),E(sitePointer,digit(sitepointer))
           if(E(sitePointer,digit(sitePointer))==1) exit ! Found a
           ! valid label for this site, so exit loop
        enddo

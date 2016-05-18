@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
   <decorates name="derivative_structure_generator.get_list_at_this_size">
-    <group name="stuct_enum_tests" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests1" purpose="testing_bug" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-40]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -31,7 +31,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_concentration_list">
-    <group name="stuct_enum_tests" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests2" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-40]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -58,7 +58,7 @@
 
   <decorates name="derivative_structure_generator.mixed_radix_counter">
     <skip reason="This routine is not used in UNCLE."/>
-    <group name="stuct_enum_tests" purpose="testing_not_used" staging="../unittests/">
+    <group name="stuct_enum_tests3" purpose="testing_not_used" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -79,7 +79,7 @@
 
   <decorates name="derivative_structure_generator.do_rotperms_form_groups">
     <skip reason="This routine is not used in UNCLE."/>
-    <group name="stuct_enum_tests" purpose="testing_not_used" staging="../unittests/">
+    <group name="stuct_enum_tests4" purpose="testing_not_used" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -96,7 +96,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.organize_rotperm_lists">
-    <group name="stuct_enum_tests" purpose="testing_auxread" staging="../unittests/">
+    <group name="stuct_enum_tests5" purpose="testing_auxread" staging="../unittests/">
       <test identifier="organize_rotperm_lists_rdRPList"
 	    description="Original enumerations tests of basic structures" cases="[1-38]"
 	    timed="true">
@@ -124,7 +124,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests6" purpose="testing_bug" staging="../unittests/">
       <test identifier="get_dvector_permutations_dRPList"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-15]" timed="true">
@@ -165,7 +165,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_rotation_perms_lists">
-    <group name="stuct_enum_tests" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests7" purpose="testing_bug" staging="../unittests/">
       <test identifier="RPList"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-38]" timed="true">
@@ -215,7 +215,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.find_permutation_of_group">
-    <group name="stuct_enum_tests" purpose="testing_need_perm.in" staging="../unittests/">
+    <group name="stuct_enum_tests8" purpose="testing_need_perm.in" staging="../unittests/">
       <test identifier="find_permutation_of_group"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-634]" timed="true">
@@ -237,7 +237,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.map_dvector_permutation">
-    <group name="stuct_enum_tests" purpose="testing_need_RP.in" staging="../unittests/">
+    <group name="stuct_enum_tests9" purpose="testing_need_RP.in" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-722]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -262,7 +262,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_diagonals">
-    <group name="stuct_enum_tests" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests10" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-100]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -280,7 +280,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_all_HNFs">
-    <group name="stuct_enum_tests" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests11" purpose="testing_f" staging="../unittests/">
       <test identifier="get_all_HNFs"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-28]" timed="true">
@@ -299,7 +299,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_SNF">
-    <group name="stuct_enum_tests" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests12" purpose="testing_bug" staging="../unittests/">
       <test identifier="get_SNF_SNF"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-38]" timed="true">
@@ -390,7 +390,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.remove_duplicate_lattices">
-    <group name="stuct_enum_tests" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests13" purpose="testing_bug" staging="../unittests/">
       <test identifier="remove_duplicate_lattices_uq_hnf"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-37]" timed="true">
@@ -468,7 +468,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_sLV_fixing_operations">
-    <group name="stuct_enum_tests" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests14" purpose="testing_bug" staging="../unittests/">
       <test identifier="get_sLV_fixing_operations_fixOp"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-189]" timed="true">
@@ -517,7 +517,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_all_2D_HNFs">
-    <group name="stuct_enum_tests" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests15" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-10]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -535,7 +535,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_2D_diagonals">
-    <group name="stuct_enum_tests" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests16" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-50]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -553,7 +553,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
-    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
+    <group name="stuct_enum_tests17" purpose="testing" staging="../unittests/">
       <test identifier="fixed_cell_enum" description="Original enumerations tests of basic
 					       structures. Used to test enum3 against enum4."
 	    cases="sc[1-6],fcc[1-5],bcc[1-5]" timed="true">
@@ -586,12 +586,12 @@
       </test>
       <test identifier="conc_and_fc_enum" description="Original enumerations tests of basic
       					       structures. Used to test enum3 against enum4."
-      	    cases="cc_sc[1-5],cc_fcc[1-5],cc_bcc[1-5]" timed="true">
-      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	    cases="sc[1-5],fcc[1-5],bcc[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.cc_{}"
       	       rename="struct_enum.in" />
            <input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
                   rename="fixed_cells.in" />
-      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.fc_{}"
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.cc_fc_{}"
       		template="struct_enum.out.xml" identifier="struct_enum.out" />
       	<target name="./struct_enum.out" compareto="struct_enum.out" />
       </test>

@@ -164,12 +164,12 @@ CONTAINS
   !!<parameter name="digit" regular="true">List of the upper bound of
   !!each digit.</parameter>
   SUBROUTINE mixed_radix_counter(labels,digit)
-    integer labels(:,:) 
-    integer digit(:) 
-    integer a(size(digit)), counter(size(digit)) ! The odometer; ordinal counter for each digit
-    integer i,ic,j,n,ilab, quot
-    integer nUq ! number of unique numbers possible in this mixed radix system
-    integer multiplier(size(digit)), digIdx(size(digit)), temp(1), b(size(digit)), idx
+    integer :: labels(:,:) 
+    integer :: digit(:) 
+    integer :: a(size(digit)), counter(size(digit)) ! The odometer; ordinal counter for each digit
+    integer :: i,ic,j,n,ilab, quot
+    integer :: nUq ! number of unique numbers possible in this mixed radix system
+    integer :: multiplier(size(digit)), digIdx(size(digit)), temp(1), b(size(digit)), idx
 
     n = size(digit) ! Number of sites
     counter = 1
@@ -430,7 +430,7 @@ CONTAINS
   !!matrices.</parameter>
   !!<parameter name="Op" regular="true">A list of symmetry ops (rots
   !!and shifts) for the parent multilattice</parameter>
-  !!<parameter name="RPList" regular="true">A list of lists of
+  !!<parameter name="RPlist" regular="true">A list of lists of
   !!permutations effected by the Ops.</parameter>
   !!<parameter name="dperms" regular="true"></parameter>
   !!<parameter name="eps" regular="true">Finite precision
@@ -725,10 +725,10 @@ CONTAINS
   !!SNFs. SNF_label indicates which of the unique SNFs corresponds to
   !!each HNF. The transformations, SNFs, and labels are ordered on
   !!output into blocks of identical SNFs.</summary>
-  !!<parameter name="HNF">List of HNFs.</parameter>
-  !!<parameter name="A"></parameter>
-  !!<parameter name="SNF"></parameter>
-  !!<parameter name="B"></parameter>
+  !!<parameter name="HNF">List of HNFs (input).</parameter>
+  !!<parameter name="A">Transformation matrix (output)</parameter>
+  !!<parameter name="SNF">List of SNFs</parameter>
+  !!<parameter name="B">Transformation matrix (ouput)</parameter>
   !!<parameter name="RPList" regular="true">List of rotation
   !!permutations for each HNF.</parameter>
   !!<parameter name="F"></parameter>
