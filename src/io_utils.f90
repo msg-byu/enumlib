@@ -30,8 +30,7 @@ CONTAINS
   !!<parameter name="digit"></parameter>
   !!<parameter name="fname" regular="true"></parameter>
   !!<parameter name="cRange"></parameter>
-  subroutine read_struct_enum_out(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit &
-       & ,fname,cRange)
+  subroutine read_struct_enum_out(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname,cRange)
 
     character(80) :: title, pLatTyp, fullpart
     character(len=:), allocatable, optional :: fname

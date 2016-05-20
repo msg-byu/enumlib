@@ -296,8 +296,8 @@ CONTAINS
   !!<parameter name="RPLindx"></parameter>
   SUBROUTINE organize_rotperm_lists(RPList,rdRPList,RPLindx)
     type(RotPermList), intent(in) :: RPList(:)
-    type(RotPermList), pointer :: rdRPList(:) ! output
-    integer, pointer :: RPLindx(:) ! output
+    type(RotPermList), pointer, intent(out) :: rdRPList(:) ! output
+    integer, pointer, intent(out) :: RPLindx(:) ! output
 
     integer iL, jL, nL, status,  cnt, nP
     type(RotPermList), allocatable :: tList(:)
@@ -336,6 +336,8 @@ CONTAINS
        allocate(rdRPList(iL)%perm(nl,size(tList(iL)%perm,2)));
        rdRPList(iL)%nL = nL
        rdRPList(iL)%perm = tList(iL)%perm
+       rdRPList(iL)%v => null()
+       rdRPList(iL)%RotIndx => null()
     enddo
   ENDSUBROUTINE organize_rotperm_lists
   
@@ -389,6 +391,7 @@ CONTAINS
     if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
     
     dRPList%nL = nOp  ! Number of operations that fix the parent
+    dRPList%RotIndx => null()
     !lattice (but may permute the d-vectors)
 
     do iOp = 1, nOp ! Try each operation in turn and see how the
@@ -404,6 +407,7 @@ CONTAINS
        dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
        call map_dvector_permutation(rd,pd,dRPList%perm(iOp,:),eps)
     enddo
+
     name = "debug_dvec_rots.out"
     call write_rotperms_list(dRPList,name)
 
@@ -597,7 +601,7 @@ CONTAINS
   !!<parameter name="perm" regular="true">Permutation of gp.</parameter>
   SUBROUTINE find_permutation_of_group(g,gp,perm)
     integer, intent(in), dimension(:,:) :: g, gp 
-    integer, intent(inout) :: perm(:) 
+    integer, intent(out) :: perm(:) 
 
     integer n ! number of elements in the group (index of the superlattice)
     logical skip(size(g,2))
@@ -627,7 +631,7 @@ CONTAINS
   !!<parameter name="eps" regular="true">Finite precision tolerance.</parameter>
   SUBROUTINE map_dvector_permutation(rd,d,RP,eps)
     real(dp), dimension(:,:), intent(in) :: rd, d ! (both input)
-    integer, intent(inout) :: RP(:) !(output)
+    integer, intent(out) :: RP(:) !(output)
     real(dp), intent(in) :: eps
 
     integer iD, jD, nD
