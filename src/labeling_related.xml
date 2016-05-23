@@ -133,26 +133,6 @@
     </group>
   </decorates>
 
-  <!-- <decorates name="labeling_related.is_valid_multiplicity"> -->
-  <!-- <skip reason="This routine is not currently used in UNCLE"/> -->
-  <!--   <group name="labeling_tests4" purpose="testing_too_deep" staging="../unittests/"> -->
-  <!--     <test identifier="is_valid_multiplicity" description="" timed="true" cases="[]"> -->
-  <!-- 	<output identifier="is_valid_multiplicity.out" folder="../tests/labeling_related" -->
-  <!-- 		file="is_valid_multiplicity.out.{}" template="string.xml" /> -->
-  <!-- 	<target name="[default]" compareto="is_valid_multiplicity.out" -->
-  <!-- 		varfile="is_valid_multiplicity.out" when="each" /> -->
-  <!--     </test> -->
-  <!--     <assignment name="labeling" value="labelingfile" allocate="true"> -->
-  <!-- 	<value identifier="labelingfile" file="is_valid_multiplicity_labeling.in{}" -->
-  <!-- 	       folder="../tests/labeling_related" rename="labeling.in"/> -->
-  <!--     </assignment> -->
-  <!--     <assignment name="concList" value="concListfile" allocate="true"> -->
-  <!-- 	<value identifier="concListfile" file="is_valid_multiplicity_concList.in{}" -->
-  <!-- 	       folder="../tests/concList_related" rename="concList.in"/> -->
-  <!--     </assignment> -->
-  <!--   </group> -->
-  <!-- </decorates> -->
-
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
     <group name="labeling_tests5" purpose="testing" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_label"
@@ -512,35 +492,6 @@
       </assignment>
     </group>
   </decorates>
-
-  <!-- <decorates name="labeling_related.postprocess_labeling"> -->
-  <!--   <group name="label_tests11" purpose="testing_too_deep" staging="../unittests/"> -->
-  <!--     <test identifier="postprocess_labeling" description="Testing of k array building routine." -->
-  <!-- 	    timed="true" cases="[]" > -->
-  <!-- 	<output identifier="postprocess_labeling_newlabeling.out" -->
-  <!-- 		folder="../tests/labeling_related" -->
-  <!-- 		file="postprocess_labeling_newlabeling.out.{}" template="integer.xml" /> -->
-  <!-- 	<target name="newlabeling" compareto="postprocess_labeling_newlabeling.out" -->
-  <!-- 		varfile="postprocess_labeling_newlabeling.out" when="each" /> -->
-  <!--     </test> -->
-  <!--     <assignment name="nUC" value="nUCfile"> -->
-  <!-- 	<value identifier="nUCfile" file="postprocess_labeling_nUC.in.{}" -->
-  <!-- 	       folder="../tests/labeling_related" rename="nUC.in"/> -->
-  <!--     </assignment> -->
-  <!--     <assignment name="nAllD" value="nAllDfile"> -->
-  <!-- 	<value identifier="nAllDfile" file="postprocess_labeling_nAllD.in.{}" -->
-  <!-- 	       folder="../tests/labeling_related" rename="nAllD.in"/> -->
-  <!--     </assignment> -->
-  <!--     <assignment name="oldlabeling" value="oldlabelingfile" allocate="true"> -->
-  <!-- 	<value identifier="oldlabelingfile" file="postprocess_labeling_oldlabeling.in.{}" -->
-  <!-- 	       folder="../tests/labeling_related" rename="oldlabeling.in"/> -->
-  <!--     </assignment> -->
-  <!--     <assignment name="newD2oldD" value="newD2oldDfile" allocate="true"> -->
-  <!-- 	<value identifier="newD2oldDfile" file="postprocess_labeling_newD2oldD.in.{}" -->
-  <!-- 	       folder="../tests/labeling_related" rename="newD2oldD.in"/> -->
-  <!--     </assignment> -->
-  <!--   </group> -->
-  <!-- </decorates> -->
 
   <decorates name="labeling_related.generate_labeling_from_index">
     <group name="labeling_tests12" purpose="testingf_can't_get_too_ungle_bug"
