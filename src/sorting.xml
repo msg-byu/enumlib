@@ -19,27 +19,6 @@
     </group>   
   </decorates>
 
-  <!-- <decorates name="sorting.greater_than"> -->
-  <!--   <group name="sorting_tests2" purpose="testingf_too_deep" staging="../unittests/"> -->
-  <!--     <test identifier="greater_than" description="Sorting tests." -->
-  <!-- 	    timed="true" cases="[1-999]"> -->
-  <!-- 	<output identifier="greater_than.out" folder="../tests/sorting" -->
-  <!-- 		file="greater_than.out.{}"  -->
-  <!-- 		template="string.xml" /> -->
-  <!-- 	<target name="[default]" compareto="greater_than.out" varfile="greater_than.out" -->
-  <!-- 		when="each" /> -->
-  <!--     </test> -->
-  <!--     <assignment name="vecA" value="vecAfile" allocate="true"> -->
-  <!-- 	<value identifier="vecAfile" file="greater_than_vecA.in.{}" -->
-  <!-- 	       folder="../tests/sorting" rename="vecA.in"/> -->
-  <!--     </assignment> -->
-  <!--     <assignment name="vecB" value="vecBfile" allocate="true"> -->
-  <!-- 	<value identifier="vecBfile" file="greater_than_vecB.in.{}" -->
-  <!-- 	       folder="../tests/sorting" rename="vecB.in"/> -->
-  <!--     </assignment> -->
-  <!--   </group>    -->
-  <!-- </decorates> -->
-
   <decorates name="sorting.heapsort_records_int">
   <skip reason="This routine is not currently used in UNCLE"/>
     <group name="sort_tests3" purpose="testingf" staging="../unittests/">
