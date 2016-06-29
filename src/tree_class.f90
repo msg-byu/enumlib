@@ -273,22 +273,24 @@ CONTAINS
     !!<local name="stab_size">The size of the next stabilizer group</local>
     !!<local name="new_loc">The location of the rotated branch.</local>
     !!<local name="min_stab">Temporary array for the stabilizers</local>
+    !!<local name="d">Keeps track of how deep in the tree we are.</local>
     integer :: rotatedlabel(size(label))
-    integer :: i, j, stab_size, new_loc
+    integer :: i, j, stab_size, new_loc, d
     integer, allocatable :: min_stab(:,:)
-    
+
+    d = self%depth()
     ! Make sure that the number of stibalizers is initially 0
-    self%Gsize(self%depth() + 1) = 0
+    self%Gsize(d + 1) = 0
 
     ! Now apply the symmetry group in order to determine if the
     ! labeling is unique and to find the stabilizers
-    groupCheck: do i = 1, self%Gsize(self%depth())
+    groupCheck: do i = 1, self%Gsize(d)
        ! Apply the ith permutation to the labeling
-       rotatedlabel = label(self%G%layer(self%depth())%perms(i,:))
+       rotatedlabel = label(self%G%layer(d)%perms(i,:))
        if (all( rotatedlabel == label )) then
-          if ((self%depth() == self%k -1).and. (i <= symsize) .and. (i > 1) .and. (.not. fixedcell)) then
+          if ((d == self%k -1).and. (i <= symsize) .and. (i > 1) .and. (.not. fixedcell)) then
              do j = 2, symsize
-                if (all(self%G%layer(1)%perms(j,:) == self%G%layer(self%depth())%perms(i,:))) then
+                if (all(self%G%layer(1)%perms(j,:) == self%G%layer(d)%perms(i,:))) then
                    self%unique = .False.
                    exit groupCheck
                 end if
@@ -296,23 +298,23 @@ CONTAINS
           end if
           ! This permutation is a stabilizer, i.e., it fixes the
           ! current labeling
-          stab_size = self%Gsize(self%depth()+1) + 1
-          self%Gsize(self%depth()+1) = stab_size
-          self%G%layer(self%depth()+1)%perms(stab_size,:) = self%G%layer(self%depth())%perms(i,:)
+          stab_size = self%Gsize(d+1) + 1
+          self%Gsize(d+1) = stab_size
+          self%G%layer(d+1)%perms(stab_size,:) = self%G%layer(d)%perms(i,:)
        else 
           ! check to see if the configuration is unique
           call self%get_loc(rotatedlabel,new_loc)
-          if (self%depth() == 1) then
-             self%base(self%loc(self%depth())+1) = 1
-             if (new_loc < self%loc(self%depth())) then
+          if (d == 1) then
+             self%base(self%loc(d)+1) = 1
+             if (new_loc < self%loc(d)) then
                 ! This labeling appeared earlier in the list
                 self%unique = .False.
                 exit groupCheck
-             elseif (new_loc > self%loc(self%depth())) then
+             elseif (new_loc > self%loc(d)) then
                 self%base(new_loc + 1) = 1
              end if
           else
-             if (new_loc < self%loc(self%depth())) then
+             if (new_loc < self%loc(d)) then
                 ! The rotated labeling is equivalent
                 ! to an earlier configuration.
                 self%unique = .False.
@@ -324,10 +326,10 @@ CONTAINS
 
     if (self%unique .eqv. .True.) then
        allocate(min_stab(stab_size,self%n))
-       min_stab = self%G%layer(self%depth()+1)%perms(1:stab_size,:)
-       deallocate(self%G%layer(self%depth()+1)%perms)
-       allocate(self%G%layer(self%depth()+1)%perms(stab_size,self%n))
-       self%G%layer(self%depth()+1)%perms = min_stab
+       min_stab = self%G%layer(d+1)%perms(1:stab_size,:)
+       deallocate(self%G%layer(d+1)%perms)
+       allocate(self%G%layer(d+1)%perms(stab_size,self%n))
+       self%G%layer(d+1)%perms = min_stab
        deallocate(min_stab)
     end if
    
@@ -353,8 +355,9 @@ CONTAINS
     !!<local name="numones">The number of '1's to the right of the current zero.</local>
     !!<local name="minl">The location of the next zero.</local>
     !!<local name="lastone">The index of the last '1' in the binary array.</local>
+    !!<local name="d">Keeps track of how deep in the tree we are.</local>
     integer, allocatable :: new_labeling(:)
-    integer :: i, j, nzeros, numones, lastone
+    integer :: i, j, nzeros, numones, lastone, d
     integer :: ndigits(1), minl(1)
 
     ! The labeling needs to have only '1's for the current color, have
@@ -380,12 +383,13 @@ CONTAINS
     !    deallocate(mask)
     ! enddo
 
-    allocate(new_labeling(count(labeling .eq. 0,1) + count(labeling .eq. self%depth(),1)))
+    d = self%depth()
+    allocate(new_labeling(count(labeling .eq. 0,1) + count(labeling .eq. d,1)))
     new_labeling = 0
     j = 1
 
     do i = 1, size(labeling)
-       if (labeling(i) == self%depth()) then
+       if (labeling(i) == d) then
           new_labeling(j) = 1
           lastone = j
           j = j + 1
