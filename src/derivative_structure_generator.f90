@@ -1210,7 +1210,7 @@ CONTAINS
     ! Set up the output file and write the lattice information
     open(14,file="struct_enum.out")
     !Write the fortpy version information for the file.
-    write(14, *) '# <fortpy version="3" revision="247"></fortpy>'
+    write(14, *) '# <fortpy version="4" revision="247"></fortpy>'
     write(14,'(a10)') title
     if (pLatTyp=='S'.or.pLatTyp=="s") then; write(14,'(a4)') "surf"
     elseif (pLatTyp=='B'.or.pLatTyp=="b") then; write(14,'(a4)') "bulk"
@@ -1333,12 +1333,14 @@ CONTAINS
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
                 ! write(*,'("HNF: ",6(i2,1x))') (RDhnf(i,:,iBlock),i=1,3)
                 ! call generate_permutation_labelings_new(ivol, nD, rdRPList(iBlock)%perm, iRange(iC,:), fixed_cells)
-                call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
-                     lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
+                call enum4(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
+                     hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,labelFull,fixed_cells)
+                ! call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
+                !      lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
                 ! call generate_disjoint_permutation_labelings(k,ivol,nD&
                 !     &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
-                 call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
-                     &,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
+                 ! call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
+                 !     &,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
              enddo
           else
              call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&

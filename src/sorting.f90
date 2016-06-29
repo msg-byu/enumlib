@@ -3,12 +3,56 @@ use num_types
 
 implicit none
 private
-public heapsort, sort_permutations_list
+public heapsort, sort_permutations_list, sort_concs
 
 INTERFACE heapsort
    MODULE PROCEDURE heapsort_records_int, heapsort_records_dp
 END INTERFACE
 CONTAINS
+
+  !!<summary>This routine takes a list of integers and sorts them from
+  !!least to greatets. It also sorts a second list of labels so that the
+  !!relative order of the entries of the two lists remains the same.</summary>
+  !!<parameter name="list" regular="true">The 1D integer array to be
+  !!sorted.</parameter>
+  !!<parameter name="labels" regular="true">The list of labels for the
+  !!concentrations.</parameter>
+  SUBROUTINE sort_concs(list,labels)
+    integer, intent(inout) :: list(:), labels(:)
+    !!<local name="sorted_list">A temporary array for storing the sorted array.</local>
+    !!<local name="minl">The location of the smallest entry in the list.</local>
+    !!<local name="i">Counting index.</local>
+    integer :: sorted_list(size(list)), sorted_labels(size(labels))
+    integer :: minl
+    integer :: i, j
+
+    sorted_list = 0
+    sorted_labels = 0
+    j = 1
+    do i =1, size(list)
+       if (list(i) .ne. 0) then
+          sorted_list(j) = list(i)
+          sorted_labels(j) = labels(i)
+          j = j + 1
+       end if
+    end do
+    labels = sorted_labels
+    list = sorted_list
+
+    ! not used for this phase of tests
+    ! integer :: i
+
+    ! do i =1, size(list)
+    !    minl = minloc(list, 1, list .NE. -1)
+    !    sorted_list(i) = list(minl)
+    !    sorted_labels(i) = labels(minl)
+    !    list(minl) = -1
+    ! end do
+    ! labels = sorted_labels
+    ! list = sorted_list
+
+  END SUBROUTINE sort_concs
+    
 
   !!<summary>This routine takes a list of integer sequences (rows) and
   !!removes duplicates so that each row is unique. It seems that the

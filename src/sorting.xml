@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
 
+  <decorates name="sorting.sort_concs">
+    <group name="sort_concentrations" purpose="testing" staging="../unittests/">
+      <test identifier="sort_concs" description="Sorting tests."
+	    timed="true" cases="[1-20]">
+	<output identifier="sort_concs.out" folder="../tests/sorting"
+		file="sort_concs.out.{}" template="integer.xml" />
+	<target name="list" compareto="sort_concs.out"
+		varfile="sort_concs.out" when="each" />
+      </test>
+      <assignment name="list" value="listfile" allocate="true">
+  	<value identifier="listfile" file="sort_concs.in.{}"
+  	       folder="../tests/sorting" rename="cocns.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
   <decorates name="sorting.sort_permutations_list">
     <group name="sort_tests1" purpose="testing" staging="../unittests/">
       <test identifier="sort_permutations_list" description="Sorting tests."
