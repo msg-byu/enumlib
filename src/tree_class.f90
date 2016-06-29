@@ -309,7 +309,6 @@ CONTAINS
              if (new_loc < self%loc(d)) then
                 ! This labeling appeared earlier in the list
                 self%unique = .False.
-                exit groupCheck
              elseif (new_loc > self%loc(d)) then
                 self%base(new_loc + 1) = 1
              end if
