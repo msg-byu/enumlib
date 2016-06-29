@@ -356,67 +356,28 @@ CONTAINS
     !!<local name="lastone">The index of the last '1' in the binary array.</local>
     !!<local name="d">Keeps track of how deep in the tree we are.</local>
     integer, allocatable :: new_labeling(:)
-    integer :: i, j, nzeros, numones, lastone, d
+    integer :: i, j, nzeros, numones, lastone, nLeft, d 
     integer :: ndigits(1), minl(1)
 
+    d = self%depth()
     ! The labeling needs to have only '1's for the current color, have
     ! all smaller integer colorings removed, and be zeros
     ! otherwise. We also keey track of the location of the last '1' in the list.
-
-    ! better algorithm for this if we exclude the looping over the concs
-    !     do iK = 1, n
-    !    allocate(mask(nLeft))
-    !    mask = 0
-    !    where(pack(l,l>=iK-1)==iK-1)
-    !       !   where(l==iK-1)
-    !       mask = 1
-    !    end where
-    !    xTemp = 0
-    !    do iM = 1, nLeft
-    !       if (mask(iM)==0) then!&
-    !          xTemp = xTemp + binomial(nLeft - iM, count(mask(iM:)==1)-1) 
-    !       endif
-    !    enddo
-    !    X(iK) = xTemp
-    !    nLeft = nLeft - conc(iK)
-    !    deallocate(mask)
-    ! enddo
-
-    d = self%depth()
-    allocate(new_labeling(count(labeling .eq. 0,1) + count(labeling .eq. d,1)))
+    nLeft = count(labeling .eq. 0,1) + count(labeling >= d,1)
+    allocate(new_labeling(nLeft))
     new_labeling = 0
-    j = 1
+    where(pack(labeling,labeling >= d .or. labeling == 0) == d)
+       new_labeling = 1
+    end where
 
-    do i = 1, size(labeling)
-       if (labeling(i) == d) then
-          new_labeling(j) = 1
-          lastone = j
-          j = j + 1
-       else if (labeling(i) == 0) then
-          new_labeling(j) = 0
-          j = j + 1
-       end if
-    end do
-
-    ! Now we need the number of zeros between the beginning of the
-    ! array and the last '1'.
-    nzeros = 0!maxloc(new_labeling,1)
-    do i = 1, lastone!, maxloc(new_labeling,1)
-       if (new_labeling(i) == 0) then
-          nzeros = nzeros + 1
-       end if
-    end do
+    ! Use the binomials to find the index
     index = 0
-
-    ! Use the binomial coefficient to find the index for this labeling.
-    do i = 1, nzeros
-       minl = minloc(new_labeling)
-       ndigits = size(new_labeling) - minloc(new_labeling)
-       numones = count(new_labeling(minl(1):) .eq. 1)
-       new_labeling(minloc(new_labeling)) = 1
-       index = index + binomial(ndigits(1),numones-1)
+    do i = 1, nLeft
+       if (new_labeling(i) == 0) then
+          index = index + binomial(nLeft-i, count(new_labeling(i:)==1)-1)
+       end if
     end do
-
+    deallocate(new_labeling)
   END SUBROUTINE  generateLocationFromColoring
   
 END MODULE tree_class
