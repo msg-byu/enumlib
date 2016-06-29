@@ -16,7 +16,7 @@ public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
         generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
-        write_labelings, generate_permutation_labelings_new, enum4
+        write_labelings, enum4
 CONTAINS
 
   !!<summary>The new subroutine for enum4 that uses the recursively
@@ -193,46 +193,6 @@ CONTAINS
        deallocate(labeling)
     end if
   END SUBROUTINE enum4
-
-  !!<summary>This subroutine uses the "recursively stabilized"
-  !!enumeration algorithm (enum4) to enumerate the number of
-  !!symmetrically-distinct colors of a lattice for a given symmetry
-  !!group.
-  !! GLWH Fall 2014</summary>
-  !!<parameter name="n" regular="true">Index of the superlattice
-  !!(volume factor).</parameter>
-  !!<parameter name="nD" regular="true">Number of sites in the parent
-  !!lattice (parent lattice is an nD-lattice)</parameter>
-  !!<parameter name="perms">list of translation and rotation
-  !!permutations.</parameter>
-  !!<parameter name="colors" regular="true">concentration; the numerator of each
-  !!rational number that is the concentration for each
-  !!label.</parameter>
-  !!<parameter name="fixed_cells" regular="true">if this is true, then
-  !!superperiodic cells are not removed from the list</parameter>
-  SUBROUTINE generate_permutation_labelings_new(n,nD,perms,colors,fixed_cells)
-    integer, intent(in)          :: n        
-    integer, intent(in)          :: nD       
-    integer, intent(in), pointer :: perms(:,:)
-    integer, intent(in)          :: colors(:) 
-    logical, intent(in)          :: fixed_cells 
-    class(tree), pointer         :: t ! a tree structure to use for the enumeration
-    integer, pointer, dimension(:,:):: labelings ! on output contains
-                               ! the symmetrically-distinct labelings
-    integer i
-    write(*,'("n,nd,colors  ",i2,1x,i1,1x,20(i2,1x))')n,nd,colors
-    write(*,'("shape(perms)",2(i4,1x))') shape(perms)
-    do i = 1,size(perms,1)
-       write(*,'("perm #",i3," :",20(i2,1x))') i,perms(i,:)
-    enddo
-    allocate(t)
-    call t%enumerate_unique_permutations(colors,perms,.false.,labelings)
-    write(*,'("shape(labelings) ",2(i4))') shape(labelings)
-    do i = 1, size(labelings,1)
-       write(*,'("labeling #:",i3," <>",20(i5,1x))') i,labelings(i,:)
-    enddo
-    
-  ENDSUBROUTINE generate_permutation_labelings_new
 
   !!<summary>This subroutine is conceptually the same as
   !!generate_unique_labelings. That routine generates labelings as a
