@@ -48,18 +48,18 @@ CONTAINS
   !!<parameter name="equivalencies" regular="true">The site
   !!equivalencies for the system.</parameter>
   !!<parameter name="permIndx" regular="true">The list of permutation indices.</parameter>
-  !!<parameter name="labelfull" regular="true">The labels that are allowed on each
+  !!<parameter name="allowed" regular="true">The labels that are allowed on each
   !!site in the cell.</parameter>
   !!<parameter name="fixedcell" regular="true">A logical that for if this is a
   !!fixed cell.</parameter>
-  SUBROUTINE enum4(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,labelfull,fixedcell)
+  SUBROUTINE enum4(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell)
     integer, pointer, intent(in) :: perm(:,:)
     integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:)
     integer, intent(in) :: symsize, knary, iBlock
     type(oplist), pointer, intent(in) :: fixop(:)
     integer, intent(inout) :: nfound, HNFcnt, scount
     integer, intent(in) :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
-    integer, intent(in) :: labelfull(:,:)
+    integer, intent(in) :: allowed(:,:)
     logical, intent(in) :: fixedcell
     
     !!<local name="polya_total">The total number of configurations as
@@ -82,7 +82,7 @@ CONTAINS
     integer(li) :: polya_total
     integer :: i, j, nHNF
     class(tree), pointer :: this_tree
-    integer, allocatable :: labeling(:), tconc(:), poly(:,:), labels(:), allowed(:,:), temp_labeling(:)
+    integer, allocatable :: labeling(:), tconc(:), poly(:,:), labels(:), temp_labeling(:)
     ! First we need to find out the number of unique configurations we
     ! should expect
 
@@ -117,13 +117,13 @@ CONTAINS
           deallocate(labeling)
        end if
     end if
-    allocate(allowed(this_tree%n,size(conc)))
-    allowed = 0
-    do i = 1, size(conc); do j = 1, this_tree%n
-       if (any(labelfull(:,(j-1)/symsize+1)==i-1)) then
-          allowed(j,i) = 1
-       end if
-    end do; end do
+    ! allocate(allowed(this_tree%n,size(conc)))
+    ! allowed = 0
+    ! do i = 1, size(conc); do j = 1, this_tree%n
+    !    if (any(labelfull(:,(j-1)/symsize+1)==i-1)) then
+    !       allowed(j,i) = 1
+    !    end if
+    ! end do; end do
     
     ! Now we move through through the possible branches to see which
     ! will contribute

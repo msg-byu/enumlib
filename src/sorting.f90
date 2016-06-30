@@ -24,32 +24,33 @@ CONTAINS
     !!<local name="i">Counting index.</local>
     integer :: sorted_list(size(list)), sorted_labels(size(labels))
     integer :: minl
-    integer :: i, j
+    integer :: i
 
-    sorted_list = 0
-    sorted_labels = 0
-    j = 1
     do i =1, size(list)
-       if (list(i) .ne. 0) then
-          sorted_list(j) = list(i)
-          sorted_labels(j) = labels(i)
-          j = j + 1
-       end if
+       minl = minloc(list, 1, list .NE. -1)
+       sorted_list(i) = list(minl)
+       sorted_labels(i) = labels(minl)
+       list(minl) = -1
     end do
     labels = sorted_labels
     list = sorted_list
 
     ! not used for this phase of tests
-    ! integer :: i
+    ! integer :: i, j
 
+    ! sorted_list = 0
+    ! sorted_labels = 0
+    ! j = 1
     ! do i =1, size(list)
-    !    minl = minloc(list, 1, list .NE. -1)
-    !    sorted_list(i) = list(minl)
-    !    sorted_labels(i) = labels(minl)
-    !    list(minl) = -1
+    !    if (list(i) .ne. 0) then
+    !       sorted_list(j) = list(i)
+    !       sorted_labels(j) = labels(i)
+    !       j = j + 1
+    !    end if
     ! end do
     ! labels = sorted_labels
     ! list = sorted_list
+
 
   END SUBROUTINE sort_concs
     

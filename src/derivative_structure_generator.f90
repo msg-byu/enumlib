@@ -1132,7 +1132,7 @@ CONTAINS
     integer, optional,intent(in)   :: cRange(:,:)
     
     
-    integer iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC
+    integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC, j
     integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
     integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
     integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -1157,6 +1157,7 @@ CONTAINS
     !("color vector"). Cols: sweep over concentration range.
     logical err
     integer, pointer :: hnf_degen(:), lab_degen(:)
+    integer, allocatable :: site_res(:,:)
 
     ! Divide the dset into members that are enumerated and those that are not
     nD = count( (/(i,i=1,nDFull)/)==equivalencies)
@@ -1333,14 +1334,27 @@ CONTAINS
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
                 ! write(*,'("HNF: ",6(i2,1x))') (RDhnf(i,:,iBlock),i=1,3)
                 ! call generate_permutation_labelings_new(ivol, nD, rdRPList(iBlock)%perm, iRange(iC,:), fixed_cells)
-                call enum4(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
-                     hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,labelFull,fixed_cells)
-                ! call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
-                !      lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
+                allocate(site_res(size(rdRPList(iBlock)%perm(1,:)),size(iRange(iC,:))))
+                site_res = 0
+                do i = 1, size(iRange(iC,:)); do j = 1, size(rdRPList(iBlock)%perm(1,:))
+                   if (any(labelFull(:,(j-1)/ivol+1)==i-1)) then
+                      site_res(j,i) = 1
+                   end if
+                end do; end do
+                if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < 1000000000)) then
+                   call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
+                        lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
+                   call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&
+                        Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
+
+                else
+                   call enum4(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
+                        hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
+                        fixed_cells)
+                end if
+                deallocate(site_res)
                 ! call generate_disjoint_permutation_labelings(k,ivol,nD&
                 !     &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
-                 ! call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt&
-                 !     &,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
              enddo
           else
              call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
