@@ -35,8 +35,9 @@ CONTAINS
     labels = sorted_labels
     list = sorted_list
 
-    ! not used for this phase of tests
-    ! integer :: i, j
+    ! Keep this for now. More extensive timing tests should be
+    ! performed to see which sort actually performs better for larger systems.
+    !integer :: i, j
 
     ! sorted_list = 0
     ! sorted_labels = 0
