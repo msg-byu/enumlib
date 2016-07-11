@@ -89,7 +89,7 @@ CONTAINS
     FUNCTION greater_than(vecA, vecB)
       integer, intent(in):: vecA(:), vecB(:)
       logical :: greater_than
-      integer i
+      integer :: i
 
       greater_than = .false.
       do i = 1, size(vecA)
@@ -112,8 +112,8 @@ CONTAINS
     integer, pointer :: list(:)
     integer, intent(inout):: key(:)! values on which to sort, the "keys" (K in Knuth)
 
-    integer N, l, r, i, j ! Same as in Knuth
-    integer pK, pR ! "plain" K, R (c'mon Knuth, bad notation!)
+    integer :: N, l, r, i, j ! Same as in Knuth
+    integer :: pK, pR ! "plain" K, R (c'mon Knuth, bad notation!)
 
     N = size(key)
     if (associated(list)) deallocate(list)

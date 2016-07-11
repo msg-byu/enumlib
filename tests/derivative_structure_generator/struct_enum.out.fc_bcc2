@@ -1,0 +1,31 @@
+ # <fortpy version="3" revision="247"></fortpy>
+BCC       
+bulk
+ 0.50000000      0.50000000     -0.50000000        # a1 parent lattice vector
+-0.50000000      0.50000000      0.50000000        # a2 parent lattice vector
+ 0.50000000     -0.50000000      0.50000000        # a3 parent lattice vector
+    1 # Number of points in the multilattice
+  0.0000000       0.0000000       0.0000000        # d01 d-vector, labels: 0/1/2/3/4
+ 5-nary case
+   1   3 # Starting and ending cell sizes for search
+ 0.10000000E-02 # Epsilon (finite precision parameter)
+Concentration check:
+    F
+full list of labelings (including incomplete labelings) is used
+Equivalency list: 1
+start   #tot      HNF     Hdegn   labdegn   Totdegn   #size idx    pg    SNF             HNF                 Left transform                          labeling
+          1         1       6        1        6           1   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   00
+          2         1       6        2       12           2   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   01
+          3         1       6        2       12           3   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   02
+          4         1       6        2       12           4   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   03
+          5         1       6        2       12           5   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   04
+          6         1       6        1        6           6   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   11
+          7         1       6        2       12           7   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   12
+          8         1       6        2       12           8   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   13
+          9         1       6        2       12           9   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   14
+         10         1       6        1        6          10   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   22
+         11         1       6        2       12          11   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   23
+         12         1       6        2       12          12   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   24
+         13         1       6        1        6          13   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   33
+         14         1       6        2       12          14   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   34
+         15         1       6        1        6          15   2     8   1  1  2    1  0  1  0  0  2      1    0    0    0    1    0    0    0    1   44

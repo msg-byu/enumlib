@@ -939,7 +939,7 @@ CONTAINS
   !!basis---this generates the permutation of the original group that
   !!represents the current structure.</summary>
   !!<parameter name="g" regular="true">Unpermuted group.</parameter>
-  !!<parameter name="pg" regular="true">Permuted group.</parameter>
+  !!<parameter name="gp" regular="true">Permuted group.</parameter>
   !!<parameter name="d" regular="true"></parameter>
   !!<parameter name="perm" regular="true">Permutation of gp</parameter>
   SUBROUTINE find_permutation_of_group_and_dset(g,gp,d,perm)
@@ -1066,8 +1066,7 @@ CONTAINS
     ! of the parent lattice (need this for d-g table permutations)
 
     ! Wiley ! If gfortran compile breaks it's because we uncommented
-    ! the write statement for the dRotList%RotIndx(:). Line 1070
-
+    ! the write statement for the dRotList%RotIndx(:). Line 1071
     call get_dvector_permutations(pLV,dset,dRotList,LatDim,eps)
     write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
     ! This call returns a list of operations that fix the

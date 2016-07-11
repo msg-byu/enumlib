@@ -1,5 +1,9 @@
 # Revision History for `enumlib`
 
+## Revision 0.0.3
+
+Cleaned up the codes XML documentation so that the unittests don't produce as many warnings. Also made a few minor changes in the code that caused errors when compiling with the strict flag on.
+
 ## Revision 0.0.2
 
 Fixed a compiler issue that was being caused by the fact that GroupList and permList were moved from tree_class.f90 to enumeration_types.f90 but were not made public in enumeration types.

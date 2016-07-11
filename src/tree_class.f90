@@ -246,10 +246,10 @@ CONTAINS
   !!<parameter name="m" regular="true"></parameter>
   !!<parameter name="a" regular="true"></parameter>
   function integer2coloring(y,m,a)
-    integer             :: integer2coloring(m)
     integer, intent(in) :: y,m,a
+    integer             :: integer2coloring(m)
 
-    integer I,t,ell
+    integer :: I,t,ell
     integer, allocatable :: configList(:)
     
     I = y; t = a; ell = m
