@@ -142,7 +142,7 @@
   <decorates name="tree_class.check_labeling">
     <group name="enum4_labeling_check" purpose="testing" staging="../unittests/">
       <test identifier="check_labeling" description="Test the fortran translation of enum4"
-	    timed="true" cases="[1-18]"> 
+	    timed="true" cases="[2-18]"> 
       	<output folder="../tests/tree_class/check.out.{}"
 		identifier="check.out" autoclass = "true" />
       	<target name="self" autoclass = "true" compareto="check.out"
