@@ -555,20 +555,19 @@
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
     <group name="stuct_enum_tests17" purpose="testing" staging="../unittests/">
       <test identifier="fixed_cell_enum" description="Original enumerations tests of basic
-					       structures. Used to test enum3 against enum4."
-	    cases="sc[1-6],fcc[1-5],bcc[1-5]" timed="true">
-	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
-	       rename="struct_enum.in" />
-	<input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
-	       rename="fixed_cells.in" />
-	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.fc_{}"
-		template="struct_enum.out.xml" identifier="struct_enum.out" />
-	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      					       structures. Used to test enum3 against enum4."
+      	    cases="sc[1-6],fcc[1-5],bcc[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+      	<input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
+      	       rename="fixed_cells.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.fc_{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
       </test>
       <test identifier="vanilla_enum" description="Original enumerations tests of basic
       					       structures. Used to test enum3 against enum4."
       	    cases="sc[1-6],fcc[1-5],bcc[1-5],hcp[1-5]" timed="true">
-	<!-- cases="001, 002, 003, 004, 005" timed="true"> -->
       	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
       	       rename="struct_enum.in" />
       	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
