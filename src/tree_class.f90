@@ -4,6 +4,7 @@ MODULE tree_class
   use combinatorics
   use group_theory
   use enumeration_types
+  use arrow_related
   implicit none
   private
   public tree
@@ -33,16 +34,24 @@ MODULE tree_class
      !!the tree (k-1 components; last layer not needed) </member>
      !!<member name="base">An array that keeps track of the unique
      !!arrangements of the first layer of the enumeration.</member>
+     !!<member name="narrows">The integer number of arrows in the
+     !!system.</member>
+     !!<member name="color_map">The list of colors that have arrows
+     !!associated with them.</member>
+     !!<member name="A">The permutation group of the arrows.</member>
      integer, pointer :: colors(:) => null()
      integer          :: k 
      integer          :: n 
      type(GroupList)  :: G
+     type(GroupList)  :: A
      integer, pointer :: Gsize(:) => null()
      integer, pointer :: loc(:) => null()
      integer, pointer :: branches(:) => null()
      integer, pointer :: base(:) => null()
      logical          :: unique = .true.
      logical          :: done = .false.
+     integer          :: narrows = 0
+     integer, pointer :: color_map(:,:) => null()
    contains
      procedure, public :: init => initializeTree
      procedure, public :: coloring => generateColoringFromLocation 
@@ -50,6 +59,7 @@ MODULE tree_class
      procedure, public :: increment_location
      procedure, public :: check => check_labeling
      procedure, public :: get_loc => generateLocationFromColoring
+     procedure, public :: add_arrows => addArrowsToEnumeration
   endtype tree
   
 
@@ -63,9 +73,11 @@ CONTAINS
   !!group)</parameter>
   !!<parameter name="makeG" regular="true">Flag: True-> Generate group, False ->
   !!Generators already make a group</parameter>
-  subroutine initializeTree(self,colors,generators,makeG)
+  subroutine initializeTree(self,colors,generators, arrow_group, color_map, makeG)
     class(tree)         :: self
     integer, intent(in) :: colors(:)
+    integer, intent(in) :: color_map(:,:)
+    integer, pointer, intent(in) :: arrow_group(:,:)
     integer, pointer, intent(in)    :: generators(:,:)
     logical, optional, intent(in)   :: makeG
     
@@ -78,6 +90,9 @@ CONTAINS
     allocate(self%loc(self%k),self%branches(self%k-1))
     allocate(self%Gsize(self%k))
     self%loc = -1
+    self%nArrows = size(color_map,1)
+    allocate(self%color_map(size(color_map,1),size(color_map,2)))
+    self%color_map = color_map
     if (self%k > 1) then
        allocate(self%branches(self%k-1))
        do i = 1, self%k-1
@@ -88,11 +103,13 @@ CONTAINS
        ! Initialize the group for layer 1. Generate the group if makeG =
        ! .true., otherwise assume that the list of generators given is
        ! the entire group
-       allocate(self%G%layer(self%k)) !Allocate number of perm
+       allocate(self%G%layer(self%k),self%A%layer(self%k)) !Allocate number of perm
        !lists. Don't need one for last color but makes the code
        !cleaner. Perhaps rethink this later
        allocate(self%G%layer(1)%perms(size(generators,1),size(generators,2)))
+       allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)))
        self%G%layer(1)%perms = generators
+       self%A%layer(1)%perms = arrow_group
     
        if (present(makeG)) then
           if (makeG) then
@@ -209,12 +226,15 @@ CONTAINS
        
        ! Set next stabilizer to be as big as previous
        allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n)) 
+       allocate(self%A%layer(d+1)%perms(self%Gsize(d),size(self%A%layer(d)%perms,2))) 
        self%G%layer(d+1)%perms = 0
+       self%A%layer(d+1)%perms = 0
     else ! We are at the bottom of the tree (2nd lowest layer, but
        ! lowest always has just one coloring)
        self%loc(d) = self%loc(d) + 1
        if (self%loc(d) >= self%branches(d)) then
           deallocate(self%G%layer(d+1)%perms) ! reset the stabilizer for the next layer
+          deallocate(self%A%layer(d+1)%perms) ! reset the stabilizer for the next layer
           self%Gsize(d+1) = 0
           do while (self%loc(d) >= self%branches(d))! If at the end of branches on this layer,
                                                    ! move up until we can go down again
@@ -224,6 +244,7 @@ CONTAINS
                 exit ! All done with the tree
              endif
              deallocate(self%G%layer(d+1)%perms) ! reset the stabilizer for this depth
+             deallocate(self%A%layer(d+1)%perms) ! reset the stabilizer for this depth
              self%Gsize(d+1) = 0
              self%loc(d+1) = -1
              self%loc(d) = self%loc(d) + 1
@@ -247,7 +268,9 @@ CONTAINS
 
        if (d > 0) then
           allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n))
+          allocate(self%A%layer(d+1)%perms(self%Gsize(d),size(self%A%layer(d)%perms,2)))
           self%G%layer(d+1)%perms = 0
+          self%A%layer(d+1)%perms = 0
        end if
     endif
   endsubroutine increment_location
@@ -301,6 +324,7 @@ CONTAINS
           stab_size = self%Gsize(d+1) + 1
           self%Gsize(d+1) = stab_size
           self%G%layer(d+1)%perms(stab_size,:) = self%G%layer(d)%perms(i,:)
+          self%A%layer(d+1)%perms(stab_size,:) = self%A%layer(d)%perms(i,:)
        else 
           ! check to see if the configuration is unique
           call self%get_loc(rotatedlabel,new_loc)
@@ -327,8 +351,11 @@ CONTAINS
        allocate(min_stab(stab_size,self%n))
        min_stab = self%G%layer(d+1)%perms(1:stab_size,:)
        deallocate(self%G%layer(d+1)%perms)
+       deallocate(self%A%layer(d+1)%perms)
        allocate(self%G%layer(d+1)%perms(stab_size,self%n))
+       allocate(self%A%layer(d+1)%perms(stab_size,size(self%A%layer(d)%perms,2)))
        self%G%layer(d+1)%perms = min_stab
+       self%A%layer(d+1)%perms = self%A%layer(d+1)%perms(1:stab_size,:)
        deallocate(min_stab)
     end if
    
@@ -379,5 +406,110 @@ CONTAINS
     end do
     deallocate(new_labeling)
   END SUBROUTINE  generateLocationFromColoring
-  
+
+  !!<summary>This subroutine takes a unique coloring and finds the
+  !!unique arrow arrangements that exist for that coloring.</summary>
+  !!<parameter name="coloring" regular="true">The integer array containing the
+  !! labeling for the colors</parameter>
+  !!<parameter name="symsize" regular="true">The size of the supercell.</parameter>
+  !!<parameter name="nfound" regular="true">Counter for the total number
+  !!of labelings.</parameter>
+  !!<parameter name="scount" regular="true">Counter for the number of
+  !!labelings for this size.</parameter>
+  !!<parameter name="HNFcnt" regular="true">Counter for the HNFs.</parameter>
+  !!<parameter name="iBlock" regular="true">Index in the permIndx
+  !!corresponding to the current block of the HNFs.</parameter>
+  !!<parameter name="hnf_degen" regular="true">The degeneracy of the HNFs.</parameter>
+  !!<parameter name="fixOp" regular="true">Lattice fixing operations (type opList).</parameter>
+  !!<parameter name="SNF" regular="true">List of the SNFs.</parameter>
+  !!<parameter name="HNF" regular="true">List of the HNFs.</parameter>
+  !!<parameter name="LT" regular="true">List of the left transforms.</parameter>
+  !!<parameter name="permIndx" regular="true">List of the different permutations
+  !!groups.</parameter>
+  !!<parameter name="equivalencies" regular="true">The list of
+  !!equivalencies of the system.</parameter>
+  subroutine addArrowsToEnumeration(self,coloring,symsize,nfound,scount,HNFcnt,&
+                        iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx)
+    class(tree) :: self
+    integer, intent(in) :: coloring(:)
+    integer, intent(in)      :: symsize, HNFcnt, iBlock
+    integer, intent(inout)   :: scount, nfound
+    integer, intent(in)      :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
+    integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:)
+    type(opList), intent(in) :: fixOp(:)    
+
+    !!<local name="full_arrowing">The arrow label being tested, including
+    !!places without arrows.</local>
+    !!<local name="arrowing">The arrow label for locations with arrows</local>
+    !!<local name="max_arrowings">An array of the maximum of each arrow
+    !!allowed.</local>
+    !!<local name="maxindex">The maximum index possible for the arrowings.</local>
+    !!<local name="d">The in the tree.</local>
+    !!<local name="tempcoloring">Temporary copy of the coloring.</local>
+    !!<local name="rotated_arrowing">The full labeling after the site permutation
+    !!has been applied</local>
+    !!<local name="permuted_arrowing">The full labeling after the site permutation
+    !!and arrow permutation have been applied</local>
+    !!<local name="full_coloring">The labeling for the colors after the arrow species have
+    !!been mapped back to the original ones.</local>
+    !!<local name="newindex">The transmogrified arrowings index.</local>
+    integer :: full_arrowing(size(coloring)), rotated_arrowing(size(coloring)), full_coloring(size(coloring))
+    integer :: permuted_arrowing(size(coloring))
+    integer, allocatable :: max_arrowings(:), arrowing(:)
+    integer :: maxindex, originalIndex, d, newindex
+    integer :: i, j
+
+    d = self%depth()
+    
+    allocate(max_arrowings(self%narrows),arrowing(self%narrows))
+    max_arrowings = 5
+
+    call generateIndexFromArrowing(max_arrowings,6,maxindex)
+
+    ! Loop over every possible arrow array.
+    do originalIndex = 0, maxindex
+       self%unique = .True.
+       full_arrowing = 0
+
+       ! Get the arrowing that goes with this index
+       call generateArrowingFromIndex(originalIndex,self%narrows,5,arrowing)
+
+       ! Create a labeling that includes the sites that don't have arrows.
+       j = 1
+       do i = 1, size(coloring)
+          if (any(self%color_map(:,1) == coloring(i))) then
+             full_arrowing(i) = arrowing(j)
+             j = j + 1
+          end if
+       end do
+
+       ! Use the stabilizers to determine if the arrowing is unique.
+       groupCheck: do i = 1, self%Gsize(d)
+          rotated_arrowing = full_arrowing(self%G%layer(d)%perms(i,:))
+          permuted_arrowing = rotated_arrowing(self%A%layer(d)%perms(i,:))
+          
+          call generateIndexFromArrowing(permuted_arrowing,6,newindex)
+
+          if (newindex < originalIndex) then
+             self%unique = .False.
+             exit groupCheck
+          end if
+       end do groupCheck
+
+       if (self%unique .eqv. .True.) then
+          do i=1, size(coloring)
+             if (any(self%color_map(:,1) == coloring(i))) then
+                full_coloring(i) = self%color_map(coloring(i)-size(coloring)+size(self%color_map,1),2)
+             else
+                full_coloring(i) = coloring(i)
+             end if
+          end do
+          
+          call write_arrow_labeling(full_coloring,full_arrowing,symsize,nfound,scount,HNFcnt,&
+                        iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx)
+       end if
+    end do
+    
+  end subroutine addArrowsToEnumeration
+
 END MODULE tree_class

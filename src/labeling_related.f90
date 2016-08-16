@@ -10,6 +10,8 @@ use tree_class
 use classes, only: polya
 use num_types
 use sorting, only: sort_concs
+use io_utils, only: read_arrows
+use arrow_related, only: arrow_concs
 implicit none
 private
 public  count_full_colorings, &
@@ -52,8 +54,10 @@ CONTAINS
   !!site in the cell.</parameter>
   !!<parameter name="fixedcell" regular="true">A logical that for if this is a
   !!fixed cell.</parameter>
-  SUBROUTINE enum4(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell)
+  !!<parameter name="aperms" regular="true">The list of arrow permutations.</parameter>
+  SUBROUTINE enum4(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell,aperms)
     integer, pointer, intent(in) :: perm(:,:)
+    integer, pointer, intent(in) :: aperms(:,:)
     integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:)
     integer, intent(in) :: symsize, knary, iBlock
     type(oplist), pointer, intent(in) :: fixop(:)
@@ -61,6 +65,7 @@ CONTAINS
     integer, intent(in) :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
     integer, intent(in) :: allowed(:,:)
     logical, intent(in) :: fixedcell
+    
     
     !!<local name="polya_total">The total number of configurations as
     !!predicted by polya.</local>
@@ -79,30 +84,54 @@ CONTAINS
     !!<local name="allowed">A vector that stores which labels are allowed where.</local>
     !!<local name="temp_labeling">A copy of the labeling before it's been formated for
     !!the write out statement.</local>
+    !!<local name="arrows">The number of arrows for each color.</local>
+    !!<local name="a_conc">The concentrations with the arrows included.</local>
+    !!<local name="temp_label">A temporary integer of a arrowed species mapped back to
+    !!the non-arrowed equivalent.</local>
+    !!<local name="use_arrows">Logical, true if arrows.in is present.</local>
     integer(li) :: polya_total
-    integer :: i, j, nHNF
+    integer :: i, j, nHNF, temp_label
     class(tree), pointer :: this_tree
-    integer, allocatable :: labeling(:), tconc(:), poly(:,:), labels(:), temp_labeling(:)
+    integer, allocatable :: labeling(:), tconc(:), poly(:,:), labels(:), temp_labeling(:), a_conc(:)
+    integer, allocatable :: conc_map(:,:)
+    integer :: arrows(size(conc))
+    logical:: use_arrows
+
+    inquire(FILE="arrows.in",EXIST=use_arrows)
     ! First we need to find out the number of unique configurations we
     ! should expect
 
     allocate(tconc(count(conc > 0)),poly(size(perm,1),size(perm,2)),labels(count(conc > 0)))
+
+    ! Get the arrow concentrations and adjust the input concentrations if needed.
+    if (use_arrows) then
+       call read_arrows(size(conc), arrows)
+       call arrow_concs(conc,arrows,a_conc,conc_map)
+    else
+       allocate(a_conc(size(conc)))
+       a_conc = conc
+       allocate(conc_map(1,2))
+       conc_map(1,:) = (/0,0/)
+    end if
+    
     j = 1
     do i = 1, size(conc)
-       if (conc(i) > 0) then
-          tconc(j) = conc(i)
+       if (a_conc(i) > 0) then
+          tconc(j) = a_conc(i)
           labels(j) = i-1
           j = j + 1
        end if
     end do
-    ! polya_total = polya(tconc, perm,polynomials=poly,decompose=.true.)
+    polya_total = polya(tconc, perm,polynomials=poly,decompose=.true.)
+    ! write(*,*) ivol,"The next system has could have as many as ", polya_total, " structures."
 
+    
     ! sort the concentrations to be in the optimal order
     call sort_concs(tconc,labels)
     ! Initialize the tree class and the labeling variables for the
     ! algorithm
     allocate(this_tree)
-    call this_tree%init(tconc, perm, .False.)
+    call this_tree%init(tconc, perm, aperms, conc_map, .False.)
     if (this_tree%k > 1) then
        call this_tree%increment_location()
        allocate(labeling(this_tree%n))
@@ -112,18 +141,16 @@ CONTAINS
        if (symsize == 1 .or. fixedcell) then
           allocate(labeling(this_tree%n))
           labeling = labels(1)
-          call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
-               fixOp,SNF,HNF,LT,equivalencies,permIndx)
+          if (use_arrows) then
+             call this_tree%add_arrows(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                  fixOp,SNF,HNF,LT,equivalencies,permIndx)
+          else
+             call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                  fixOp,SNF,HNF,LT,equivalencies,permIndx)
+          end if
           deallocate(labeling)
        end if
     end if
-    ! allocate(allowed(this_tree%n,size(conc)))
-    ! allowed = 0
-    ! do i = 1, size(conc); do j = 1, this_tree%n
-    !    if (any(labelfull(:,(j-1)/symsize+1)==i-1)) then
-    !       allowed(j,i) = 1
-    !    end if
-    ! end do; end do
     
     ! Now we move through through the possible branches to see which
     ! will contribute
@@ -150,9 +177,21 @@ CONTAINS
 
           if (any(allowed .ne. 1)) then
              do i = 1, this_tree%n
-                if ((allowed(i,labeling(i)+1) == 0)) then
-                   this_tree%unique = .False.
-                   exit
+                if (use_arrows) then
+                   if (any(conc_map(:,1) == labeling(i))) then
+                      temp_label = conc_map(labeling(i)-size(conc),2) + 1
+                   else
+                      temp_label = labeling(i) + 1
+                   end if
+                   if ((allowed(i,temp_label) == 0)) then
+                      this_tree%unique = .False.
+                      exit
+                   end if
+                else 
+                   if ((allowed(i,labeling(i)+1) == 0)) then
+                      this_tree%unique = .False.
+                      exit
+                   end if
                 end if
              end do
              ! If the original violates site restrictions we need to
@@ -178,8 +217,13 @@ CONTAINS
              end if
           end if
           if (this_tree%unique .eqv. .True.) then
-             call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
-                  fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             if (use_arrows) then
+                call this_tree%add_arrows(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             else 
+                call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             end if
           end if
        end if
 
@@ -192,6 +236,7 @@ CONTAINS
     if (allocated(labeling)) then
        deallocate(labeling)
     end if
+    deallocate(a_conc)
   END SUBROUTINE enum4
 
   !!<summary>This subroutine is conceptually the same as
@@ -357,8 +402,6 @@ CONTAINS
                    write(*,'("iConc",100(i3,1x))') iConc
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
-                   print *,"idx",idx
-                   print *,"max expected",nL
                    print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
                    stop
                 endif
@@ -1314,8 +1357,6 @@ CONTAINS
     degeneracy_list = temp
     deallocate(temp)
     if (ic /= nexp) then
-       print *, 'number of permutations counted', iC
-       print *, 'number expected', nexp
        stop 'Bug: Found the wrong number of labels!'
     endif
     if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
@@ -1499,7 +1540,6 @@ CONTAINS
     !> *** Might be easier to read if iConc was renamed to something
     !> *** that indicated sets... ****
 
-    print *,"Change iConc declaration back when done"
     iConc = (/2,2,0,0/)
     !if (size(iConc)/=nSets) stop "ERROR: number of disjoint subsets does not match entries in iConc"
     nl = multinomial(iConc)
@@ -1556,7 +1596,6 @@ CONTAINS
     end do; write(22,*); close(22)
     
 
-    print *,"DEBUG, n,k,nD",n,k,nD
     a = -1; flag = .true.
     sitePointer = 1
     
@@ -1569,7 +1608,6 @@ CONTAINS
           endif
           digCnt(sitePointer) = digCnt(sitePointer) + 1   ! Advance
           ! the current digit (rotate the wheel one click)
-          print *,"label at current spot",label(digCnt(sitePointer),sitePointer)
           if (label(digCnt(sitePointer),sitePointer) == -1) then  ! If
              ! the wheel is rolling over, reset the label to "zero"
              digCnt(sitePointer) = 1                  ! (i.e., lowest allowed label, ordinal 1)
@@ -1617,8 +1655,6 @@ CONTAINS
                    write(*,'("iConc",100(i3,1x))') iConc
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
-                   print *,"idx",idx
-                   print *,"max expected",nL
                    print *,"An index outside the expected range occurred in get_permutations_labeling"
                    stop
                 endif
@@ -1657,7 +1693,6 @@ CONTAINS
 
   !!<summary>Writes a single labeling to file for the enum4
   !!code.</summary>
-
   !!<parameter name="n" regular="true">The size of the supercell.</parameter>
   !!<parameter name="Tcnt" regular="true">Counter for the total number
   !!of labelings.</parameter>
@@ -1671,7 +1706,8 @@ CONTAINS
   !!<parameter name="SNFlist" regular="true">List of the SNFs.</parameter>
   !!<parameter name="HNFlist" regular="true">List of the HNFs.</parameter>
   !!<parameter name="L" regular="true">List of the left transforms.</parameter>
-  !!<parameter name="permIndx">List of the different permutations groups.</parameter>
+  !!<parameter name="permIndx" regular="true">List of the different permutations
+  !!groups.</parameter>
   !!<parameter name="equivalencies" regular="true">The list of
   !!equivalencies of the system.</parameter>
   !!<parameter name="labeling" regular="true">The labeling to be written to file.</parameter>

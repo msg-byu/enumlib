@@ -493,6 +493,7 @@ contains
     integer :: i, j, m, mindex, dupindex, pused = 0
     logical :: ldecomp
 
+    pused = 0
     !This checks that the specified concentration matches the number of sites the group is 
     !acting on.
     if (sum(concentrations) .ne. size(group,2)) then
@@ -549,16 +550,9 @@ contains
 
        !Find out if any of the existing products has this multinomial set already.
        dupindex = 0
-       print *, "pused ", pused
+
        do j=1, pused
           if (all(shape(polyndict(j)%multinom_rd) .eq. shape(mult))) then
-             print *, "j ", j
-             print *, "s1", shape(polyndict(j)%multinom_rd)
-             print *, "s2", shape(mult)
-             print *, "equal?", (shape(polyndict(j)%multinom_rd) .eq. shape(mult))
-             print *, "c1", polyndict(j)%multinom_rd
-             print *, "c2", mult
-             print *, "equalc?",(polyndict(j)%multinom_rd .eq. mult)
              if (all(polyndict(j)%multinom_rd .eq. mult)) then
                 polyndict(j)%coefficient = polyndict(j)%coefficient + 1
                 dupindex = j
