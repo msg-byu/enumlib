@@ -666,7 +666,6 @@ CONTAINS
     call co_ca(10,err)
     read(10,*) arrows
 
-    print *, "arrows", arrows
     close(10)
   end SUBROUTINE read_arrows
   

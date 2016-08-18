@@ -110,7 +110,7 @@ CONTAINS
        allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)))
        self%G%layer(1)%perms = generators
        self%A%layer(1)%perms = arrow_group
-    
+       
        if (present(makeG)) then
           if (makeG) then
              call grouper(self%G%layer(1)%perms)
@@ -293,13 +293,14 @@ CONTAINS
     !!has been applied.</local>
     !!<local name="i">Indexing variable</local>
     !!<local name="j">Indexing variable</local>
-    !!<local name="stab_size">The size of the next stabilizer group</local>
+    !!<local name="stab_size">The size of the next stabilizer group.</local>
     !!<local name="new_loc">The location of the rotated branch.</local>
-    !!<local name="min_stab">Temporary array for the stabilizers</local>
+    !!<local name="min_stab">Temporary array for the stabilizers.</local>
+    !!<local name="min_stab_a">Temporary array for arrow stabilizers.</local>
     !!<local name="d">Keeps track of how deep in the tree we are.</local>
     integer :: rotatedlabel(size(label))
     integer :: i, j, stab_size, new_loc, d
-    integer, allocatable :: min_stab(:,:)
+    integer, allocatable :: min_stab(:,:), min_stab_a(:,:)
 
     d = self%depth()
     ! Make sure that the number of stibalizers is initially 0
@@ -349,14 +350,16 @@ CONTAINS
 
     if (self%unique .eqv. .True.) then
        allocate(min_stab(stab_size,self%n))
+       allocate(min_stab_a(stab_size,size(self%A%layer(1)%perms,2)))
        min_stab = self%G%layer(d+1)%perms(1:stab_size,:)
+       min_stab_a = self%A%layer(d+1)%perms(1:stab_size,:)
        deallocate(self%G%layer(d+1)%perms)
        deallocate(self%A%layer(d+1)%perms)
        allocate(self%G%layer(d+1)%perms(stab_size,self%n))
        allocate(self%A%layer(d+1)%perms(stab_size,size(self%A%layer(d)%perms,2)))
        self%G%layer(d+1)%perms = min_stab
-       self%A%layer(d+1)%perms = self%A%layer(d+1)%perms(1:stab_size,:)
-       deallocate(min_stab)
+       self%A%layer(d+1)%perms = min_stab_a
+       deallocate(min_stab,min_stab_a)
     end if
    
   END SUBROUTINE check_labeling
@@ -469,7 +472,7 @@ CONTAINS
     ! Loop over every possible arrow array.
     do originalIndex = 0, maxindex
        self%unique = .True.
-       full_arrowing = 0
+       full_arrowing = 1
 
        ! Get the arrowing that goes with this index
        call generateArrowingFromIndex(originalIndex,self%narrows,5,arrowing)
@@ -478,7 +481,7 @@ CONTAINS
        j = 1
        do i = 1, size(coloring)
           if (any(self%color_map(:,1) == coloring(i))) then
-             full_arrowing(i) = arrowing(j)
+             full_arrowing(i) = arrowing(j) + 1
              j = j + 1
           end if
        end do
@@ -488,25 +491,25 @@ CONTAINS
           rotated_arrowing = full_arrowing(self%G%layer(d)%perms(i,:))
           permuted_arrowing = rotated_arrowing(self%A%layer(d)%perms(i,:))
           
-          call generateIndexFromArrowing(permuted_arrowing,6,newindex)
+          call generateIndexFromArrowing(permuted_arrowing -1,6,newindex)
 
           if (newindex < originalIndex) then
              self%unique = .False.
              exit groupCheck
           end if
        end do groupCheck
-
        if (self%unique .eqv. .True.) then
           do i=1, size(coloring)
              if (any(self%color_map(:,1) == coloring(i))) then
-                full_coloring(i) = self%color_map(coloring(i)-size(coloring)+size(self%color_map,1),2)
+                full_coloring(i) = self%color_map(coloring(i)-size(self%color_map,1),2) -1
              else
-                full_coloring(i) = coloring(i)
+                full_coloring(i) = coloring(i) -1
              end if
           end do
-          
-          call write_arrow_labeling(full_coloring,full_arrowing,symsize,nfound,scount,HNFcnt,&
-                        iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx)
+
+          call write_arrow_labeling(full_coloring,full_arrowing-1,symsize,nfound,scount,HNFcnt,&
+               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx)
+
        end if
     end do
     

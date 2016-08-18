@@ -5,6 +5,7 @@
 
 # Unit Testing
 staging/
+unittests/
 
 # Compiled Object files
 src/compile.log
@@ -35,3 +36,7 @@ src/compile.log
 *.exe
 *.out
 *.app
+
+# Support latex
+*.aux
+*.log

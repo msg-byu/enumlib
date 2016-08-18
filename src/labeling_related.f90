@@ -98,11 +98,6 @@ CONTAINS
     logical:: use_arrows
 
     inquire(FILE="arrows.in",EXIST=use_arrows)
-    ! First we need to find out the number of unique configurations we
-    ! should expect
-
-    allocate(tconc(count(conc > 0)),poly(size(perm,1),size(perm,2)),labels(count(conc > 0)))
-
     ! Get the arrow concentrations and adjust the input concentrations if needed.
     if (use_arrows) then
        call read_arrows(size(conc), arrows)
@@ -113,16 +108,19 @@ CONTAINS
        allocate(conc_map(1,2))
        conc_map(1,:) = (/0,0/)
     end if
-    
+    allocate(tconc(count(a_conc > 0)),poly(size(perm,1),size(perm,2)),labels(count(a_conc > 0)))
+
     j = 1
-    do i = 1, size(conc)
+    do i = 1, size(a_conc)
        if (a_conc(i) > 0) then
           tconc(j) = a_conc(i)
           labels(j) = i-1
           j = j + 1
        end if
     end do
-    polya_total = polya(tconc, perm,polynomials=poly,decompose=.true.)
+    ! First we need to find out the number of unique configurations we
+    ! should expect
+    ! polya_total = polya(tconc, perm,polynomials=poly,decompose=.true.)
     ! write(*,*) ivol,"The next system has could have as many as ", polya_total, " structures."
 
     
@@ -130,8 +128,9 @@ CONTAINS
     call sort_concs(tconc,labels)
     ! Initialize the tree class and the labeling variables for the
     ! algorithm
-    allocate(this_tree)
+    allocate(this_tree)    
     call this_tree%init(tconc, perm, aperms, conc_map, .False.)
+    
     if (this_tree%k > 1) then
        call this_tree%increment_location()
        allocate(labeling(this_tree%n))
@@ -160,7 +159,7 @@ CONTAINS
        call this_tree%coloring(temp_labeling)
 
        this_tree%unique = .True.
-
+       
        call this_tree%check(temp_labeling,symsize,fixedcell)
 
        if ((this_tree%unique .eqv. .True.) .and. (this_tree%depth() == this_tree%k -1)) then
@@ -218,7 +217,7 @@ CONTAINS
           end if
           if (this_tree%unique .eqv. .True.) then
              if (use_arrows) then
-                call this_tree%add_arrows(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                call this_tree%add_arrows(labeling+1,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
                      fixOp,SNF,HNF,LT,equivalencies,permIndx)
              else 
                 call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&

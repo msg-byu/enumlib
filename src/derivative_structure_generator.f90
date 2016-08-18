@@ -482,7 +482,7 @@ CONTAINS
     real(dp), dimension(3,3) :: Ainv, T, Tinv
     logical err
     real(dp), allocatable :: rgp(:,:), rag(:,:)
-    logical, allocatable :: skip(:)
+    logical, allocatable :: skip(:), skipa(:)
     integer OpIndxInSuperCellList, RowInDxGTable
     integer :: arrow_basis(3,6)
     logical :: arrows
@@ -507,7 +507,7 @@ CONTAINS
     ! Number of d-vectors in d set
     nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2)
 
-    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,6), rag(3,6), skip(n),STAT=status,dap(size(arrow_basis,2)))
+    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,6), rag(3,6), skip(n),STAT=status,dap(size(arrow_basis,2)),skipa(6))
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
     allocate(tg(3,n),perm(n),ident(nD,n),identT(n,nD),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident"
@@ -579,13 +579,13 @@ CONTAINS
              enddo ! im
 
              ! do the some operations for the arrows
-             skip = .false.
+             skipa = .false.
              do im = 1, size(arrow_basis,2)
                 do jm = 1, size(arrow_basis,2)
-                   if (skip(jm)) cycle
+                   if (skipa(jm)) cycle
                    if (all(ag(:,jm)==arrow_basis(:,im))) then
                       dap(im) = jm
-                      skip(jm) = .true.
+                      skipa(jm) = .true.
                       exit
                    end if
                 end do !jm

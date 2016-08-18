@@ -54,6 +54,7 @@ contains
        arrowing(nArrows+1-i) = temp_index/base
        temp_index = temp_index - base*arrowing(nArrows+1-i)
     end do
+    arrowing = arrowing + 1
   end subroutine generateArrowingFromIndex
 
   !!<summary>Finds the new concentration for the system with arrows
@@ -83,6 +84,7 @@ contains
     integer :: temp_map(size(conc),2)
     integer :: i, j, new_size
 
+
     ! First we need to find out the concentrations of the arrowed and
     ! unarrowed atoms of each species
     j = 1
@@ -102,6 +104,7 @@ contains
           new_concs(i) = conc(i)
        end if
     end do
+    j = j - 1
 
     new_size = size(conc) + j
     allocate(a_conc(new_size),conc_map(j,2))
@@ -118,7 +121,6 @@ contains
     do i=1, j
        conc_map(i,:) = temp_map(i,:)
     end do
-    
   end subroutine arrow_concs
   
   !!<summary>Writes a single labeling to file for the enum4
@@ -149,7 +151,6 @@ contains
     integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:), labeling(:), arrow_label(:)
     type(opList), intent(in) :: fixOp(:)
     
-    !!<local name="conc_check">Are the concentrations restricted</local>
     !!<local name="lab_degen">The degeneracy of this label.</local>
     !!<local name="iHNF">Counter that loops over the HNFs</local>
     !!<local name="vsH">Vector for matching the HNF to the list.</local>
@@ -159,10 +160,9 @@ contains
     !!<local name="i">Loop variable</local>
     !!<local name="jHNF">Which HNF this is in the permIndx</local>
     !!<local name="nHNF">How many of this HNF are there.</local>
-    logical :: conc_check = .true.
     integer :: lab_degen, iHNF, status, i, jHNF, nHNF
     integer, allocatable :: vsH(:)
-    character(100) :: struct_enum_out_formatstring
+    character(105) :: struct_enum_out_formatstring
     character(3) :: dummy
 
     ! Labeling Postprocessing data
@@ -242,7 +242,7 @@ contains
     ! Packing...
     vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); 
 
-    write(dummy,'(I3)') n*nAllD    
+    write(dummy,'(I3)') n*nAllD
     
     struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1,2x,'//trim(dummy)//'i1)'
 
@@ -256,7 +256,6 @@ contains
     do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
        jHNF = vsH(iHNF) ! Index of matching HNFs
        Tcnt = Tcnt + 1; Scnt = Scnt + 1
-       
        write(14,struct_enum_out_formatstring) &
             Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen,lab_degen*hnf_degen(jHNF),&
             Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),&
