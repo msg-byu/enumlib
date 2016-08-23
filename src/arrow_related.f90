@@ -84,7 +84,7 @@ contains
     integer :: temp_map(size(conc),2)
     integer :: i, j, new_size
 
-
+    temp_map = 0
     ! First we need to find out the concentrations of the arrowed and
     ! unarrowed atoms of each species
     j = 1
@@ -97,8 +97,8 @@ contains
              new_concs(i) = 0
              new_species(j) = conc(i)
           end if
-          temp_map(i,1) = size(conc) + j
-          temp_map(i,2) = i
+          temp_map(j,1) = size(conc) + j
+          temp_map(j,2) = i
           j = j + 1
        else
           new_concs(i) = conc(i)
