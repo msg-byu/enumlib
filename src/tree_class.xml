@@ -25,6 +25,14 @@
 	<value identifier="generatorsFile" folder="../tests/tree_class"
 	       file="generators.in.{}" rename="generators.in"/>
       </assignment>
+      <assignment name="arrow_group" value="AGFile">
+	<value identifier="AGFile" folder="../tests/tree_class"
+		 file="arrow_group.in.{}" rename="arrow_group.in"/>
+      </assignment>
+      <assignment name="color_map" value="CMFile">
+	<value identifier="CMFile" folder="../tests/tree_class"
+		 file="conc_map.in.{}" rename="color_map.in"/>
+      </assignment>
       <assignment name="makeG" constant=".true."/>
       <assignment name="self" allocate="true"/>      
     </group>
