@@ -244,7 +244,7 @@ contains
 
     write(dummy,'(I3)') n*nAllD
     
-    struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1,2x,'//trim(dummy)//'i1)'
+    struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1,4x,'//trim(dummy)//'i1)'
 
     if (postprocessLabeling) then
        ! see the comments at the beginning of the current routine

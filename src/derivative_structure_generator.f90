@@ -1285,10 +1285,17 @@ CONTAINS
     write(*,'("Volume",7x,"CPU",8x,"#HNFs",2x,"#SNFs",&
          &4x,"#reduced",4x,"% dups",6x,"volTot",6x,"RunTot")')
     
+    ! Check to see if there are arrows present in the system.
+    inquire(FILE="arrows.in",EXIST=arrows)
+
     ! Set up the output file and write the lattice information
     open(14,file="struct_enum.out")
     !Write the fortpy version information for the file.
-    write(14, *) '# <fortpy version="4" revision="247"></fortpy>'
+    if (arrows) then
+       write(14, *) '# <fortpy version="4" revision="247"></fortpy>'
+    else
+       write(14, *) '# <fortpy version="3" revision="247"></fortpy>'
+    end if
     write(14,'(a10)') title
     if (pLatTyp=='S'.or.pLatTyp=="s") then; write(14,'(a4)') "surf"
     elseif (pLatTyp=='B'.or.pLatTyp=="b") then; write(14,'(a4)') "bulk"
@@ -1326,8 +1333,11 @@ CONTAINS
              
     !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 
-
-    write(14,'("start",3x,"#tot",6x,"HNF",5x,"Hdegn",3x,"labdegn",3x,"Totdegn",3x,"#size",1x,"idx",4x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",26x,"labeling")')
+    if (arrows) then
+       write(14,'("start",3x,"#tot",6x,"HNF",5x,"Hdegn",3x,"labdegn",3x,"Totdegn",3x,"#size",1x,"idx",4x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",26x,"labeling",5x,"arrows")')
+    else
+       write(14,'("start",3x,"#tot",6x,"HNF",5x,"Hdegn",3x,"labdegn",3x,"Totdegn",3x,"#size",1x,"idx",4x,"pg",4x,"SNF",13x,"HNF",17x,"Left transform",26x,"labeling")')
+    end if
 
     ! Check for 2D or 3D request
     if (pLatTyp=='s' .or. pLatTyp=='S') then; LatDim = 2
@@ -1358,9 +1368,6 @@ CONTAINS
     Tcnt = 0 ! Keep track of the total number of structures generated
     HNFcnt = 0 ! Keep track of the total number of
     ! symmetrically-inequivalent HNFs in the output
-
-    ! Check to see if there are arrows present in the system.
-    inquire(FILE="arrows.in",EXIST=arrows)
 
     do ivol = nMin, nMax
        if (conc_check) then
