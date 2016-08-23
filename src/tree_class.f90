@@ -73,6 +73,9 @@ CONTAINS
   !!group)</parameter>
   !!<parameter name="makeG" regular="true">Flag: True-> Generate group, False ->
   !!Generators already make a group</parameter>
+  !!<parameter name="arrow_group" regular="true">The arrow group for the system.</parameter>
+  !!<parameter name="color_map" regular="true">The mapping of the arrowed colors back
+  !! to the non-arrowed colors.</parameter>
   subroutine initializeTree(self,colors,generators, arrow_group, color_map, makeG)
     class(tree)         :: self
     integer, intent(in) :: colors(:)
@@ -90,7 +93,7 @@ CONTAINS
     allocate(self%loc(self%k),self%branches(self%k-1))
     allocate(self%Gsize(self%k))
     self%loc = -1
-    self%nArrows = size(color_map,1)
+    self%nArrows = count(color_map(:,1)>0)
     allocate(self%color_map(size(color_map,1),size(color_map,2)))
     self%color_map = color_map
     if (self%k > 1) then
