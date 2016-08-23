@@ -158,4 +158,10 @@
       </assignment>
     </group>
   </decorates>
+
+  <skip reason="Explicitly tested by the gen_multilatice_derivative subroutine."/>
+  <decorates name="tree_class.addArrowsToEnumeration">
+    <group name="arrow_test" purpose="testing" staging="../unittests/">
+    </group>
+  </decorates>
 </fortpy>
