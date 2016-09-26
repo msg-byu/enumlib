@@ -1,39 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
 
-  <decorates name="labeling_related.generate_permutation_labelings_new">
-  <skip reason="This routine is not finished or used yet"/>
-    <group name="labeling_tests1" purpose="testing_not_finished" staging="../unittests/">
-      <test identifier="original" description="New permutation routine tests."
-  	    timed="true" cases="[]">
-  	<output identifier="" folder="../tests/labeling_related" file=""
-  		template="" />
-  	<target name="[default]" compareto="" varfile="" when="each" />
-      </test>
-      <global name="perms" type="integer" modifiers="pointer" dimensions=":,:"/>
-      <assignment name="n" value="nfile">
-  	<value identifier="nfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="nD" value="nDfile">
-  	<value identifier="nDfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="perm" value="permfile">
-  	<value identifier="permfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="colors" value="colorsfile">
-  	<value identifier="colorsfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="fixed_cells" value="fixed_cellsfile">
-  	<value identifier="fixed_cellsfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-    </group>
-  </decorates>
-
   <decorates name="labeling_related.generate_permutation_labelings">
   <skip reason="This routine is not currently used in UNCLE"/>
     <group name="labeling_tests2" purpose="testing_not_used" staging="../unittests/">

@@ -1,0 +1,20 @@
+SC
+bulk
+1 0 0
+0 1 0 
+0 0 1
+7 #
+1 # Number of points in the multilattice
+# Cartesian coordinates: 
+0 0 0    0/1/2/3/4/5/6
+   3 4    # Starting and ending cell sizes for search
+0.001    # eps
+full list of labelings (including incomplete labelings) is used
+# Concentration ranges
+0 3 7
+0 2 7
+0 1 7
+0 5 7
+0 3 7
+0 7 7
+0 4 7
