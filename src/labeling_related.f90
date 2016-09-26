@@ -7,54 +7,236 @@ use numerical_utilities
 use rational_mathematics, only: gcd
 use combinatorics
 use tree_class
+use classes, only: polya
+use num_types
+use sorting, only: sort_concs
+use io_utils, only: read_arrows
+use arrow_related, only: arrow_concs
 implicit none
 private
 public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
         generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
-        write_labelings, generate_permutation_labelings_new
+        write_labelings, enum4
 CONTAINS
 
-  !!<summary>This subroutine uses the "recursively stabilized"
-  !!enumeration algorithm (enum4) to enumerate the number of
-  !!symmetrically-distinct colors of a lattice for a given symmetry
-  !!group.
-  !! GLWH Fall 2014</summary>
-  !!<parameter name="n" regular="true">Index of the superlattice
-  !!(volume factor).</parameter>
-  !!<parameter name="nD" regular="true">Number of sites in the parent
-  !!lattice (parent lattice is an nD-lattice)</parameter>
-  !!<parameter name="perms">list of translation and rotation
-  !!permutations.</parameter>
-  !!<parameter name="colors" regular="true">concentration; the numerator of each
-  !!rational number that is the concentration for each
-  !!label.</parameter>
-  !!<parameter name="fixed_cells" regular="true">if this is true, then
-  !!superperiodic cells are not removed from the list</parameter>
-  SUBROUTINE generate_permutation_labelings_new(n,nD,perms,colors,fixed_cells)
-    integer, intent(in)          :: n        
-    integer, intent(in)          :: nD       
-    integer, intent(in), pointer :: perms(:,:)
-    integer, intent(in)          :: colors(:) 
-    logical, intent(in)          :: fixed_cells 
-    class(tree), pointer         :: t ! a tree structure to use for the enumeration
-    integer, pointer, dimension(:,:):: labelings ! on output contains
-                               ! the symmetrically-distinct labelings
-    integer i
-    write(*,'("n,nd,colors  ",i2,1x,i1,1x,20(i2,1x))')n,nd,colors
-    write(*,'("shape(perms)",2(i4,1x))') shape(perms)
-    do i = 1,size(perms,1)
-       write(*,'("perm #",i3," :",20(i2,1x))') i,perms(i,:)
-    enddo
-    allocate(t)
-    call t%enumerate_unique_permutations(colors,perms,.false.,labelings)
-    write(*,'("shape(labelings) ",2(i4))') shape(labelings)
-    do i = 1, size(labelings,1)
-       write(*,'("labeling #:",i3," <>",20(i5,1x))') i,labelings(i,:)
-    enddo
+  !!<summary>The new subroutine for enum4 that uses the recursively
+  !!stabilized method to enumerate the symmetrically-distinct colors
+  !!of a lattice for a given symmetry group.
+  !!WSM Summer 2016</summary>
+  !!<parameter name="perm" regular="true">The group operations for permutating the
+  !!sites. Rows are operations, columns are perumations.</parameter>
+  !!<parameter name="conc" regular="true">The 1D integer array of the concentrations
+  !!of the atomic species for the system.</parameter>
+  !!<parameter name="symsize" regular="true">The total number of sites in
+  !!the system.</parameter>
+  !!<parameter name="knary" regular="true">The number of atomic
+  !!species in the system.</parameter>
+  !!<parameter name="SNF" regular="true">The list of SNFs.</parameter>
+  !!<parameter name="LT" regular="true">The list of left transforms.</parameter>
+  !!<parameter name="HNF" regular="true">The list of HNFs.</parameter>
+  !!<parameter name="HNFcnt" regular="true">The HNF's number for this
+  !!size of system.</parameter>
+  !!<parameter name="hnf_degen" regular="true">The degeneracy of this HNF.</parameter>
+  !!<parameter name="nfound" regular="true">The number of unique
+  !!configurations found so far.</parameter>
+  !!<parameter name="fixOp" regular="true">The number of elements in
+  !!the point group.</parameter>
+  !!<parameter name="scount" regular="true">The number unique configurations found
+  !!at this size</parameter>
+  !!<parameter name="iBlock" regular="true">Which grouping of the
+  !!symmetry group we're on.</parameter>
+  !!<parameter name="equivalencies" regular="true">The site
+  !!equivalencies for the system.</parameter>
+  !!<parameter name="permIndx" regular="true">The list of permutation indices.</parameter>
+  !!<parameter name="allowed" regular="true">The labels that are allowed on each
+  !!site in the cell.</parameter>
+  !!<parameter name="fixedcell" regular="true">A logical that for if this is a
+  !!fixed cell.</parameter>
+  !!<parameter name="aperms" regular="true">The list of arrow permutations.</parameter>
+  SUBROUTINE enum4(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell,aperms)
+    integer, pointer, intent(in) :: perm(:,:)
+    integer, pointer, intent(in) :: aperms(:,:)
+    integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:)
+    integer, intent(in) :: symsize, knary, iBlock
+    type(oplist), pointer, intent(in) :: fixop(:)
+    integer, intent(inout) :: nfound, HNFcnt, scount
+    integer, intent(in) :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
+    integer, intent(in) :: allowed(:,:)
+    logical, intent(in) :: fixedcell
     
-  ENDSUBROUTINE generate_permutation_labelings_new
+    
+    !!<local name="polya_total">The total number of configurations as
+    !!predicted by polya.</local>
+    !!<local name="this_tree">A tree structure for use in the
+    !!enumeration.</local>
+    !!<local name="labeling">The labeling that is currently being
+    !!checked to see if it is unique.</local>
+    !!<local name="tconc">A copy of the concentrations that allow them
+    !!to be sorted.</local>
+    !!<local name="poly">An array needed by the polya
+    !!algorithm no keep track of the polynomials.</local>
+    !!<local name="i">Variable for loops.</local>
+    !!<local name="j">Variable for loops.</local>
+    !!<local name="nHNF">The number of HNFs that use this permutation group.</local>
+    !!<local name="labels">The labels of the atoms present.</local>
+    !!<local name="allowed">A vector that stores which labels are allowed where.</local>
+    !!<local name="temp_labeling">A copy of the labeling before it's been formated for
+    !!the write out statement.</local>
+    !!<local name="arrows">The number of arrows for each color.</local>
+    !!<local name="a_conc">The concentrations with the arrows included.</local>
+    !!<local name="temp_label">A temporary integer of a arrowed species mapped back to
+    !!the non-arrowed equivalent.</local>
+    !!<local name="use_arrows">Logical, true if arrows.in is present.</local>
+    integer(li) :: polya_total
+    integer :: i, j, nHNF, temp_label
+    class(tree), pointer :: this_tree
+    integer, allocatable :: labeling(:), tconc(:), poly(:,:), labels(:), temp_labeling(:), a_conc(:)
+    integer, allocatable :: conc_map(:,:)
+    integer :: arrows(size(conc))
+    logical:: use_arrows
+
+    inquire(FILE="arrows.in",EXIST=use_arrows)
+    ! Get the arrow concentrations and adjust the input concentrations if needed.
+    if (use_arrows) then
+       call read_arrows(size(conc), arrows)
+       call arrow_concs(conc,arrows,a_conc,conc_map)
+    else
+       allocate(a_conc(size(conc)))
+       a_conc = conc
+       allocate(conc_map(1,2))
+       conc_map(1,:) = (/0,0/)
+    end if
+    allocate(tconc(count(a_conc > 0)),poly(size(perm,1),size(perm,2)),labels(count(a_conc > 0)))
+
+    j = 1
+    do i = 1, size(a_conc)
+       if (a_conc(i) > 0) then
+          tconc(j) = a_conc(i)
+          labels(j) = i-1
+          j = j + 1
+       end if
+    end do
+    ! First we need to find out the number of unique configurations we
+    ! should expect
+    ! polya_total = polya(tconc, perm,polynomials=poly,decompose=.true.)
+    ! write(*,*) ivol,"The next system has could have as many as ", polya_total, " structures."
+
+    
+    ! sort the concentrations to be in the optimal order
+    call sort_concs(tconc,labels)
+    ! Initialize the tree class and the labeling variables for the
+    ! algorithm
+    allocate(this_tree)    
+    call this_tree%init(tconc, perm, aperms, conc_map, .False.)
+    
+    if (this_tree%k > 1) then
+       call this_tree%increment_location()
+       allocate(labeling(this_tree%n))
+       labeling = 0
+    else if (this_tree%k == 1) then
+       this_tree%done = .true.
+       if (symsize == 1 .or. fixedcell) then
+          allocate(labeling(this_tree%n))
+          labeling = labels(1)
+          if (use_arrows) then
+             call this_tree%add_arrows(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                  fixOp,SNF,HNF,LT,equivalencies,permIndx)
+          else
+             call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                  fixOp,SNF,HNF,LT,equivalencies,permIndx)
+          end if
+          deallocate(labeling)
+       end if
+    end if
+    
+    ! Now we move through through the possible branches to see which
+    ! will contribute
+    do while (.not. this_tree%done)
+       ! We need a copy of the current labeling to apply the group
+       ! operations to.
+       call this_tree%coloring(temp_labeling)
+
+       this_tree%unique = .True.
+       
+       call this_tree%check(temp_labeling,symsize,fixedcell)
+
+       if ((this_tree%unique .eqv. .True.) .and. (this_tree%depth() == this_tree%k -1)) then
+          ! If we've generated a full labeling that is unique then we
+          ! need to write it out out to file. Only if it doesn't
+          ! violate site restrictions
+          do i = 1, this_tree%n
+             if (temp_labeling(i) == 0) then
+                labeling(i) = labels(this_tree%k)
+             else
+                labeling(i) = labels(temp_labeling(i))
+             end if
+          end do
+
+          if (any(allowed .ne. 1)) then
+             do i = 1, this_tree%n
+                if (use_arrows) then
+                   if (any(conc_map(:,1) == labeling(i))) then
+                      temp_label = conc_map(labeling(i)-size(conc),2) + 1
+                   else
+                      temp_label = labeling(i) + 1
+                   end if
+                   if ((allowed(i,temp_label) == 0)) then
+                      this_tree%unique = .False.
+                      exit
+                   end if
+                else 
+                   if ((allowed(i,labeling(i)+1) == 0)) then
+                      this_tree%unique = .False.
+                      exit
+                   end if
+                end if
+             end do
+             ! If the original violates site restrictions we need to
+             ! see if any of the arrangements it was equivalent to
+             ! doesn't. If they aren't then that is the labeling we
+             ! want to save.
+             if (this_tree%unique .eqv. .False.) then
+                do j = 1, size(perm,1)
+                   temp_labeling = labeling(perm(j,:))
+                   do i = 1, this_tree%n
+                      if ((allowed(i,temp_labeling(i)+1) == 0)) then
+                         this_tree%unique = .False.
+                         exit
+                      else
+                         this_tree%unique = .True.
+                      end if
+                   end do
+                   if (this_tree%unique .eqv. .True.) then
+                      labeling = temp_labeling
+                      exit
+                   end if
+                end do
+             end if
+          end if
+          if (this_tree%unique .eqv. .True.) then
+             if (use_arrows) then
+                call this_tree%add_arrows(labeling+1,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             else 
+                call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             end if
+          end if
+       end if
+
+       ! It's time to move to the next location in the tree.
+       call this_tree%increment_location()
+    end do
+
+    nHNF = count(permIndx==iBlock)
+    HNFcnt = HNFcnt + nHNF
+    if (allocated(labeling)) then
+       deallocate(labeling)
+    end if
+    deallocate(a_conc)
+  END SUBROUTINE enum4
 
   !!<summary>This subroutine is conceptually the same as
   !!generate_unique_labelings. That routine generates labelings as a
@@ -147,7 +329,13 @@ CONTAINS
     allocate(degeneracy_list(nL) )
     degeneracy_list = 0
     nUniq = 0
-    
+
+    ! a in the lattice, initially set to be all -1, as we loop through
+    ! the second loop we change the sitePointerth, a(sitePointer),
+    ! sites occupation to increase it by one. Here we build the
+    ! labeling then use the labeling to generate the index, in enum4
+    ! we use the index to generate the labeling thus avoiding the
+    ! neccessity of a concentration check
     a = -1; flag = .true.
     sitePointer = 1
     do while (flag) ! Loop over digits (place holders) in the labeling
@@ -213,8 +401,6 @@ CONTAINS
                    write(*,'("iConc",100(i3,1x))') iConc
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
-                   print *,"idx",idx
-                   print *,"max expected",nL
                    print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
                    stop
                 endif
@@ -699,7 +885,7 @@ CONTAINS
   !!label among the remaining slots as we loop over labels</parameter>
   !!<parameter name="m" regular="true">m is the number of remaining
   !!slots (slots for i-th label and > i-th labels).</parameter>n
-  !!<parameter name="j">j is the number of the current
+  !!<parameter name="j" regular="true">j is the number of the current
   !!label.</parameter>
   SUBROUTINE get_Xmj_for_labeling(idx,conc,x,m,j)
     integer(li), intent(in) :: idx
@@ -1170,8 +1356,6 @@ CONTAINS
     degeneracy_list = temp
     deallocate(temp)
     if (ic /= nexp) then
-       print *, 'number of permutations counted', iC
-       print *, 'number expected', nexp
        stop 'Bug: Found the wrong number of labels!'
     endif
     if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
@@ -1355,7 +1539,6 @@ CONTAINS
     !> *** Might be easier to read if iConc was renamed to something
     !> *** that indicated sets... ****
 
-    print *,"Change iConc declaration back when done"
     iConc = (/2,2,0,0/)
     !if (size(iConc)/=nSets) stop "ERROR: number of disjoint subsets does not match entries in iConc"
     nl = multinomial(iConc)
@@ -1412,7 +1595,6 @@ CONTAINS
     end do; write(22,*); close(22)
     
 
-    print *,"DEBUG, n,k,nD",n,k,nD
     a = -1; flag = .true.
     sitePointer = 1
     
@@ -1425,7 +1607,6 @@ CONTAINS
           endif
           digCnt(sitePointer) = digCnt(sitePointer) + 1   ! Advance
           ! the current digit (rotate the wheel one click)
-          print *,"label at current spot",label(digCnt(sitePointer),sitePointer)
           if (label(digCnt(sitePointer),sitePointer) == -1) then  ! If
              ! the wheel is rolling over, reset the label to "zero"
              digCnt(sitePointer) = 1                  ! (i.e., lowest allowed label, ordinal 1)
@@ -1473,8 +1654,6 @@ CONTAINS
                    write(*,'("iConc",100(i3,1x))') iConc
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
-                   print *,"idx",idx
-                   print *,"max expected",nL
                    print *,"An index outside the expected range occurred in get_permutations_labeling"
                    stop
                 endif
@@ -1511,4 +1690,192 @@ CONTAINS
     END FUNCTION is_valid_multiplicity
   END SUBROUTINE generate_disjoint_permutation_labelings
 
+  !!<summary>Writes a single labeling to file for the enum4 code. This
+  !!code is a duplicae of the write_labelings code except
+  !!with the outermost do loop removed.</summary>
+  !!<parameter name="n" regular="true">The size of the supercell.</parameter>
+  !!<parameter name="Tcnt" regular="true">Counter for the total number
+  !!of labelings.</parameter>
+  !!<parameter name="Scnt" regular="true">Counter for the number of
+  !!labelings for this size.</parameter>
+  !!<parameter name="Hcnt" regular="true">Counter for the HNFs.</parameter>
+  !!<parameter name="HNFi" regular="true">Index in the permIndx
+  !!corresponding to the current block of the HNFs.</parameter>
+  !!<parameter name="hnf_degen" regular="true">The degeneracy of the HNFs.</parameter>
+  !!<parameter name="fixOp" regular="true">Lattice fixing operations (type opList).</parameter>
+  !!<parameter name="SNFlist" regular="true">List of the SNFs.</parameter>
+  !!<parameter name="HNFlist" regular="true">List of the HNFs.</parameter>
+  !!<parameter name="L" regular="true">List of the left transforms.</parameter>
+  !!<parameter name="permIndx" regular="true">List of the different permutations
+  !!groups.</parameter>
+  !!<parameter name="equivalencies" regular="true">The list of
+  !!equivalencies of the system.</parameter>
+  !!<parameter name="labeling" regular="true">The labeling to be written to file.</parameter>
+  subroutine write_single_labeling(labeling,n,Tcnt,Scnt,Hcnt,HNFi,hnf_degen,fixOp,SNFlist,HNFlist,L,equivalencies,permIndx)
+    integer, intent(in)      :: n, Hcnt, HNFi
+    integer, intent(inout)   :: Scnt, Tcnt
+    integer, intent(in)      :: SNFlist(:,:,:), HNFlist(:,:,:), L(:,:,:)
+    integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:), labeling(:)
+    type(opList), intent(in) :: fixOp(:)
+    
+    !!<local name="conc_check">Are the concentrations restricted</local>
+    !!<local name="lab_degen">The degeneracy of this label.</local>
+    !!<local name="iHNF">Counter that loops over the HNFs</local>
+    !!<local name="vsH">Vector for matching the HNF to the list.</local>
+    !!<local name="struct_enum_out_formatstring">Format for output file.</local>
+    !!<local name="dummy">Dummy string the keeps track if the size of the labeling.</local>
+    !!<local name="status">Allocation exit flag</local>
+    !!<local name="i">Loop variable</local>
+    !!<local name="jHNF">Which HNF this is in the permIndx</local>
+    !!<local name="nHNF">How many of this HNF are there.</local>
+    logical :: conc_check = .true.
+    integer :: lab_degen, iHNF, status, i, jHNF, nHNF
+    integer, allocatable :: vsH(:)
+    character(100) :: struct_enum_out_formatstring
+    character(3) :: dummy
+
+    ! Labeling Postprocessing data
+    !!<local name="nALLD">Size of full dset.</local>
+    !!<local name="allD">help array: (/1,2,3,....,nALLD/)</local>
+    !!<local name="pplabeling">Labeling after postprocessing.</local>
+    !!<local name="postprocessLabeling">True if we need to perform
+    !!postprocessing.</local>
+    !!<local name="allD2LabelD">Respective d-vector ID in the labeling dset.</local>
+    integer              :: nAllD
+    integer, allocatable :: allD(:)
+    integer, allocatable :: pplabeling(:)
+    logical :: postprocessLabeling
+    integer, allocatable :: allD2LabelD(:)
+
+
+    ! Postprocessing labelings: setup
+    nAllD = size(equivalencies)
+    allocate(allD(nAllD)); allD = (/ (i,i=1,nAllD) /)
+    allocate(allD2LabelD(nAllD));
+    ! 1) Check whether we have to postprocess the labeling before writing
+    !    it out Postprocessing is needed if we do not want to enumerate
+    !    all dset members of a primitive unit cell due to some
+    !    equivalencies.  For example, in a 1x1 symmetric surface slab (
+    !    (*) denotes an atom ):
+    !
+    !      ------------------------------------------------ surface
+    !         (*)  topmost surface layer, dvector# 1
+    !         (*)  dvector# 2
+    !         (*)  dvector# 3
+    !         (*)  bottommost surface layer, dvector# 4
+    !      ------------------------------------------------ surface
+    !
+    !    the topmost and the bottommost atom should always have the same
+    !    occupancy, as well as dvector 2 and dvector 3 should. You can
+    !    therefore specify the following equivalency list:
+    !
+    !         equivalency of dvector# | 1 2 3 4
+    !         ---------------------------------   
+    !         equivalency list        | 1 2 2 1
+    !
+    !    which means that dvector# 1 and dvector# 4 have to have the same
+    !    occupancy, they are equivalent by enumeration. The same is true
+    !    for dvector# 2 and dvector# 3
+    !
+    !    In this example, the enumeration code should only find
+    !    enumerations of dvector# 1 and dvector# 2.  The occupations of
+    !    dvector# 3 and dvector# 4 are then constructed in a
+    !    postprocessing step.  The postprocessing step takes the
+    !    enumerated form (i.e. dvectors# 1 and 2, e.g. a labeling 0101 for
+    !    two unit cells) and tranforms it into a form that is valid for
+    !    ALL dvectors, e.g. labeling 01010101 for two unit cells).
+    !
+    postprocessLabeling = .not. (all(  abs( equivalencies-allD ) ==0))
+    allocate(pplabeling(n*nAllD))
+    ! this is ok whether we do postprocessing (nAllD>nD) or not
+    ! (nAllD==nD) 2) if yes: - prepare the postprocessed labeling
+    ! (pplabeling) - generate a map: full dset -> enum dset that tells
+    ! me for a dset member of the full dset what dset member in the
+    ! enumeration dset it corresponds to
+    if (postprocessLabeling) then
+       allD2LabelD = (/(count(pack(allD,allD<=equivalencies(i))==equivalencies),i=1,nAllD)/)
+       ! this construction is best explained by an example: suppose we
+       ! have a dset 1,2,3,4,5 and the equivalent list is 1,4,4,4,5
+       ! (so, dset member 1,4,5 will be enumerated, having positions
+       ! 1,2,3 in labelings) the map should accomplish: 1 -> 1, 2 ->
+       ! 2, 3 -> 2, 4 -> 2, 5 -> 3 first, the pack operation take only
+       ! those in the dset <= equivalent point, then, the number of
+       ! truly enumerated points is counted (truly enumerated points
+       ! are points for which dset=equivalencies
+    endif
+
+    lab_degen = 0
+    nHNF = count(permIndx==HNFi)
+    allocate(vsH(nHNF),STAT=status); if (status/=0) stop "Allocation failed in write_single_labelings: vsH"
+    
+    ! Packing...
+    vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); 
+
+    write(dummy,'(I3)') n*nAllD    
+    
+    struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1)'
+
+    if (postprocessLabeling) then
+       ! see the comments at the beginning of the current routine
+       call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
+    else
+       pplabeling = labeling ! nothing changes
+    endif
+    
+    do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
+       jHNF = vsH(iHNF) ! Index of matching HNFs
+       Tcnt = Tcnt + 1; Scnt = Scnt + 1
+          
+       write(14,struct_enum_out_formatstring) &
+            Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen,lab_degen*hnf_degen(jHNF),&
+            Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),&
+            SNFlist(3,3,jHNF),HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),&
+            HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),&
+            pplabeling
+    enddo ! loop over HNFs
+
+  contains
+
+    !!<summary>Purpose: take an enumeration labeling (for selected,
+    !!non-equivalent (by enumeration) dvectors) and construct the full
+    !!labeling for all dvectors. It makes sure that two dvectors in
+    !!the same primitive unit cell of the parent lattice get the SAME
+    !!labeling always. See also comments at the beginning of
+    !!write_labelings.</summary>
+    !!<parameter name="nUC" regular="true">number of unit
+    !!cells.</parameter>
+    !!<parameter name="nAllD" regular="true">number of d-vectors in
+    !!the new labeling.</parameter>
+    !!<parameter name="oldlabeling" regular="true">the old
+    !!labeling</parameter>
+    !!<parameter name="newlabeling" regular="true">the wanna-be new
+    !!labeling.</parameter>
+    !!<parameter name="newD2oldD" regular="true">{ new D# }: a map
+    !!newD -> oldD</parameter>
+    subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,newD2oldD)
+      integer, intent(in) :: nUC, nAllD          
+      integer, intent(in) :: oldlabeling(:)      
+      integer, intent(out):: newlabeling(:)      
+      integer, intent(in) :: newD2oldD(:)        
+
+      !!<local name="newlab_pos">The position in the new label.</local>
+      !!<local name="oldlab_pos">The position in the old label.</local>
+      !!<local name="iD">Variable for looping.</local>
+      !!<local name="iUC">Variable for looping.</local>
+      integer :: newlab_pos, oldlab_pos
+      integer :: iD,iUC
+      
+      do iD=1,nAllD
+         do iUC=1,nUC
+            newlab_pos = (iD-1)*nUC + iUC               ! position in the new labeling
+            oldlab_pos = (newD2oldD(iD)-1)*nUC + iUC    ! corresponding
+            ! position in the old labeling
+            newlabeling(newlab_pos) = oldlabeling(oldlab_pos)
+         enddo
+      enddo
+
+    end subroutine postprocess_labeling
+
+  end subroutine write_single_labeling
+  
 END MODULE labeling_related
