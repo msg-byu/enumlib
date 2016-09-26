@@ -123,25 +123,17 @@
     </group>
   </decorates>
 
+
   <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests6" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests6" purpose="testing" staging="../unittests/">
       <test identifier="get_dvector_permutations_dRPList"
 	    description="Original enumerations tests of basic structures"
-	    cases="[1-15]" timed="true">
-	<output folder="../tests/derivative_structure_generator/dRPList.out.{}"
+	    cases="[1-20]" timed="true">
+	<output folder="../tests/derivative_structure_generator/get_dvector_permutations_dRPList.out.{}"
 		autoclass = "true" identifier="get_dvector_permutations_dRPList.out" />
 	<target name="dRPList" autoclass = "true"
 		compareto="get_dvector_permutations_dRPList.out"
 		varfile="get_dvector_permutations_dRPList.out" when="each"/>
-      </test>
-      <test identifier="get_dvector_permutations_pd"
-	    description="Original enumerations tests of basic structures"
-	    cases="[1-15]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file = "get_dvector_permutations_pd.out.{}" template= "float.xml"
-		identifier="get_dvector_permutations_pd.out" />
-	<target name="pd" compareto="get_dvector_permutations_pd.out"
-		varfile="get_dvector_permutations_pd.out" when="each"/>
       </test>
       <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
       <assignment name="dRPList" allocate="true"/>
@@ -237,9 +229,9 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.map_dvector_permutation">
-    <group name="stuct_enum_tests9" purpose="testing_need_RP.in" staging="../unittests/">
+    <group name="stuct_enum_tests9" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[1-722]" timed="true">
+	    cases="[1-200]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="map_dvector_permutation_RP.out.{}" template="integer.xml"
 		identifier="map_dvector_permutation_RP.out" />
@@ -253,6 +245,10 @@
       <assignment name="d" value="dfile" allocate="true">
 	<value identifier="dfile" file="map_dvector_permutation_d.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="d.in"/>
+      </assignment>
+      <assignment name="RP" value="RPfile" allocate="true">
+	<value identifier="RPfile" file="map_dvector_permutation_RP.in.{}"
+	       folder="../tests/derivative_structure_generator" rename="RP.in"/>
       </assignment>
       <assignment name="eps" value="epsfile" >
 	<value identifier="epsfile" file="map_dvector_permutation_eps.in.{}"
@@ -468,10 +464,10 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_sLV_fixing_operations">
-    <group name="stuct_enum_tests14" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests14" purpose="testing" staging="../unittests/">
       <test identifier="get_sLV_fixing_operations_fixOp"
 	    description="Original enumerations tests of basic structures"
-	    cases="[1-189]" timed="true">
+	    cases="[1-151]" timed="true">
 	<output folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_fixOp.out.{}"
 		autoclass="true" identifier="get_sLV_fixing_operations_fixOp.out" />
 	<target name="fixOp" autoclass="true" compareto="get_sLV_fixing_operations_fixOp.out"
@@ -479,7 +475,7 @@
       </test>
       <test identifier="get_sLV_fixing_operations_rotPerm"
 	    description="Original enumerations tests of basic structures"
-	    cases="[1-189]" timed="true">
+	    cases="[1-51]" timed="true">
 	<output folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_rotPerm.out.{}"
 		autoclass="true" identifier="get_sLV_fixing_operations_rotPerm.out" />
 	<target name="rotPerm" autoclass="true" compareto="get_sLV_fixing_operations_rotPerm.out"
@@ -507,7 +503,15 @@
       </assignment>
       <assignment name="dPerm" value="dPermfile">
 	<value identifier="dPermfile" autoclass="true"
-	       folder="../tests/derivative_structure_generator"/>
+	       folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_dPerm.in.{}"/>
+      </assignment>
+      <assignment name="fixOp" value="FOfile">
+	<value identifier="FOfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_fixOp.in.{}"/>
+      </assignment>
+      <assignment name="rotPerm" value="rPfile">
+	<value identifier="rPfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_rotPerm.in.{}"/>
       </assignment>
       <assignment name="eps" value="epsfile">
 	<value identifier="epsfile" file="get_sLV_fixing_operations_eps.in.{}"
@@ -555,20 +559,19 @@
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
     <group name="stuct_enum_tests17" purpose="testing" staging="../unittests/">
       <test identifier="fixed_cell_enum" description="Original enumerations tests of basic
-					       structures. Used to test enum3 against enum4."
-	    cases="sc[1-6],fcc[1-5],bcc[1-5]" timed="true">
-	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
-	       rename="struct_enum.in" />
-	<input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
-	       rename="fixed_cells.in" />
-	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.fc_{}"
-		template="struct_enum.out.xml" identifier="struct_enum.out" />
-	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      					       structures. Used to test enum3 against enum4."
+      	    cases="sc[1-6],fcc[1-5],bcc[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+      	<input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
+      	       rename="fixed_cells.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.fc_{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
       </test>
       <test identifier="vanilla_enum" description="Original enumerations tests of basic
       					       structures. Used to test enum3 against enum4."
       	    cases="sc[1-6],fcc[1-5],bcc[1-5],hcp[1-5]" timed="true">
-	<!-- cases="001, 002, 003, 004, 005" timed="true"> -->
       	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
       	       rename="struct_enum.in" />
       	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"

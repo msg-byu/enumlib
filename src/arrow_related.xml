@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+  <decorates name="arrow_related.generateIndexFromArrowing">
+    <group name="arrowing_to_index" purpose="testing" staging="../unittests/">
+      <test identifier="generateIndexFromArrowing"
+	    description="Test the fortran transalation of the arrow index generation"
+	    timed="true" cases="[1-20]" >
+      	<output folder="../tests/arrow_related" file="index.out.{}" template="integer.xml"
+		identifier="index.out"/>
+      	<target name="arrow_index" compareto="index.out"
+      		varfile="index.out" when="each"/>
+      </test>
+      <assignment name="arrowing" value="arrowingfile" allocate="true"> 
+	<value identifier="arrowingfile" folder="../tests/arrow_related"
+	       file="arrowing.in.{}" rename="arrowing.in"/>
+      </assignment>
+      <assignment name="dim" value="dimFile"> 
+	<value identifier="dimFile" folder="../tests/arrow_related"
+	       file="dim.in.{}" rename="dim.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <decorates name="arrow_related.generateArrowingFromIndex">
+    <group name="index_to_arrowing" purpose="testing" staging="../unittests/">
+      <test identifier="generateArrowingFromIndex"
+	    description="Test the fortran translation of arrowing idex" timed="true"
+	    cases="[1-20]"> 
+	<output identifier="arrowing.out"
+		folder="../tests/arrow_related" file="arrowing.in.{}"
+		template="integer.xml"/>
+	<target name="arrowing" compareto="arrowing.out"
+		varfile="arrowing.in" when="each" />
+      </test>
+      <assignment name="index" value="indexFile"> 
+	<value identifier="indexFile" folder="../tests/arrow_related"
+	       file="index.out.{}" rename="index.out"/>
+      </assignment>
+      <assignment name="dim" value="dimFile"> 
+	<value identifier="dimFile" folder="../tests/arrow_related"
+	       file="dim.in.{}" rename="dim.in"/>
+      </assignment>
+      <assignment name="nArrows" value="NAFile"> 
+	<value identifier="NAFile" folder="../tests/arrow_related"
+	       file="nArrows.in.{}" rename="nArrows.in"/>
+      </assignment>
+      <assignment name="arrowing" constant="0" allocate="nArrows"/>
+    </group>
+  </decorates>
+
+  <decorates name="arrow_related.arrow_concs">
+    <group name="arrow_concs_test" purpose="testing" staging="../unittests/">
+      <test identifier="arrow_concs_a_conc"
+	    description="Test of the fortran arrow concentration conversions." timed="true"
+	    cases="[1-10]"> 
+	<output identifier="a_conc.out"
+		folder="../tests/arrow_related" file="a_conc.out.{}"
+		template="integer.xml" />
+	<target name="a_conc" compareto="a_conc.out"
+		varfile="a_conc.out" when="each" />
+      </test>
+      <test identifier="arrow_concs_conc_map"
+	    description="Test of the fortran arrow concentration conversions." timed="true"
+	    cases="[1-4],[6-10]"> 
+	<output identifier="conc_map.out"
+		folder="../tests/arrow_related" file="conc_map.out.{}"
+		template="integer.xml" />
+	<target name="conc_map" compareto="conc_map.out"
+		varfile="conc_map.out" when="each" />
+      </test>
+      <assignment name="conc" value="concFile" allocatable="true">
+	<value identifier="concFile" folder="../tests/arrow_related"
+	       file="conc.in.{}" rename="conc.in"/>
+      </assignment>
+      <assignment name="arrows" value="arrowsFile" allocatable="true">
+	<value identifier="arrowsFile" folder="../tests/arrow_related"
+	       file="arrow_conc.in.{}" rename="arrows.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <skip reason="Tested by the gen_multilatice_derivative subroutine"/>
+  <decorates name="arrow_related.write_arrow_labeling">
+    <group name="Test" purpose="testing" staging="../unittests/">
+    </group>
+  </decorates>
+</fortpy>
