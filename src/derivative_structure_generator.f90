@@ -316,12 +316,12 @@ CONTAINS
        do jL = 1, cnt ! Loop over the number of unique lists found so far
           ! if the two lists aren't the same length, then they definitely aren't identical
           if (size(RPList(iL)%perm,1)/=size(tList(jL)%perm,1)) cycle
-          if (all(RPList(iL)%perm==tList(jL)%perm) .and. all(shape(aperms(iL)%perm)==shape(tList(jL)%perm))) then ! they're
-             if (all(aperms(iL)%perm==tList(jL)%perm)) then 
+          if (size(aperms(iL)%perm,1)/=size(taList(jL)%perm,1)) cycle
+          if (all(RPList(iL)%perm==tList(jL)%perm) .and. &
+               all(aperms(iL)%perm==taList(jL)%perm)) then 
                 !identical. Tag it and go to next
                 unique = .false.
                 exit
-             end if
           endif
        enddo
        if (unique) then ! store this list in the master list
@@ -467,7 +467,7 @@ CONTAINS
     type(RotPermList) :: RPlist(:) 
     type(RotPermList), intent(in) :: dperms
     real(dp), intent(in) :: eps
-    type(RotPermList), pointer :: aperms(:)
+    type(RotPermList), optional, pointer :: aperms(:)
     logical, optional, intent(in) :: use_arrows
     
     !!<local name="taperms">Temporary storage of the arrow permutations.</local>
@@ -507,11 +507,16 @@ CONTAINS
     ! Number of d-vectors in d set
     nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2)
 
-    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,6), rag(3,6), skip(n),STAT=status,dap(size(arrow_basis,2)),skipa(6))
+    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,6), rag(3,6), skip(n),dap(size(arrow_basis,2)),skipa(6),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
     allocate(tg(3,n),perm(n),ident(nD,n),identT(n,nD),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident"
-    allocate(tperms%perm(n,n*nD),aperms(size(RPlist)))
+    if (present(aperms)) then
+       allocate(aperms(size(RPlist)),STAT=status)
+       ! if(status/=0) then "Allocation failed in get_rotation_perms_lists: aperms."
+    end if
+    allocate(tperms%perm(n,n*nD),STAT=status)
+    ! if(status/=0) then "Allocation failed in get_rotation_perms_lists: tperms."
     identT = reshape((/(ig,ig=1,n*nD)/),(/n,nD/))  ! we could combine
     ! those two lines, but gfortran
     ident  = transpose(identT)                     ! does some strange things then.
@@ -638,9 +643,9 @@ CONTAINS
        
        RPlist(iH)%nL = size(rperms%perm,1)*n
        allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
-       if (arrows) then
+       if ((arrows) .and. present(aperms)) then
           allocate(aperms(iH)%perm(RPlist(iH)%nL,6))
-       else
+       else if (present(aperms)) then
           allocate(aperms(iH)%perm(RPlist(iH)%nL,1))
        end if
        do it = 1,n ! Loop over translation perms (r type)
@@ -648,9 +653,9 @@ CONTAINS
              ! perms (N+t type) Form the permutation effected by
              ! composing the iOp-th one with the it-th one
              RPlist(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
-             if (arrows .eqv. .true.) then
+             if ((arrows .eqv. .true.) .and. present(aperms)) then
                 aperms(iH)%perm((iOp-1)*n+it,:) = taperms%perm(iOp,:)
-             else
+             else if (present(aperms)) then
                 aperms(iH)%perm((iOp-1)*n+it,:) = 0
              end if
              ! ^--- Having gotten both the rotations and the
@@ -1236,6 +1241,8 @@ CONTAINS
     !!<local name="rdaperms">The reduced list of arrow permutations.</local>
     logical :: arrows
     type(RotPermList), pointer :: aperms(:), rdaperms(:)
+
+    integer, parameter :: i32 = selected_int_kind(32)
     ! Divide the dset into members that are enumerated and those that are not
     nD = count( (/(i,i=1,nDFull)/)==equivalencies)
     allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
@@ -1414,9 +1421,9 @@ CONTAINS
        Scnt = 0 ! Keep track of the number of structures at this size   
        do iBlock = 1, maxval(RPLindx)
           !call cpu_time(blockstart)
-          filename = "debug_temp_perms.out"
+          ! filename = "debug_temp_perms.out"
           
-          call write_rotperms_list(rdRPList(iBlock),filename) 
+          ! call write_rotperms_list(rdRPList(iBlock),filename) 
           if (conc_check) then
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
 
@@ -1433,14 +1440,14 @@ CONTAINS
                 ! efficient. Unless there are arrows present in the
                 ! enumeration or the multinomial of possible
                 ! arrangements is to large for enum3 to handle.
-                if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < 1000000000) .and. (arrows .eqv. .false.)) then
+                if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < 26300000000000_i32) .and. (arrows .eqv. .false.)) then
                    call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
                         lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
                    call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&
                         Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
 
                 else
-                   call enum4(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
+                   call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
                         hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
                         fixed_cells,rdaperms(iBlock)%perm)
                 end if

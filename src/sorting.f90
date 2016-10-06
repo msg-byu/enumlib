@@ -35,24 +35,6 @@ CONTAINS
     labels = sorted_labels
     list = sorted_list
 
-    ! Keep this for now. More extensive timing tests should be
-    ! performed to see which sort actually performs better for larger systems.
-    !integer :: i, j
-
-    ! sorted_list = 0
-    ! sorted_labels = 0
-    ! j = 1
-    ! do i =1, size(list)
-    !    if (list(i) .ne. 0) then
-    !       sorted_list(j) = list(i)
-    !       sorted_labels(j) = labels(i)
-    !       j = j + 1
-    !    end if
-    ! end do
-    ! labels = sorted_labels
-    ! list = sorted_list
-
-
   END SUBROUTINE sort_concs
     
 

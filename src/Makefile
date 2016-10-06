@@ -6,30 +6,33 @@
 # Shell
 SHELL		= /bin/bash
 
-LBDR = ../../symlib/src
+# enumlib library paths
+LBD1 = ../symlib/src
+LBD2 = ../polya/fortran
+
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
   ifeq (${DEBUG},false)
-     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBDR}
+     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBD1} -I${LBD2}
      FOUND = true
   else
-     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBDR} 
+     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBD1} -I${LBD2}
      FOUND = true
   endif
 endif
 
 ifeq (${F90},ifc)  # Intel compiler
-  FFLAGS = -fPIC -g -error-limit 7 -traceback -check bounds -warn  -I${LBDR}
+  FFLAGS = -fPIC -g -error-limit 7 -traceback -check bounds -warn  -I${LBD1} -I${LBD2}
   FOUND = true
 endif
 
 ifeq (${F90},ifort)  # Intel compiler
   ifeq (${DEBUG},false)
-     FFLAGS =  -fPIC -O3 -I${LBDR} 
+     FFLAGS =  -fPIC -O3 -I${LBD1} -I${LBD2}
      FOUND = true
   else
 #  F90 =  /opt/intel/fc/10.0.016/bin/ifort
-     FFLAGS =  -fPIC -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBDR} 
+     FFLAGS =  -fPIC -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBD1} -I${LBD2}
      FOUND = true
 #-prof-use -prof-dir .
    endif
@@ -37,12 +40,12 @@ endif
 
 
 ifeq (${F90},xlf90) # IBM compiler
-  FFLAGS = -g -C -fPIC -qsuffix=f=f90  -I${LBDR}
+  FFLAGS = -g -C -fPIC -qsuffix=f=f90  -I${LBD1} -I${LBD2}
   FOUND = true
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
 #  FFLAGS =  -profile -p ${LBDR} 
-  FFLAGS = -g -Rb -Rc  -fPIC -nodefaultmod -p ${LBDR} #-ea
+  FFLAGS = -g -Rb -Rc  -fPIC -nodefaultmod -p ${LBD1} -I${LBD2} #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
 # -O3 optimization
@@ -68,8 +71,8 @@ SRC = sorting.f90 enumeration_types.f90 io_utils.f90 arrow_related.f90 tree_clas
       #kgrid_utilities.f90 cwrapper.f90
 
 OBJS = ${SRC:.f90=.o}
-LIBS =  ${LBDR}/libcomparestructs.a ${LBDR}/libutils.a ${LBDR}/libsym.a \
-         ${LBDR}/librational.a ${LBDR}/libcombinatorics.a
+LIBS =  $(LBD1)/libcomparestructs.a $(LBD1)/libutils.a $(LBD1)/libsym.a \
+         $(LBD1)/librational.a $(LBD1)/libcombinatorics.a $(LBD2)/libpolya.a
 VPATH:= ../aux_src: ../src 
 
 .SUFFIXES :  

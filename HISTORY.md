@@ -1,5 +1,30 @@
 # Revision History for `enumlib`
 
+## Revision 0.1.2
+
+- Added checks on all allocations that were added for the arrowed enumeration and the recursively stabilized enumeration.
+- Changed the indexing variable names to be more descriptive.
+- Made some of the comments and documentation in the recursively stabilized enum code more helpful.
+- Changed write_single_labeling, in labeling_related.f90, to take an optional arrow_labeling argument so that when arrows are present it will write out the arrow labeling as well. Removed write_arrow_labeling from arrow_related.f90.
+
+- Added symlib and polya as submodules of enumlib. Updated the Makefile te reflect the change.
+
+- Fixed the default cutoff for the switch from enum3 to enum4 when site restrictions are present.
+
+- Removed the check for a single element enumeration in enum4. (The code now works even for a single element enumeration without this check being present.)
+
+- Moved sort_concs into heapsort interface and changed all calls accordingly.
+
+
+
+## Revision 0.1.1
+
+Added the source code for the arrowed enumeration. Most of the changes happened in the recursively_stabilized_enum code in labeling_related.f90 and in the tree_class.f90 model where a number of subroutines had to be subtely altered and a new model called arrow_related.f90 has been added to handle the arrow specific methods.
+
+## Revision 0.1.0
+
+Added the source code for the non-arrowed version of the recursively_stabilized_enum code. This entailed adding a new module `tree_class.f90` and adding methods to labeling_related.f90 (recursively_stabilized_enum and write_single_labeling) and sorting.f90 (sort_concs). The new approach has been implemented in derivative_structure_generator.f90
+
 ## Revision 0.0.3
 
 Cleaned up the codes XML documentation so that the unittests don't produce as many warnings. Also made a few minor changes in the code that caused errors when compiling with the strict flag on.
