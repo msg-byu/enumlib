@@ -1,5 +1,14 @@
 # Revision History for `enumlib`
 
+## Revision 0.1.3
+- Removed the now redundant files src/itertools.f90 and
+  src/classes.f90 and the reference to them in the Makefile.
+
+- Added comments to multiple subroutines in tree_class.f90.
+
+- Updated the arrow enumeration code so that it can handle 2D and 3D enumerations properly.
+
+
 ## Revision 0.1.2
 
 - Added checks on all allocations that were added for the arrowed enumeration and the recursively stabilized enumeration.

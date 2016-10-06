@@ -2,7 +2,7 @@
 
 This code generates the *derivative superstructures* of a parent
 lattice. It works for general lattices, including "multilattices," like
-HCP, which have more than one lattice point in the unit cell. The code can enumerate over all concentrations or in a restricted concentration range. 
+HCP, which have more than one lattice point in the unit cell. The code can enumerate over all concentrations or in a restricted concentration range.
 
 As of Dec. 2011, both modes (all concentrations vs. restricted
 conc. range) can also be used with site restrictions---some atomic
@@ -12,6 +12,11 @@ have to be the same on each parent lattice site. You could have two
 sites in the parent lattice and one could be populated by A or B atoms
 and the second site could be populated by B and C atoms, for
 example. (But see Ex. 5 in the EXAMPLES file for some caveats.)
+
+As of Oct. 2016 the concentration restricted enumeration can also
+include displacement directions in the enumeration (the user may
+specify to displace any number of each atomic species from the
+lattice).
 
 A discussion of the algorithm and its applications can be found in the
 following publications. If you use this code in a publication, we
@@ -35,20 +40,16 @@ know about bugs/improvements/etc.
 
 ##COMPILING THE CODE
 
-To compile the code, checkout the `symlib` repository from github, as
-well as this repository.
+To compile the code clone the repository with the `--recursive flag`:
 
 ```
-git clone https://github.com/msg-byu/enumlib.git  
-git clone https://github.com/msg-byu/symlib.git
+git clone --recursive https://github.com/msg-byu/enumlib.git
 ```
 
-Both repositories should be at the same level in your folder
-hierarchy.  
-
-First, compile `symlib`.   
-Go to the `symlib/src` directory:  
-```cd symlib/src```
+Now we need to compile the `ploya` and `symlib` submodules before
+compiling enumlib. First, compile `symlib`.   
+Go to the `enumlib/symlib/src` directory:  
+```cd enumlib/symlib/src```
 
 Set an environment variable to identify your fortran compiler:  
 [in the bash shell, gfortran compiler]  
@@ -60,7 +61,12 @@ Then compile using the Makefile:
 
 (Alternatively, instead of setting the `F90` environmental variable first, you may just specify the variable during the make: `make F90=gfortran`.)
 
-Next, make the enumeration library  
+Next we need to compile the `polya` submodule.
+```cd ../../polya/fortran/
+make
+```
+
+Finally, make the enumeration library  
 ```cd ../../enumlib/src```  
 `make`
 

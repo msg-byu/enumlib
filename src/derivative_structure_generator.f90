@@ -460,7 +460,9 @@ CONTAINS
   !!permutations.</parameter>
   !!<parameter name="use_arrows" regular="true">True if arrows are present
   !!in the enumeration.</parameter>
-  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows)
+  !!<parameter name="surf" regular="tue">True is this is a surface
+  !!calculation, false otherwise.</parameter>
+  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows, surf)
     real(dp), intent(in) :: A(3,3) 
     integer, intent(in), dimension(:,:,:) :: HNF, L, SNF 
     type(OpList), intent(in) :: Op(:) 
@@ -468,7 +470,7 @@ CONTAINS
     type(RotPermList), intent(in) :: dperms
     real(dp), intent(in) :: eps
     type(RotPermList), optional, pointer :: aperms(:)
-    logical, optional, intent(in) :: use_arrows
+    logical, optional, intent(in) :: use_arrows, surf
     
     !!<local name="taperms">Temporary storage of the arrow permutations.</local>
     !!<local name="arrows">Logigal, true if arrows are to be used.</local>
@@ -484,7 +486,7 @@ CONTAINS
     real(dp), allocatable :: rgp(:,:), rag(:,:)
     logical, allocatable :: skip(:), skipa(:)
     integer OpIndxInSuperCellList, RowInDxGTable
-    integer :: arrow_basis(3,6)
+    integer, allocatable :: arrow_basis(:,:)!(3,6)
     logical :: arrows
 
     if (.not. present(use_arrows)) then
@@ -492,14 +494,23 @@ CONTAINS
     else
        arrows = use_arrows
     end if
-    
+
     ! build the arrow basis.
-    arrow_basis(:,1) = (/0,0,-1/)
-    arrow_basis(:,2) = (/0,-1,0/)
-    arrow_basis(:,3) = (/-1,0,0/)
-    arrow_basis(:,4) = (/1,0,0/)
-    arrow_basis(:,5) = (/0,1,0/)
-    arrow_basis(:,6) = (/0,0,1/)
+    if (present(surf) .and. (surf .eqv. .True.)) then
+       allocate(arrow_basis(3,4))
+       arrow_basis(:,1) = (/1,0,0/)
+       arrow_basis(:,2) = (/-1,0,0/)
+       arrow_basis(:,3) = (/0,1,0/)
+       arrow_basis(:,4) = (/0,-1,0/)
+    else
+       allocate(arrow_basis(3,6))
+       arrow_basis(:,1) = (/1,0,0/)
+       arrow_basis(:,2) = (/-1,0,0/)
+       arrow_basis(:,3) = (/0,1,0/)
+       arrow_basis(:,4) = (/0,-1,0/)
+       arrow_basis(:,5) = (/0,0,1/)
+       arrow_basis(:,6) = (/0,0,-1/)
+    end if
 
     open(19,file="debug_get_rotation_perms_lists.out")
 
@@ -507,7 +518,7 @@ CONTAINS
     ! Number of d-vectors in d set
     nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2)
 
-    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,6), rag(3,6), skip(n),dap(size(arrow_basis,2)),skipa(6),STAT=status)
+    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,size(arrow_basis,2)), rag(3,size(arrow_basis,2)), skip(n),dap(size(arrow_basis,2)),skipa(size(arrow_basis,2)),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
     allocate(tg(3,n),perm(n),ident(nD,n),identT(n,nD),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident"
@@ -1414,7 +1425,7 @@ CONTAINS
        ! and include the translation permutations as well so that each
        ! list in rdRPList contains all possible permutations that
        ! identify duplicate labelings.
-       call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows)
+       call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows,surf=(Latdim==2))
        call organize_rotperm_lists(RPList,rdRPList,RPLindx,aperms,rdaperms)
        ! This next if statement makes the run-time horrible (N^3
        ! scaling) if enabled. (only used for checking once.)

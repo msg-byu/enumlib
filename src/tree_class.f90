@@ -71,7 +71,8 @@ CONTAINS
   !!<parameter name="generators" regular="true">Symmetry operators (permutations)
   !!that generate the group (but may contain the whole
   !!group)</parameter>
-  !!<parameter name="makeG" regular="true">Flag: True-> Generate group, False ->
+  !!<parameter name="makeG" regular="true">Flag: True-> Generate site
+  !!permutation group (will not generate arrow permutations), False ->
   !!Generators already make a group</parameter>
   !!<parameter name="arrow_group" regular="true">The arrow group for the system.</parameter>
   !!<parameter name="color_map" regular="true">The mapping of the arrowed colors back
@@ -122,7 +123,13 @@ CONTAINS
        if(status/=0) stop "Allocation failed in initializeTree: self%A%layer%perms"       
        self%G%layer(1)%perms = generators
        self%A%layer(1)%perms = arrow_group
-       
+
+       ! makeG is a flag that tells the code it was passed generators
+       ! for the group and not the entire group. This is useful for
+       ! debugging the code so it has been kept in the release
+       ! version. Please note that at present only the permutations of
+       ! the sites can be constructed from the generators. This cannot
+       ! be used to construct the arrow group.
        if (present(makeG)) then
           if (makeG) then
              call grouper(self%G%layer(1)%perms)
@@ -140,7 +147,10 @@ CONTAINS
   endsubroutine initializeTree
 
   !!<summary>Generate the coloring associated with the current location
-  !!in the tree</summary>
+  !!in the tree. This subroutine is an implementation of
+  !!the algorithm described in section 3.1 of
+  !!http://msg.byu.edu/papers/enum3.pdf (graphically displayed in Fig
+  !!5).</summary>
   !!<parameter name="labeling" regular="true">The output labeling for
   !!the location.</parameter>
   subroutine generateColoringFromLocation(self,labeling)
@@ -149,7 +159,7 @@ CONTAINS
     
     integer, allocatable :: clabeling(:), freeIndices(:), configList
     integer              :: ik, cIdx, iIdx, jIdx, ilc, jlc, nEmp, status
-    
+
     allocate(labeling(self%n),STAT=status)
     if(status/=0) stop "Allocation failed in generateColoringFromLocation: labeling."       
     labeling = 0 ! Empty labeling container to start
@@ -249,7 +259,7 @@ CONTAINS
        d = d + 1
        self%loc(d) = 0
        
-       ! Set next stabilizer to be as big as previous
+       ! Set next stabilizer to initially be as big as the previous layer
        allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n),STAT=status)
        if(status/=0) stop "Allocation failed in increment_location: self%G%layer%perms."
        allocate(self%A%layer(d+1)%perms(self%Gsize(d),size(self%A%layer(d)%perms,2)),STAT=status) 
@@ -257,8 +267,12 @@ CONTAINS
        self%G%layer(d+1)%perms = 0
        self%A%layer(d+1)%perms = 0
     else if (self%k /= 1) then
-       ! We are at the bottom of the tree (2nd lowest layer, but
-       ! lowest always has just one coloring)
+       ! We are at the bottom of the tree (2nd lowest layer, but the
+       ! lowest layer always has just one coloring) so we just need to
+       ! move to the next branch at this layer and reset the
+       ! stabilizers for the next layer (We keep track of the last
+       ! layer's stabilizers so we can check for superperiodic
+       ! structures in the check_labeling subroutine).
        self%loc(d) = self%loc(d) + 1
        if (self%loc(d) >= self%branches(d)) then
           deallocate(self%G%layer(d+1)%perms) ! reset the stabilizer for the next layer
@@ -288,7 +302,11 @@ CONTAINS
        ! in the tree because it allows us to eliminate the largest
        ! possible chunks of the tree possible and because implementing
        ! the method on all levels would result in a complex system of
-       ! linked lookup tables between the levels of the tree.
+       ! linked lookup tables between the levels of the tree. base is
+       ! the lookup table for the first level in the tree and is
+       ! initialized to be 0 if the base for the current location is
+       ! anything else then we have seen it before and it needs to be
+       ! skipped.
        if (d == 1) then
           skipping = .true.
           do while (skipping .eqv. .true.)
@@ -304,6 +322,7 @@ CONTAINS
           end do
        end if
 
+       ! Allocate the stabilizers for the next level to be the appropriate sizes.
        if (d > 0) then
           allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n),STAT=status)
           if(status/=0) stop "Allocation failed in increment_location: self%G%layer%perms."
@@ -348,7 +367,7 @@ CONTAINS
     integer, allocatable :: min_stab(:,:), min_stab_a(:,:)
 
     d = self%depth()
-    ! Make sure that the number of stibalizers is initially 0
+    ! Make sure that the number of stabilizers is initially 0
     self%Gsize(d + 1) = 0
 
     ! Now apply the symmetry group in order to determine if the
@@ -357,7 +376,19 @@ CONTAINS
        ! Apply the ith permutation to the labeling
        rotatedlabel = label(self%G%layer(d)%perms(perm_i,:))
        if (all( rotatedlabel == label )) then
-          if ((d == self%k -1).and. (perm_i <= symsize) .and. (perm_i > 1) .and. (.not. fixedcell)) then
+          ! If we are at the labeling is the same then it is possible
+          ! that this structure is superperiodic so we have to
+          ! check. This will only be the case if we are on the bottom
+          ! layer of the tree (d == k-1). We only want to check if
+          ! this is a superperiodic structure if the perumtation is a
+          ! translation of the lattice (i.e. it's one of the first n
+          ! permutations where n is the number of unit cells in the
+          ! system) and if the pemutation is not the identity
+          ! (permutiation 1).
+          if ((d == self%k -1) .and. (perm_i <= symsize) .and. (perm_i > 1) .and. (.not. fixedcell)) then
+             ! If this permutation is the same as one if the first n
+             ! permutations of the entire system then the labeling is
+             ! superperiodic and should not be included in the list.
              do perm_j = 2, symsize
                 if (all(self%G%layer(1)%perms(perm_j,:) == self%G%layer(d)%perms(perm_i,:))) then
                    self%unique = .False.
@@ -365,14 +396,17 @@ CONTAINS
                 end if
              end do
           end if
-          ! This permutation is a stabilizer, i.e., it fixes the
+          ! Otherwise this permutation is a stabilizer, i.e., it fixes the
           ! current labeling
           stab_size = self%Gsize(d+1) + 1
           self%Gsize(d+1) = stab_size
           self%G%layer(d+1)%perms(stab_size,:) = self%G%layer(d)%perms(perm_i,:)
           self%A%layer(d+1)%perms(stab_size,:) = self%A%layer(d)%perms(perm_i,:)
        else 
-          ! check to see if the configuration is unique
+          ! check to see if the configuration is unique by finding the
+          ! location of the permuted labeling. If it comes before the
+          ! original labeling then the original labeling is a
+          ! duplicate of something we've already seen.
           call self%get_loc(rotatedlabel,new_loc)
           if (d == 1) then
              self%base(self%loc(d)+1) = 1
@@ -393,28 +427,31 @@ CONTAINS
        end if
     end do groupCheck
 
-    if (self%unique .eqv. .True.) then
-       allocate(min_stab(stab_size,self%n),STAT=status)
-       if(status/=0) stop "Allocation failed in check_labeling: min_stab."       
-       allocate(min_stab_a(stab_size,size(self%A%layer(1)%perms,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in check_labeling: min_stab_a."       
-       min_stab = self%G%layer(d+1)%perms(1:stab_size,:)
-       min_stab_a = self%A%layer(d+1)%perms(1:stab_size,:)
-       deallocate(self%G%layer(d+1)%perms)
-       deallocate(self%A%layer(d+1)%perms)
-       allocate(self%G%layer(d+1)%perms(stab_size,self%n),STAT=status)
-       if(status/=0) stop "Allocation failed in check_labeling: self%G%layer%perms."       
-       allocate(self%A%layer(d+1)%perms(stab_size,size(self%A%layer(d)%perms,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in check_labeling: self%A%layer%perms."       
-       self%G%layer(d+1)%perms = min_stab
-       self%A%layer(d+1)%perms = min_stab_a
-       deallocate(min_stab,min_stab_a)
-    end if
+    ! if (self%unique .eqv. .True.) then
+    !    allocate(min_stab(stab_size,self%n),STAT=status)
+    !    if(status/=0) stop "Allocation failed in check_labeling: min_stab."       
+    !    allocate(min_stab_a(stab_size,size(self%A%layer(1)%perms,2)),STAT=status)
+    !    if(status/=0) stop "Allocation failed in check_labeling: min_stab_a."       
+    !    min_stab = self%G%layer(d+1)%perms(1:stab_size,:)
+    !    min_stab_a = self%A%layer(d+1)%perms(1:stab_size,:)
+    !    deallocate(self%G%layer(d+1)%perms)
+    !    deallocate(self%A%layer(d+1)%perms)
+    !    allocate(self%G%layer(d+1)%perms(stab_size,self%n),STAT=status)
+    !    if(status/=0) stop "Allocation failed in check_labeling: self%G%layer%perms."       
+    !    allocate(self%A%layer(d+1)%perms(stab_size,size(self%A%layer(d)%perms,2)),STAT=status)
+    !    if(status/=0) stop "Allocation failed in check_labeling: self%A%layer%perms."       
+    !    self%G%layer(d+1)%perms = min_stab
+    !    self%A%layer(d+1)%perms = min_stab_a
+    !    deallocate(min_stab,min_stab_a)
+    ! end if
    
   END SUBROUTINE check_labeling
 
   !!<summary>This routine takes a labeling and returns it's location
-  !!in the branch of the tree.</summary>
+  !!in the branch of the tree. This subroutine is an implementation of
+  !!the algorithm described in section 3.1 of
+  !!http://msg.byu.edu/papers/enum3.pdf (graphically displayed in Fig
+  !!5).</summary>
   !!<parameter name="labeling" regular="true">The labeling whose
   !!location is to be determined.</parameter>
   !!<parameter name="index" regular="true">The output location.</parameter>
@@ -442,7 +479,7 @@ CONTAINS
     ! The labeling needs to have only '1's for the current color, have
     ! all smaller integer colorings removed, and be zeros
     ! otherwise. We also keey track of the location of the last '1' in the list.
-    nLeft = count(labeling .eq. 0,1) + count(labeling >= d,1)
+    nLeft = count(labeling == 0, 1) + count(labeling >= d, 1)
     allocate(new_labeling(nLeft),STAT=status)
     if(status/=0) stop "Allocation failed in generateLocationFromColoring: new_labeling."
     new_labeling = 0
@@ -491,7 +528,7 @@ CONTAINS
     integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:)
     type(opList), intent(in) :: fixOp(:)    
 
-    !!<local name="full_arrowing">The arrow label being tested, including
+    !!<local name="all_sites">The arrow label being tested, including
     !!places without arrows.</local>
     !!<local name="arrowing">The arrow label for locations with arrows</local>
     !!<local name="max_arrowings">An array of the maximum of each arrow
@@ -506,50 +543,63 @@ CONTAINS
     !!<local name="full_coloring">The labeling for the colors after the arrow species have
     !!been mapped back to the original ones.</local>
     !!<local name="newindex">The transmogrified arrowings index.</local>
-    integer :: full_arrowing(size(coloring)), rotated_arrowing(size(coloring)), full_coloring(size(coloring))
+    !!<local name="arrow_dim">The number of directions the arrows can point.</local>
+    integer :: all_sites(size(coloring)), rotated_arrowing(size(coloring)), full_coloring(size(coloring))
     integer :: permuted_arrowing(size(coloring))
     integer, allocatable :: max_arrowings(:), arrowing(:)
     integer :: maxindex, originalIndex, d, newindex
-    integer :: perm_i, perm_j, site_i, site_j, status
+    integer :: perm_i, perm_j, site_i, site_j, status, arrow_dim
 
     d = self%depth()
+    arrow_dim = max(self%A%layer(d)%perms(1,:))
     
     allocate(max_arrowings(self%narrows),arrowing(self%narrows),STAT=status)
     if(status/=0) stop "Allocation failed in addArrowsToEnumeration: max_arrowings, arrowings."
-    max_arrowings = 5
+    ! Within this algorithm the arrowings are treated as an odometer
+    ! that increments through all possible arrow arrangements for the
+    ! system. Each arrowed site can have 0 to 5 for bulk enumerations
+    ! or 3 for surface enumerations. The largest possible odemeter is
+    ! then max_arrowings.
+    max_arrowings = arrow_dim -1
 
-    call generateIndexFromArrowing(max_arrowings,6,maxindex)
+    call generateIndexFromArrowing(max_arrowings, arrow_dim, maxindex)
 
-    ! Loop over every possible arrow array.
+    ! Loop over every possible arrow array by going from the index of
+    ! 0 to the maxindex found for the max_arrowings array.
     do originalIndex = 0, maxindex
        self%unique = .True.
-       full_arrowing = 1
+       ! In order to apply the symmetry group we need to construct a
+       ! labeling for every site even this that don't have arrows on them.
+       all_sites = 1
 
        ! Get the arrowing that goes with this index
-       call generateArrowingFromIndex(originalIndex,self%narrows,5,arrowing)
+       call generateArrowingFromIndex(originalIndex, self%narrows, arrow_dim, arrowing)
 
        ! Create a labeling that includes the sites that don't have arrows.
        site_j = 1
        do site_i = 1, size(coloring)
           if (any(self%color_map(:,1) == coloring(site_i))) then
-             full_arrowing(site_i) = arrowing(site_j) + 1
+             all_sites(site_i) = arrowing(site_j) + 1
              site_j = site_j + 1
           end if
        end do
 
        ! Use the stabilizers to determine if the arrowing is unique.
        groupCheck: do perm_i = 1, self%Gsize(d)
-          rotated_arrowing = full_arrowing(self%G%layer(d)%perms(perm_i,:))
+          rotated_arrowing = all_sites(self%G%layer(d)%perms(perm_i,:))
           permuted_arrowing = rotated_arrowing(self%A%layer(d)%perms(perm_i,:))
           
-          call generateIndexFromArrowing(permuted_arrowing -1,6,newindex)
-
+          call generateIndexFromArrowing(permuted_arrowing -1, arrow_dim, newindex)
+          ! If the new index came before the original then this
+          ! arrowing is a duplicate.
           if (newindex < originalIndex) then
              self%unique = .False.
              exit groupCheck
           end if
        end do groupCheck
        if (self%unique .eqv. .True.) then
+          ! If the arrowing is unique then we need to undo our
+          ! colormap so we can save the labeling to file.
           do site_i=1, size(coloring)
              if (any(self%color_map(:,1) == coloring(site_i))) then
                 full_coloring(site_i) = self%color_map(coloring(site_i)-size(self%color_map,1),2) -1
@@ -559,7 +609,7 @@ CONTAINS
           end do
 
           call write_single_labeling(full_coloring,symsize,nfound,scount,HNFcnt,&
-               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx,arrow_label=full_arrowing-1)
+               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx,arrow_label=all_sites-1)
 
        end if
     end do

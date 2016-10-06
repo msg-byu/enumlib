@@ -100,7 +100,10 @@ CONTAINS
     logical:: use_arrows
 
     inquire(FILE="arrows.in",EXIST=use_arrows)
-    ! Get the arrow concentrations and adjust the input concentrations if needed.
+    ! Get the arrow concentrations and adjust the input concentrations
+    ! if needed. Also create a mapping that will later allow us to
+    ! undo the transformations in the colorings that happen in the
+    ! next step.
     if (use_arrows) then
        call read_arrows(size(conc), arrows)
        call arrow_concs(conc,arrows,a_conc,conc_map)
@@ -115,6 +118,7 @@ CONTAINS
     allocate(tconc(count(a_conc > 0)),poly(size(perm,1),size(perm,2)),labels(count(a_conc > 0)),STAT=status)
     if(status/=0) stop "Allocation failed in recursively_stabilized_enum: tconc, poly, labels."
 
+    ! remove any of the zero concentration elements from the list.
     species_j = 1
     do species_i = 1, size(a_conc)
        if (a_conc(species_i) > 0) then
