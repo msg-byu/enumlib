@@ -83,10 +83,13 @@ libenum.a: ${OBJS}
 	ar ru $@ $?
 	ranlib  $@
 
-all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x compare_enum_files.x
+all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x compare_enum_files.x polya.x
 
 enum.x: ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
+
+polya.x: ${OBJS} driver_polya.o
+	${F90} ${LDFLAGS} -o $@ ${OBJS} driver_polya.o ${LIBS}
 
 #HNF_counter.x: ${OBJS} HNF_counter.o
 #	${F90} ${LDFLAGS} -o $@ kgrid_utilities.o HNF_counter.o libenum.a ${#LIBS}

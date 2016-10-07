@@ -80,11 +80,16 @@ assist you.  gus.hart@gmail.com, 801-422-7444
 
 Example input files are in the `input` ('enumlib/support/input') directory. 
 
+To include displacement directions in the enumeration it is also
+neccessary to provide an `arrows.in` file examples of which can also
+be found in the ('enumlib/support/input') directory.
+
 There are also helper programs in the aux_src directory for making VASP POSCARs, pictures of
 2-D enumerations, etc.
 
 `make makestr.x`  <-- To make a program for making POSCARs  
 `make 2Dplot.x` <-- To make a program that plots 2D enumeration results
+`make ploya.x` <-- To make a program that predicts the maximum number of unique structures for the system (this program gives an upper bound on the number of solutions the user should expect because it counts the superperiodic structures).
 
 If you have questions, email or call: gus.hart@gmail.com, 801-422-7444
 

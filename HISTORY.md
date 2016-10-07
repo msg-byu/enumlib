@@ -1,5 +1,18 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.0
+- Fixed the new functions so they compile with ifort as well.
+
+- Made the aperms argument of get_rotation_perms_lists optional to fix
+  a compiler issue.
+
+- Fixed sort_conts so it places the arrows species at the end of the
+  list and moved it into the heapsort interface.
+
+- Implemented a polya.x function in the code that can be compiled
+  independently from enum.x. This program prints the polya predictions
+  for the cell sizes.
+
 ## Revision 0.1.3
 - Removed the now redundant files src/itertools.f90 and
   src/classes.f90 and the reference to them in the Makefile.
@@ -21,9 +34,6 @@
 - Fixed the default cutoff for the switch from enum3 to enum4 when site restrictions are present.
 
 - Removed the check for a single element enumeration in enum4. (The code now works even for a single element enumeration without this check being present.)
-
-- Moved sort_concs into heapsort interface and changed all calls accordingly.
-
 
 
 ## Revision 0.1.1

@@ -9,7 +9,7 @@ use combinatorics
 use tree_class
 use classes, only: polya
 use num_types
-use sorting, only:  sort_concs
+use sorting, only:  heapsort
 use io_utils, only: read_arrows
 use arrow_related, only: arrow_concs
 implicit none
@@ -66,16 +66,12 @@ CONTAINS
     integer, intent(in) :: allowed(:,:)
     logical, intent(in) :: fixedcell
     
-    !!<local name="polya_total">The total number of configurations as
-    !!predicted by polya.</local>
     !!<local name="this_tree">A tree structure for use in the
     !!enumeration.</local>
     !!<local name="labeling">The labeling that is currently being
     !!checked to see if it is unique.</local>
     !!<local name="tconc">A copy of the concentrations that allow them
     !!to be sorted.</local>
-    !!<local name="poly">An array needed by the polya
-    !!algorithm no keep track of the polynomials.</local>
     !!<local name="site_i">Variable for loops.</local>
     !!<local name="species_i">Variable for loops.</local>
     !!<local name="species_j">Variable for loops.</local>
@@ -91,10 +87,11 @@ CONTAINS
     !!the non-arrowed equivalent.</local>
     !!<local name="use_arrows">Logical, true if arrows.in is present.</local>
     !!<local name="status">Allocation status flag.</local>
-    integer(li) :: polya_total
+    !!<local name="conc_map">Stores the mapping from the arrow labels
+    !!to the non arrow labels</local>
     integer :: site_i, species_i, species_j, nHNF, temp_label, perm_j, status
     class(tree), pointer :: this_tree
-    integer, allocatable :: labeling(:), tconc(:), poly(:,:), labels(:), temp_labeling(:), a_conc(:)
+    integer, allocatable :: labeling(:), tconc(:), labels(:), temp_labeling(:), a_conc(:)
     integer, allocatable :: conc_map(:,:)
     integer :: arrows(size(conc))
     logical:: use_arrows
@@ -115,7 +112,7 @@ CONTAINS
        if(status/=0) stop "Allocation failed in recursively_stabilized_enum: conc_map."
        conc_map(1,:) = (/0,0/)
     end if
-    allocate(tconc(count(a_conc > 0)),poly(size(perm,1),size(perm,2)),labels(count(a_conc > 0)),STAT=status)
+    allocate(tconc(count(a_conc > 0)),labels(count(a_conc > 0)),STAT=status)
     if(status/=0) stop "Allocation failed in recursively_stabilized_enum: tconc, poly, labels."
 
     ! remove any of the zero concentration elements from the list.
@@ -127,14 +124,9 @@ CONTAINS
           species_j = species_j + 1
        end if
     end do
-    ! First we need to find out the number of unique configurations we
-    ! should expect
-    ! polya_total = polya(tconc, perm,polynomials=poly,decompose=.true.)
-    ! write(*,*) ivol,"The next system has could have as many as ", polya_total, " structures."
-
     
     ! sort the concentrations to be in the optimal order
-    call sort_concs(tconc,labels) !sort_concs(tconc,labels)!
+    call heapsort(tconc,labels,conc_map) 
     ! Initialize the tree class and the labeling variables for the
     ! algorithm
     allocate(this_tree,STAT=status)

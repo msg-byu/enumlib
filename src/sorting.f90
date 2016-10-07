@@ -3,10 +3,10 @@ use num_types
 
 implicit none
 private
-public heapsort, sort_permutations_list, sort_concs
+public heapsort, sort_permutations_list
 
 INTERFACE heapsort
-   MODULE PROCEDURE heapsort_records_int, heapsort_records_dp
+   MODULE PROCEDURE heapsort_records_int, heapsort_records_dp, sort_concs
 END INTERFACE
 CONTAINS
 
@@ -17,21 +17,63 @@ CONTAINS
   !!sorted.</parameter>
   !!<parameter name="labels" regular="true">The list of labels for the
   !!concentrations.</parameter>
-  SUBROUTINE sort_concs(list,labels)
+  !!<parameter name="conc_map" regular="true">The mapping of arrowed
+  !!to non arrowed concentrations</parameter>
+  SUBROUTINE sort_concs(list,labels,conc_map)
     integer, intent(inout) :: list(:), labels(:)
+    integer, intent(in) :: conc_map(:,:)
     !!<local name="sorted_list">A temporary array for storing the sorted array.</local>
     !!<local name="minl">The location of the smallest entry in the list.</local>
-    !!<local name="i">Counting index.</local>
-    integer :: sorted_list(size(list)), sorted_labels(size(labels))
+    !!<local name="species_i">Counting index.</local>
+    !!<local name="species_j">Counting index.</local>
+    !!<local name="species_a">Counting index.</local>
+    !!<local name="arrow_labels">Temporary array of the arrow_labels.</local>
+    !!<local name="arrow_concs">Temporary arroy of the arrow_concs</local>
+    integer :: sorted_list(size(list)), sorted_labels(size(labels)), arrow_labels(size(labels)),arrow_concs(size(list))
     integer :: minl
-    integer :: i
+    integer :: species_i, species_j, species_a
 
-    do i =1, size(list)
-       minl = minloc(list, 1, list .NE. -1)
-       sorted_list(i) = list(minl)
-       sorted_labels(i) = labels(minl)
-       list(minl) = -1
-    end do
+    ! If there are no arrows present then we can just sort the
+    ! lists like normal.
+    if (all(conc_map == 0)) then
+       do species_i =1, size(list)
+          minl = minloc(list, 1, list .NE. -1)
+          sorted_list(species_i) = list(minl)
+          sorted_labels(species_i) = labels(minl)
+          list(minl) = -1
+       end do
+    else
+       ! If there are arrows present then we want to make sure that
+       ! they appear at the end of the concentration list. We do this
+       ! by sorting the arrows colors and the non arrow colors into
+       ! two seperate lists then joining them at the end.
+       arrow_concs = -1
+       arrow_labels = 0
+       species_j = 1
+       species_a = 1
+       do species_i =1, size(list)
+          minl = minloc(list, 1, list /= -1)
+          if (any(conc_map(:,1) == labels(minl))) then
+             ! This is an arrowed species, store it in the arrowed list.
+             arrow_concs(species_a) = list(minl)
+             arrow_labels(species_a) = labels(minl)
+             list(minl) = -1
+             species_a = species_a + 1
+          else
+             ! store the species in the unarrowed list.
+             sorted_list(species_j) = list(minl)
+             sorted_labels(species_j) = labels(minl)
+             list(minl) = -1
+             species_j = species_j + 1
+          end if
+       end do
+       ! Now we place the arrows at the end of the sorted list.
+       do species_i =1, species_a -1
+          sorted_list(species_j) = arrow_concs(species_i)
+          sorted_labels(species_j) = arrow_labels(species_i)
+          species_j = species_j + 1
+       end do
+    end if
     labels = sorted_labels
     list = sorted_list
 

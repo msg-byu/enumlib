@@ -551,7 +551,9 @@ CONTAINS
     integer :: perm_i, perm_j, site_i, site_j, status, arrow_dim
 
     d = self%depth()
-    arrow_dim = max(self%A%layer(d)%perms(1,:))
+    ! Find the number of directions by finding the largest number in
+    ! the arrow perm.
+    arrow_dim = maxval(self%A%layer(d)%perms(1,:), 1)
     
     allocate(max_arrowings(self%narrows),arrowing(self%narrows),STAT=status)
     if(status/=0) stop "Allocation failed in addArrowsToEnumeration: max_arrowings, arrowings."
