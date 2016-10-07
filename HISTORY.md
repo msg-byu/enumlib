@@ -1,5 +1,8 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.1
+- Updated the polya submodule.
+
 ## Revision 1.0.0
 - Fixed the new functions so they compile with ifort as well.
 
