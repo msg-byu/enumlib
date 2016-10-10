@@ -2,6 +2,20 @@
 
 ## Revision 1.0.1
 - Updated the polya submodule.
+- Fixed a bug in tree_class.f90 that was causing a segmentation fault
+  in the arrow enumeration. The error was caused because using
+  rotated_arrowing(self%A%layer(d)%perms(perm_i,:)) only works of the
+  arrays are of the same length. Replaced this line with
+  self%A%layer(d)%perms(perm_i,rotated_arrowing) which operates as
+  this permutation should.
+
+- Fixed the final color mapping in the arrow enumeration. The location
+  of the old coloring in the old coloring was incorect because the
+  computation used the sizee of the color map as a metric rather than
+  the difference in the number of colors vs the number of arrows. As a
+  result self%color_map(coloring(site_i)-size(self%color_map,1),2) -1
+  was replaced with
+  self%color_map(coloring(site_i)-(self%k-self%narrows)-1,2) -1.
 
 ## Revision 1.0.0
 - Fixed the new functions so they compile with ifort as well.

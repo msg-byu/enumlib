@@ -1431,8 +1431,12 @@ CONTAINS
        ! and include the translation permutations as well so that each
        ! list in rdRPList contains all possible permutations that
        ! identify duplicate labelings.
+
+       ! There is a bug in one of the 2 following routines for the arrow enumeration.
        call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows,surf=(Latdim==2))
        call organize_rotperm_lists(RPList,rdRPList,RPLindx,aperms,rdaperms)
+       ! There is a bug in one of the 2 preceding routines for the arrow enumeration.
+       
        ! This next if statement makes the run-time horrible (N^3
        ! scaling) if enabled. (only used for checking once.)
        Scnt = 0 ! Keep track of the number of structures at this size   
@@ -1440,7 +1444,7 @@ CONTAINS
           !call cpu_time(blockstart)
           ! filename = "debug_temp_perms.out"
           
-          ! call write_rotperms_list(rdRPList(iBlock),filename) 
+          ! call write_rotperms_list(rdRPList(iBlock),filename)
           if (conc_check) then
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
 

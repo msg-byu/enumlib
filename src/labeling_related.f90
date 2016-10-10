@@ -131,7 +131,7 @@ CONTAINS
     ! algorithm
     allocate(this_tree,STAT=status)
     if(status/=0) stop "Allocation failed in recursively_stabilized_enum: this_tree."
-    
+
     call this_tree%init(tconc, perm, aperms, conc_map, .False.)
     
     ! Now we move through through the possible branches to see which
@@ -221,7 +221,7 @@ CONTAINS
              if (use_arrows) then
                 call this_tree%add_arrows(labeling+1,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
                      fixOp,SNF,HNF,LT,equivalencies,permIndx)
-             else 
+             else
                 call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
                      fixOp,SNF,HNF,LT,equivalencies,permIndx)
              end if

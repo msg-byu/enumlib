@@ -1,0 +1,16 @@
+FCC ternary
+bulk
+1 0 0
+0 1 0 
+0 0 1
+3 #
+1 # Number of points in the multilattice
+# Cartesian coordinates: 
+0 0 0    0/1/2
+   1 3    # Starting and ending cell sizes for search
+0.001    # eps
+full list of labelings (including incomplete labelings) is used
+# Concentration ranges
+0 2 5
+0 2 5
+0 4 5	
