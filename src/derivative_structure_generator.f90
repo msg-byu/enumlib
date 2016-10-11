@@ -13,6 +13,7 @@ use rational_mathematics
 use numerical_utilities
 use vector_matrix_utilities, only: determinant, matrix_inverse
 use sorting
+use classes, only: polya
 
 implicit none
 private
@@ -316,12 +317,12 @@ CONTAINS
        do jL = 1, cnt ! Loop over the number of unique lists found so far
           ! if the two lists aren't the same length, then they definitely aren't identical
           if (size(RPList(iL)%perm,1)/=size(tList(jL)%perm,1)) cycle
-          if (all(RPList(iL)%perm==tList(jL)%perm) .and. all(shape(aperms(iL)%perm)==shape(tList(jL)%perm))) then ! they're
-             if (all(aperms(iL)%perm==tList(jL)%perm)) then 
+          if (size(aperms(iL)%perm,1)/=size(taList(jL)%perm,1)) cycle
+          if (all(RPList(iL)%perm==tList(jL)%perm) .and. &
+               all(aperms(iL)%perm==taList(jL)%perm)) then 
                 !identical. Tag it and go to next
                 unique = .false.
                 exit
-             end if
           endif
        enddo
        if (unique) then ! store this list in the master list
@@ -460,15 +461,17 @@ CONTAINS
   !!permutations.</parameter>
   !!<parameter name="use_arrows" regular="true">True if arrows are present
   !!in the enumeration.</parameter>
-  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows)
+  !!<parameter name="surf" regular="tue">True is this is a surface
+  !!calculation, false otherwise.</parameter>
+  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows, surf)
     real(dp), intent(in) :: A(3,3) 
     integer, intent(in), dimension(:,:,:) :: HNF, L, SNF 
     type(OpList), intent(in) :: Op(:) 
     type(RotPermList) :: RPlist(:) 
     type(RotPermList), intent(in) :: dperms
     real(dp), intent(in) :: eps
-    type(RotPermList), pointer :: aperms(:)
-    logical, optional, intent(in) :: use_arrows
+    type(RotPermList), optional, pointer :: aperms(:)
+    logical, optional, intent(in) :: use_arrows, surf
     
     !!<local name="taperms">Temporary storage of the arrow permutations.</local>
     !!<local name="arrows">Logigal, true if arrows are to be used.</local>
@@ -484,7 +487,7 @@ CONTAINS
     real(dp), allocatable :: rgp(:,:), rag(:,:)
     logical, allocatable :: skip(:), skipa(:)
     integer OpIndxInSuperCellList, RowInDxGTable
-    integer :: arrow_basis(3,6)
+    integer, allocatable :: arrow_basis(:,:)!(3,6)
     logical :: arrows
 
     if (.not. present(use_arrows)) then
@@ -492,14 +495,23 @@ CONTAINS
     else
        arrows = use_arrows
     end if
-    
+
     ! build the arrow basis.
-    arrow_basis(:,1) = (/0,0,-1/)
-    arrow_basis(:,2) = (/0,-1,0/)
-    arrow_basis(:,3) = (/-1,0,0/)
-    arrow_basis(:,4) = (/1,0,0/)
-    arrow_basis(:,5) = (/0,1,0/)
-    arrow_basis(:,6) = (/0,0,1/)
+    if (present(surf) .and. (surf .eqv. .True.)) then
+       allocate(arrow_basis(3,4))
+       arrow_basis(:,1) = (/1,0,0/)
+       arrow_basis(:,2) = (/-1,0,0/)
+       arrow_basis(:,3) = (/0,1,0/)
+       arrow_basis(:,4) = (/0,-1,0/)
+    else
+       allocate(arrow_basis(3,6))
+       arrow_basis(:,1) = (/1,0,0/)
+       arrow_basis(:,2) = (/-1,0,0/)
+       arrow_basis(:,3) = (/0,1,0/)
+       arrow_basis(:,4) = (/0,-1,0/)
+       arrow_basis(:,5) = (/0,0,1/)
+       arrow_basis(:,6) = (/0,0,-1/)
+    end if
 
     open(19,file="debug_get_rotation_perms_lists.out")
 
@@ -507,11 +519,16 @@ CONTAINS
     ! Number of d-vectors in d set
     nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2)
 
-    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,6), rag(3,6), skip(n),STAT=status,dap(size(arrow_basis,2)),skipa(6))
+    allocate(gp(3,n), dgp(nD,n), rgp(3,n), ag(3,size(arrow_basis,2)), rag(3,size(arrow_basis,2)), skip(n),dap(size(arrow_basis,2)),skipa(size(arrow_basis,2)),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: gp, dgp, rgp, skip" 
     allocate(tg(3,n),perm(n),ident(nD,n),identT(n,nD),STAT=status)
     if(status/=0) stop "Allocation failed in get_rotation_perm_lists: tg, perm, ident"
-    allocate(tperms%perm(n,n*nD),aperms(size(RPlist)))
+    if (present(aperms)) then
+       allocate(aperms(size(RPlist)),STAT=status)
+       ! if(status/=0) then "Allocation failed in get_rotation_perms_lists: aperms."
+    end if
+    allocate(tperms%perm(n,n*nD),STAT=status)
+    ! if(status/=0) then "Allocation failed in get_rotation_perms_lists: tperms."
     identT = reshape((/(ig,ig=1,n*nD)/),(/n,nD/))  ! we could combine
     ! those two lines, but gfortran
     ident  = transpose(identT)                     ! does some strange things then.
@@ -538,7 +555,7 @@ CONTAINS
        if (associated(rperms%perm)) deallocate(rperms%perm)
        if (associated(taperms%perm)) deallocate(taperms%perm)
        !print *,nop,nd,n;stop
-       allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp,6),STAT=status)
+       allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp, size(arrow_basis,2)),STAT=status)
        if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
        do iOp = 1, nOp ! For each rotation, find the permutation
           dgp = 0 ! Initialize the (d,g) table
@@ -591,7 +608,8 @@ CONTAINS
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          if (any(dgp==0) .or. any(dap==0)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
+          ! print *, "1", any(dgp==0), "2", any(dap==0) .and. .not. use_arrows
+          if (any(dgp==0) .and. (any(dap==0) .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
@@ -638,9 +656,9 @@ CONTAINS
        
        RPlist(iH)%nL = size(rperms%perm,1)*n
        allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
-       if (arrows) then
-          allocate(aperms(iH)%perm(RPlist(iH)%nL,6))
-       else
+       if ((arrows) .and. present(aperms)) then
+          allocate(aperms(iH)%perm(RPlist(iH)%nL,size(arrow_basis,2)))
+       else if (present(aperms)) then
           allocate(aperms(iH)%perm(RPlist(iH)%nL,1))
        end if
        do it = 1,n ! Loop over translation perms (r type)
@@ -648,9 +666,9 @@ CONTAINS
              ! perms (N+t type) Form the permutation effected by
              ! composing the iOp-th one with the it-th one
              RPlist(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
-             if (arrows .eqv. .true.) then
+             if ((arrows .eqv. .true.) .and. present(aperms)) then
                 aperms(iH)%perm((iOp-1)*n+it,:) = taperms%perm(iOp,:)
-             else
+             else if (present(aperms)) then
                 aperms(iH)%perm((iOp-1)*n+it,:) = 0
              end if
              ! ^--- Having gotten both the rotations and the
@@ -1186,8 +1204,10 @@ CONTAINS
   !!  fractions. Row 1: Numerator (START); Row 2: Numerator (END); Row
   !!  3: Denominator.</dimension> <dimension>Columns specify colors
   !!  for range limitations.</dimension> </parameter>
+  !!<parameter name="polya" regular="true">Logical flag for if the
+  !!code is running the polya mode.</parameter>
  SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
-       & labelFull,digitFull,equivalencies, conc_check,cRange)
+       & labelFull,digitFull,equivalencies, conc_check,cRange, polya)
     integer, intent(in) :: k, nMin, nMax, nDFull
     integer             :: nD
     !Had to change character to 80 from 10 to match the definition in io_utils.read_input
@@ -1202,7 +1222,7 @@ CONTAINS
     integer, intent(in) :: equivalencies(:)
     logical, intent(in) :: conc_check
     integer, optional,intent(in)   :: cRange(:,:)
-    
+    logical, optional, intent(in) :: polya
     
     integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC, j
     integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
@@ -1234,8 +1254,13 @@ CONTAINS
     !!included in the enumeration.</local>
     !!<local name="aperms">The full list of the arrow permutations.</local>
     !!<local name="rdaperms">The reduced list of arrow permutations.</local>
+    !!<local name="max_binomial">The largest allowed binomial.</local>
     logical :: arrows
     type(RotPermList), pointer :: aperms(:), rdaperms(:)
+    real(dp) :: max_binomial
+
+    max_binomial = 2.63E14
+
     ! Divide the dset into members that are enumerated and those that are not
     nD = count( (/(i,i=1,nDFull)/)==equivalencies)
     allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
@@ -1407,44 +1432,55 @@ CONTAINS
        ! and include the translation permutations as well so that each
        ! list in rdRPList contains all possible permutations that
        ! identify duplicate labelings.
-       call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows)
+
+       ! There is a bug in one of the 2 following routines for the arrow enumeration.
+       call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows,surf=(Latdim==2))
        call organize_rotperm_lists(RPList,rdRPList,RPLindx,aperms,rdaperms)
+       ! There is a bug in one of the 2 preceding routines for the arrow enumeration.
+       
        ! This next if statement makes the run-time horrible (N^3
        ! scaling) if enabled. (only used for checking once.)
        Scnt = 0 ! Keep track of the number of structures at this size   
        do iBlock = 1, maxval(RPLindx)
           !call cpu_time(blockstart)
-          filename = "debug_temp_perms.out"
+          ! filename = "debug_temp_perms.out"
           
-          call write_rotperms_list(rdRPList(iBlock),filename) 
+          ! call write_rotperms_list(rdRPList(iBlock),filename)
           if (conc_check) then
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
 
-                allocate(site_res(size(rdRPList(iBlock)%perm(1,:)),size(iRange(iC,:))))
-                site_res = 0
-                do i = 1, size(iRange(iC,:)); do j = 1, size(rdRPList(iBlock)%perm(1,:))
-                   if (any(labelFull(:,(j-1)/ivol+1)==i-1)) then
-                      site_res(j,i) = 1
-                   end if
-                end do; end do
-
-                ! If there are site restrictions present in the system
-                ! we want to use the old enum3 code since it is more
-                ! efficient. Unless there are arrows present in the
-                ! enumeration or the multinomial of possible
-                ! arrangements is to large for enum3 to handle.
-                if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < 1000000000) .and. (arrows .eqv. .false.)) then
-                   call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
-                        lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
-                   call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&
-                        Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
-
+                ! If we are running in polya modethen we only want to
+                ! run the polya code. Otherwise run the full enumeration.
+                if (present(polya) .and. (polya .eqv. .true.)) then
+                   call polya_count(iRange(iC,:), rdRPList(iBlock)%perm, rdaperms(iBlock)%perm,&
+                        Tcnt, Scnt, iBlock, RPLindx)
                 else
-                   call enum4(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
-                        hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
-                        fixed_cells,rdaperms(iBlock)%perm)
+                   allocate(site_res(size(rdRPList(iBlock)%perm(1,:)),size(iRange(iC,:))))
+                   site_res = 0
+                   do i = 1, size(iRange(iC,:)); do j = 1, size(rdRPList(iBlock)%perm(1,:))
+                      if (any(labelFull(:,(j-1)/ivol+1)==i-1)) then
+                         site_res(j,i) = 1
+                      end if
+                   end do; end do
+
+                   ! If there are site restrictions present in the system
+                   ! we want to use the old enum3 code since it is more
+                   ! efficient. Unless there are arrows present in the
+                   ! enumeration or the multinomial of possible
+                   ! arrangements is to large for enum3 to handle.
+                   if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < max_binomial) .and. (arrows .eqv. .false.)) then
+                      call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
+                           lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
+                      call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&
+                           Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
+                      
+                   else
+                      call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
+                           hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
+                           fixed_cells,rdaperms(iBlock)%perm)
+                   end if
+                   deallocate(site_res)
                 end if
-                deallocate(site_res)
                 ! call generate_disjoint_permutation_labelings(k,ivol,nD&
                 !     &,rdRPList(iBlock)%perm,lm,iRange(iC,:),labelFull,digitFull,2)
              enddo
@@ -1466,6 +1502,93 @@ CONTAINS
                 
   ENDSUBROUTINE gen_multilattice_derivatives
 
+  !!<summary>This subroutine finds the polya prediction for the number
+  !!of unique arrangements at each unique concentration range and cell
+  !!size.</summary>
+  !!<parameter name="total_count" regular="true">The total number of
+  !!structures predicted so far.</parameter>
+  !!<parameter name="size_count" regular="true">The total number of
+  !!structures predicted for this cell size.</parameter>
+  !!<parameter name="concs" regular="true">The concentration we want
+  !!the number of configurations for.</parameter>
+  !!<parameter name="siteperms" regular="true">The permutation group
+  !!for the sites.</parameter>
+  !!<parameter name="arrowperms" regular="true">The permutations of
+  !!the arrows.</parameter>
+  SUBROUTINE polya_count(concs, siteperms, arrowperms, total_count, size_count, HNFi, permIndx)
+    integer, pointer, intent(in) :: siteperms(:,:), arrowperms(:,:)
+    integer, intent(in) :: concs(:), permIndx(:)
+    integer, intent(inout) :: total_count, size_count
+    integer, intent(in) :: HNFi
 
+    !!<local name="poly">An array used by the polya algorithm to keep
+    !!track of the polynomials.</local>
+    !!<local name="status">Allocation status flag.</local>
+    !!<local name="tconc">A copy of the concentrations that allow them
+    !!to be sorted.</local>
+    !!<local name="conc_map">Stores the mapping from the arrow labels
+    !!to the non arrow labels</local>
+    !!<local name="use_arrows">Logical, true if arrows.in is present.</local>
+    !!<local name="this_count">The number of unique arrangnments
+    !!predicted for this system.</local>
+    !!<local name="labels">The labels of the atoms present.</local>
+    !!<local name="species_i">Variable for loops.</local>
+    !!<local name="species_j">Variable for loops.</local>
+    !!<local name="a_conc">The concentrations with the arrows included.</local>
+    integer, allocatable :: poly(:,:), conc_map(:,:) 
+    logical :: use_arrows
+    integer :: status, species_i, species_j, nHNF
+    integer(li) :: this_count
+    integer, allocatable :: tconc(:), labels(:), a_conc(:)
+
+    inquire(FILE="arrows.in",EXIST=use_arrows)
+    ! Get the arrow concentrations and adjust the input concentrations
+    ! if needed. Also create a mapping that will later allow us to
+    ! undo the transformations in the colorings that happen in the
+    ! next step.
+    if (use_arrows) then
+       
+       write(*,*) "ERROR: The algorithm to find the number of unique arrangements using the polya algorithm has not yet been implemented for the arrowed enumeration"
+       stop
+
+       ! call read_arrows(size(conc), arrows)
+       ! call arrow_concs(conc,arrows,a_conc,conc_map)
+    else
+       allocate(a_conc(size(concs)), poly(size(siteperms,1),size(siteperms,2)),STAT=status)
+       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: a_conc, poly."
+       a_conc = concs
+       allocate(conc_map(1,2),STAT=status)
+       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: conc_map."
+       conc_map(1,:) = (/0,0/)
+    end if
+    allocate(tconc(count(a_conc > 0)),labels(count(a_conc > 0)),STAT=status)
+    if(status/=0) stop "Allocation failed in recursively_stabilized_enum: tconc, poly, labels."
+
+    ! remove any of the zero concentration elements from the list.
+    species_j = 1
+    do species_i = 1, size(a_conc)
+       if (a_conc(species_i) > 0) then
+          tconc(species_j) = a_conc(species_i)
+          labels(species_j) = species_i-1
+          species_j = species_j + 1
+       end if
+    end do
+    
+    ! sort the concentrations to be in the optimal order
+    call heapsort(tconc,labels,conc_map) 
+
+    ! Now we can finally run the polya algorithm.
+    if (size(tconc) == 1) then
+       this_count = 1
+    else
+       this_count = polya(tconc, siteperms, polynomials=poly, decompose=.True.)
+    end if
+
+    nHNF = count(permIndx == HNFi)
+    size_count = size_count + this_count*nHNF
+    total_count = total_count + this_count*nHNF
+    
+  end SUBROUTINE polya_count
+  
 END MODULE derivative_structure_generator
 
