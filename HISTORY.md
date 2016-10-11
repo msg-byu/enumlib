@@ -1,12 +1,22 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.2
+
+- Fixed a bug where if there was more than one point in the
+  multilattice the code produced following bug `(d,g)-->(d',g')
+  mapping failed in get_rotation_perm_lists`. This was repaired by
+  replacing line 611 of derivative_structure_generator.f90 with the
+  following code `if (any(dgp==0) .or. (any(dap==0)
+  .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in
+  get_rotation_perm_lists"`.
+
 ## Revision 1.0.1
 - Updated the polya submodule.
 - Fixed a bug in tree_class.f90 that was causing a segmentation fault
   in the arrow enumeration. The error was caused because using
-  rotated_arrowing(self%A%layer(d)%perms(perm_i,:)) only works of the
+  `rotated_arrowing(self%A%layer(d)%perms(perm_i,:))` only works of the
   arrays are of the same length. Replaced this line with
-  self%A%layer(d)%perms(perm_i,rotated_arrowing) which operates as
+  `self%A%layer(d)%perms(perm_i,rotated_arrowing)` which operates as
   this permutation should.
 
 - Fixed the final color mapping in the arrow enumeration. The location

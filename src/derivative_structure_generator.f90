@@ -608,7 +608,7 @@ CONTAINS
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          if (any(dgp==0) .or. any(dap==0)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
+          if (any(dgp==0) .or. (any(dap==0) .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
