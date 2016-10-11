@@ -9,7 +9,7 @@ implicit none
 
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file, &
-       read_struct_enum_out, read_struct_enum_out_oldstyle, co_ca, read_arrows
+       read_struct_enum_out, read_struct_enum_out_oldstyle, co_ca
 
 CONTAINS
 
@@ -642,31 +642,5 @@ CONTAINS
     enddo
     close(11)
   END SUBROUTINE write_rotperms_list
-
-  !!<summary>Reads the arrows.in file to get the number of arrows of
-  !!each atomic species.</summary>
-  !!<parameter name="fname" regular="true">The file name (arrows.in).</parameter>
-  !!<parameter name="k" regular="true">The number of atomic species
-  !!in the system.</parameter>
-  !!<parameter name="arrows" regular="true">The output array of the
-  !!number of arrows of each atomic species.</parameter>
-  SUBROUTINE read_arrows(k,arrows,fname)
-    integer, intent(in) :: k
-    character(len=:), allocatable, optional, intent(in) :: fname
-    integer, intent(out) :: arrows(k)
-
-    !!<local name="err">Checks if co_ca routine had an error.</local>
-    logical :: err
-
-    if(.not. present(fname)) then
-       open(10,file='arrows.in',status='old')
-    else
-       open(10,file=fname,status='old')
-    endif
-    call co_ca(10,err)
-    read(10,*) arrows
-
-    close(10)
-  end SUBROUTINE read_arrows
   
 END MODULE io_utils
