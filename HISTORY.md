@@ -6,7 +6,7 @@
   multilattice the code produced following bug `(d,g)-->(d',g')
   mapping failed in get_rotation_perm_lists`. This was repaired by
   replacing line 611 of derivative_structure_generator.f90 with the
-  following code `if (any(dgp==0) .or. (any(dap==0)
+  following code `if (any(dgp==0) .and. (any(dap==0)
   .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in
   get_rotation_perm_lists"`.
 

@@ -555,7 +555,7 @@ CONTAINS
        if (associated(rperms%perm)) deallocate(rperms%perm)
        if (associated(taperms%perm)) deallocate(taperms%perm)
        !print *,nop,nd,n;stop
-       allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp,6),STAT=status)
+       allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp, size(arrow_basis,2)),STAT=status)
        if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
        do iOp = 1, nOp ! For each rotation, find the permutation
           dgp = 0 ! Initialize the (d,g) table
@@ -608,7 +608,8 @@ CONTAINS
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          if (any(dgp==0) .or. (any(dap==0) .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
+          ! print *, "1", any(dgp==0), "2", any(dap==0) .and. .not. use_arrows
+          if (any(dgp==0) .and. (any(dap==0) .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
@@ -656,7 +657,7 @@ CONTAINS
        RPlist(iH)%nL = size(rperms%perm,1)*n
        allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
        if ((arrows) .and. present(aperms)) then
-          allocate(aperms(iH)%perm(RPlist(iH)%nL,6))
+          allocate(aperms(iH)%perm(RPlist(iH)%nL,size(arrow_basis,2)))
        else if (present(aperms)) then
           allocate(aperms(iH)%perm(RPlist(iH)%nL,1))
        end if
