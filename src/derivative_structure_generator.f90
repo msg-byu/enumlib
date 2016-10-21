@@ -1444,11 +1444,10 @@ CONTAINS
        do iBlock = 1, maxval(RPLindx)
           !call cpu_time(blockstart)
           ! filename = "debug_temp_perms.out"
-          
+
           ! call write_rotperms_list(rdRPList(iBlock),filename)
           if (conc_check) then
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
-
                 ! If we are running in polya modethen we only want to
                 ! run the polya code. Otherwise run the full enumeration.
                 if (present(polya) .and. (polya .eqv. .true.)) then
@@ -1475,9 +1474,9 @@ CONTAINS
                            Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
                       
                    else
-                      call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
-                           hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
-                           fixed_cells,rdaperms(iBlock)%perm)
+                   call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
+                        hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
+                        fixed_cells,rdaperms(iBlock)%perm)
                    end if
                    deallocate(site_res)
                 end if

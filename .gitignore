@@ -39,3 +39,7 @@ src/compile.log
 
 # version files
 version.enum
+
+# Test folders
+unittests/
+stagging/

@@ -580,7 +580,7 @@ CONTAINS
        ! Create a labeling that includes the sites that don't have arrows.
        site_j = 1
        do site_i = 1, size(coloring)
-          if (any(self%color_map(:,1) == coloring(site_i))) then
+          if (any(self%color_map(:,1) == coloring(site_i)) .and. (self%narrows >= site_j)) then
              all_sites(site_i) = arrowing(site_j) + 1
              site_j = site_j + 1
           end if
@@ -589,7 +589,7 @@ CONTAINS
        ! Use the stabilizers to determine if the arrowing is unique.
        groupCheck: do perm_i = 1, self%Gsize(d)
           rotated_arrowing = all_sites(self%G%layer(d)%perms(perm_i,:))
-          permuted_arrowing = rotated_arrowing(self%A%layer(d)%perms(perm_i,:))
+          permuted_arrowing = self%A%layer(d)%perms(perm_i,rotated_arrowing)
           
           call generateIndexFromArrowing(permuted_arrowing -1, arrow_dim, newindex)
           ! If the new index came before the original then this
@@ -604,12 +604,11 @@ CONTAINS
           ! colormap so we can save the labeling to file.
           do site_i=1, size(coloring)
              if (any(self%color_map(:,1) == coloring(site_i))) then
-                full_coloring(site_i) = self%color_map(coloring(site_i)-size(self%color_map,1),2) -1
+                full_coloring(site_i) = self%color_map(coloring(site_i)-(self%k-self%narrows)-1,2) -1
              else
                 full_coloring(site_i) = coloring(site_i) -1
              end if
           end do
-
           call write_single_labeling(full_coloring,symsize,nfound,scount,HNFcnt,&
                iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx,arrow_label=all_sites-1)
 
