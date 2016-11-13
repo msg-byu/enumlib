@@ -1,5 +1,20 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.3
+
+- Fixed a bug number of bugs in the addArrows subroutine of
+  tree_class.f90.
+  
+- Added nArrows as an input to tree_class and as an output to
+  arrow_concs of arrow_related.
+
+- Fixed the generateArrowingFromIndex subroutine so that it returns
+  the correct value when the arrow label is passed in as the standard
+  format in the tree_class subroutines.
+
+- Fixed the color_mapping of the arrowed labels for the site
+  restricted cases in labeling_related.
+
 ## Revision 1.0.2
 
 - Fixed a bug where if there was more than one point in the

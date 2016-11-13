@@ -53,7 +53,7 @@ CONTAINS
        species_a = 1
        do species_i =1, size(list)
           minl = minloc(list, 1, list /= -1)
-          if (any(conc_map(:,1) == labels(minl))) then
+          if (any(conc_map(:,1) == labels(minl)+1)) then
              ! This is an arrowed species, store it in the arrowed list.
              arrow_concs(species_a) = list(minl)
              arrow_labels(species_a) = labels(minl)

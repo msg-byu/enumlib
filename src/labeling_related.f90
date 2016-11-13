@@ -89,7 +89,8 @@ CONTAINS
     !!<local name="status">Allocation status flag.</local>
     !!<local name="conc_map">Stores the mapping from the arrow labels
     !!to the non arrow labels</local>
-    integer :: site_i, species_i, species_j, nHNF, temp_label, perm_j, status
+    !!<local name="nArrows">The number of arrowed sites in the enumeration.</local>
+    integer :: site_i, species_i, species_j, nHNF, temp_label, perm_j, status, nArrows
     class(tree), pointer :: this_tree
     integer, allocatable :: labeling(:), tconc(:), labels(:), temp_labeling(:), a_conc(:)
     integer, allocatable :: conc_map(:,:)
@@ -103,7 +104,7 @@ CONTAINS
     ! next step.
     if (use_arrows) then
        call read_arrows(size(conc), arrows)
-       call arrow_concs(conc,arrows,a_conc,conc_map)
+       call arrow_concs(conc,arrows,a_conc,conc_map,nArrows)
     else
        allocate(a_conc(size(conc)),STAT=status)
        if(status/=0) stop "Allocation failed in recursively_stabilized_enum: a_conc."
@@ -114,7 +115,6 @@ CONTAINS
     end if
     allocate(tconc(count(a_conc > 0)),labels(count(a_conc > 0)),STAT=status)
     if(status/=0) stop "Allocation failed in recursively_stabilized_enum: tconc, poly, labels."
-
     ! remove any of the zero concentration elements from the list.
     species_j = 1
     do species_i = 1, size(a_conc)
@@ -124,20 +124,16 @@ CONTAINS
           species_j = species_j + 1
        end if
     end do
-    
     ! sort the concentrations to be in the optimal order
-    call heapsort(tconc,labels,conc_map) 
+    call heapsort(tconc,labels,conc_map)
     ! Initialize the tree class and the labeling variables for the
     ! algorithm
     allocate(this_tree,STAT=status)
     if(status/=0) stop "Allocation failed in recursively_stabilized_enum: this_tree."
-
-    call this_tree%init(tconc, perm, aperms, conc_map, .False.)
-    
+    call this_tree%init(tconc, perm, aperms, conc_map, nArrows, .False.)
     ! Now we move through through the possible branches to see which
     ! will contribute
     do while (.not. this_tree%done)
-
        ! If this is the first iteration of the loop then we don't have
        ! a location yet and we need to try and step to the first
        ! location in the tree.
@@ -155,7 +151,7 @@ CONTAINS
 
        if (this_tree%k /= 1) then
           call this_tree%check(temp_labeling,symsize,fixedcell)
-       else if (symsize > 1) then
+       else if ((symsize > 1) .and. (this_tree%nArrows ==0)) then
           this_tree%unique = .False.
        end if
 
@@ -176,8 +172,12 @@ CONTAINS
           if (any(allowed /= 1)) then
              do site_i = 1, this_tree%n
                 if (use_arrows) then
-                   if (any(conc_map(:,1) == labeling(site_i))) then
-                      temp_label = conc_map(labeling(site_i)-size(conc),2) + 1
+                   if (any(conc_map(:,1) == labeling(site_i)+1)) then
+                      do species_i = 1, size(conc_map,1)
+                         if (conc_map(species_i,1)  == (labeling(site_i)+1)) then
+                            temp_label = conc_map(species_i,2)
+                         end if
+                      end do
                    else
                       temp_label = labeling(site_i) + 1
                    end if
@@ -201,6 +201,17 @@ CONTAINS
              if (this_tree%unique .eqv. .False.) then
                 do perm_j = 1, size(perm,1)
                    temp_labeling = labeling(perm(perm_j,:))
+                   if (use_arrows) then
+                      do site_i =1 ,size(labeling)
+                         if (any(conc_map(:,1) == temp_labeling(site_i)+1)) then
+                            do species_i = 1, size(conc_map,1)
+                               if (conc_map(species_i,1)  == (temp_labeling(site_i)+1)) then
+                                  temp_labeling(site_i) = conc_map(species_i,2)-1
+                               end if
+                            end do
+                         end if
+                      end do
+                   end if
                    do site_i = 1, this_tree%n
                       if ((allowed(site_i,temp_labeling(site_i)+1) == 0)) then
                          this_tree%unique = .False.

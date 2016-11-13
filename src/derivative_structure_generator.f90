@@ -14,6 +14,7 @@ use numerical_utilities
 use vector_matrix_utilities, only: determinant, matrix_inverse
 use sorting
 use classes, only: polya
+use arrow_related, only: arrow_concs
 
 implicit none
 private
@@ -461,7 +462,7 @@ CONTAINS
   !!permutations.</parameter>
   !!<parameter name="use_arrows" regular="true">True if arrows are present
   !!in the enumeration.</parameter>
-  !!<parameter name="surf" regular="tue">True is this is a surface
+  !!<parameter name="surf" regular="true">True is this is a surface
   !!calculation, false otherwise.</parameter>
   SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows, surf)
     real(dp), intent(in) :: A(3,3) 
@@ -487,7 +488,8 @@ CONTAINS
     real(dp), allocatable :: rgp(:,:), rag(:,:)
     logical, allocatable :: skip(:), skipa(:)
     integer OpIndxInSuperCellList, RowInDxGTable
-    integer, allocatable :: arrow_basis(:,:)!(3,6)
+    integer, allocatable :: arrow_basis(:,:)
+    integer, pointer :: temp_perms(:,:) => null()
     logical :: arrows
 
     if (.not. present(use_arrows)) then
@@ -554,7 +556,7 @@ CONTAINS
        nOp = size(Op(iH)%rot,3);
        if (associated(rperms%perm)) deallocate(rperms%perm)
        if (associated(taperms%perm)) deallocate(taperms%perm)
-       !print *,nop,nd,n;stop
+
        allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp, size(arrow_basis,2)),STAT=status)
        if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
        do iOp = 1, nOp ! For each rotation, find the permutation
@@ -563,7 +565,7 @@ CONTAINS
           do iD = 1, nD ! Loop over each row in the (d,g) table
              ! LA^-1(v_i+(RAL^-1)G)
              rgp = matmul(Tinv,(-spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
-             rag = matmul(op(iH)%rot(:,:,iOp), arrow_basis)
+             rag = transpose(matmul(transpose(arrow_basis),op(iH)%rot(:,:,iOp)))
              if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
              gp = nint(rgp) ! Move the rotated group into an integer array
              ag = nint(rag)
@@ -608,7 +610,6 @@ CONTAINS
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          ! print *, "1", any(dgp==0), "2", any(dap==0) .and. .not. use_arrows
           if (any(dgp==0) .and. (any(dap==0) .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
 
           ! Now we have the (d',g') table for this rotation. Now
@@ -636,6 +637,23 @@ CONTAINS
        ! (with the translations) will not have duplicates.
        if ((size(rperms%perm,1) > 1) .and. (arrows .eqv. .false.)) then
           call sort_permutations_list(rperms%perm)
+
+       else if (arrows .eqv. .True.) then
+          allocate(temp_perms(size(rperms%perm,1),size(rperms%perm,2)+size(taperms%perm,2)))
+          do im=1, size(rperms%perm,1)
+             temp_perms(im,1:size(rperms%perm,2)) = rperms%perm(im,:)
+             temp_perms(im,size(rperms%perm,2)+1:) = taperms%perm(im,:)
+          end do
+          call sort_permutations_list(temp_perms)
+          deallocate(rperms%perm,taperms%perm)
+          allocate(rperms%perm(size(temp_perms,1),size(temp_perms,2)-size(arrow_basis,2)),STAT=status)
+          if(status/=0) stop "Allocation failed in get_rotation_perms_lists: rperms"
+          allocate(taperms%perm(size(temp_perms,1),size(arrow_basis,2)),STAT=status)
+          if(status/=0) stop "Allocation failed in get_rotation_perms_lists: taperms"
+          do im =1,size(temp_perms,1)
+             rperms%perm(im,:) = temp_perms(im,1:size(rperms%perm,2))
+             taperms%perm(im,:) = temp_perms(im,size(rperms%perm,2)+1:)
+          end do
        end if
        ! The rotations permutations list is now in "alphabetical"
        ! order and contains no duplicates
@@ -1474,7 +1492,7 @@ CONTAINS
                            Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
                       
                    else
-                   call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
+                      call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
                         hnf_degen,Tcnt,Scnt,fixOp,iBlock,equivalencies,RPLindx,site_res,&
                         fixed_cells,rdaperms(iBlock)%perm)
                    end if
@@ -1534,11 +1552,14 @@ CONTAINS
     !!<local name="species_i">Variable for loops.</local>
     !!<local name="species_j">Variable for loops.</local>
     !!<local name="a_conc">The concentrations with the arrows included.</local>
-    integer, allocatable :: poly(:,:), conc_map(:,:) 
+    !!<local name="arrows">The number of arrows for each color.</local>
+    !!<local name="nArrows">The number of sites with arrows on them.</local>
+    integer, allocatable :: poly(:,:), conc_map(:,:), poly_a(:,:,:)
     logical :: use_arrows
-    integer :: status, species_i, species_j, nHNF
+    integer :: status, species_i, species_j, nHNF, nArrows
     integer(li) :: this_count
     integer, allocatable :: tconc(:), labels(:), a_conc(:)
+    integer :: arrows(size(concs))
 
     inquire(FILE="arrows.in",EXIST=use_arrows)
     ! Get the arrow concentrations and adjust the input concentrations
@@ -1546,15 +1567,13 @@ CONTAINS
     ! undo the transformations in the colorings that happen in the
     ! next step.
     if (use_arrows) then
-       
-       write(*,*) "ERROR: The algorithm to find the number of unique arrangements using the polya algorithm has not yet been implemented for the arrowed enumeration"
-       stop
-
-       ! call read_arrows(size(conc), arrows)
-       ! call arrow_concs(conc,arrows,a_conc,conc_map)
+       call read_arrows(size(concs), arrows)
+       call arrow_concs(concs,arrows,a_conc,conc_map,nArrows)
+       allocate(poly(size(siteperms,1),size(siteperms,2)), poly_a(size(siteperms,1),size(siteperms,2),2), STAT=status)
+       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: poly poly_a."
     else
-       allocate(a_conc(size(concs)), poly(size(siteperms,1),size(siteperms,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: a_conc, poly."
+       allocate(a_conc(size(concs)), poly(size(siteperms,1),size(siteperms,2)), poly_a(size(siteperms,1),size(siteperms,2),2), STAT=status)
+       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: a_conc, poly poly_a."
        a_conc = concs
        allocate(conc_map(1,2),STAT=status)
        if(status/=0) stop "Allocation failed in recursively_stabilized_enum: conc_map."
@@ -1572,21 +1591,25 @@ CONTAINS
           species_j = species_j + 1
        end if
     end do
-    
+
     ! sort the concentrations to be in the optimal order
     call heapsort(tconc,labels,conc_map) 
 
     ! Now we can finally run the polya algorithm.
-    if (size(tconc) == 1) then
+    if ((size(tconc) == 1) .and. (.not. use_arrows)) then
        this_count = 1
-    else
+    else if (.not. use_arrows) then
        this_count = polya(tconc, siteperms, polynomials=poly, decompose=.True.)
+    else
+       this_count = polya(tconc, siteperms, agroup=arrowperms, polynomials=poly_a, arrows=count(conc_map(:,1) >0), decompose=.True.)
     end if
 
     nHNF = count(permIndx == HNFi)
     size_count = size_count + this_count*nHNF
     total_count = total_count + this_count*nHNF
-    
+    deallocate(tconc,labels,a_conc,conc_map)
+    if (allocated(poly)) deallocate(poly)
+    if (allocated(poly_a)) deallocate(poly_a)
   end SUBROUTINE polya_count
   
 END MODULE derivative_structure_generator

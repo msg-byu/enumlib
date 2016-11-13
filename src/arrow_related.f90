@@ -18,16 +18,20 @@ contains
     integer, intent(in) :: arrowing(:)
     integer, intent(in) :: dim
     integer, intent(out) :: arrow_index
-
+    
     !!<local name="temp_arrowing">A temporary copy of the arrowing.</local>
     integer :: temp_arrowing(size(arrowing))
-    integer :: arrow_i
-    
+    integer :: arrow_i, arrow_j
+
     temp_arrowing = arrowing - 1
 
     arrow_index = 0
+    arrow_j = 1
     do arrow_i=1, size(arrowing)
-       arrow_index = arrow_index + temp_arrowing(arrow_i)*dim**(arrow_i-1)
+       if (temp_arrowing(arrow_i) >= 0) then
+          arrow_index = arrow_index + temp_arrowing(arrow_i)*dim**(arrow_j-1)
+          arrow_j = arrow_j + 1
+       end if
     end do    
   end subroutine generateIndexFromArrowing
   
@@ -68,11 +72,13 @@ contains
   !!included.</parameter>
   !!<parameter name="conc_map" regular="true">A mapping from the new concentrations
   !!to the old.</parameter>
-  subroutine arrow_concs(conc,arrows,a_conc,conc_map)
+  !!<parameter name="nArrows" regular="true">The number of sites with arrows.</parameter>
+  subroutine arrow_concs(conc,arrows,a_conc,conc_map, nArrows)
     integer, intent(in) :: conc(:)
     integer, intent(in) :: arrows(:)
     integer, allocatable, intent(out) :: a_conc(:)
     integer, allocatable, intent(out) :: conc_map(:,:)
+    integer, intent(out) :: nArrows
 
     !!<local name="new_species">A temporary array of the new species
     !!to be included in the concentration list.</local>
@@ -84,6 +90,7 @@ contains
     integer :: temp_map(size(conc),2)
     integer :: species_i, species_j, new_size
 
+    nArrows = 0
     temp_map = 0
     ! First we need to find out the concentrations of the arrowed and
     ! unarrowed atoms of each species
@@ -93,9 +100,11 @@ contains
           if (arrows(species_i) <= conc(species_i)) then
              new_concs(species_i) = conc(species_i) - arrows(species_i)
              new_species(species_j) = arrows(species_i)
+             nArrows = nArrows + arrows(species_i)
           else
              new_concs(species_i) = 0
              new_species(species_j) = conc(species_i)
+             nArrows = nArrows + conc(species_i)
           end if
           temp_map(species_j,1) = size(conc) + species_j
           temp_map(species_j,2) = species_i

@@ -34,7 +34,7 @@ MODULE tree_class
      !!the tree (k-1 components; last layer not needed) </member>
      !!<member name="base">An array that keeps track of the unique
      !!arrangements of the first layer of the enumeration.</member>
-     !!<member name="narrows">The integer number of arrows in the
+     !!<member name="nArrows">The integer number of arrows in the
      !!system.</member>
      !!<member name="color_map">The list of colors that have arrows
      !!associated with them.</member>
@@ -50,7 +50,7 @@ MODULE tree_class
      integer, pointer :: base(:) => null()
      logical          :: unique = .true.
      logical          :: done = .false.
-     integer          :: narrows = 0
+     integer          :: nArrows = 0
      integer, pointer :: color_map(:,:) => null()
    contains
      procedure, public :: init => initializeTree
@@ -77,17 +77,19 @@ CONTAINS
   !!<parameter name="arrow_group" regular="true">The arrow group for the system.</parameter>
   !!<parameter name="color_map" regular="true">The mapping of the arrowed colors back
   !! to the non-arrowed colors.</parameter>
-  subroutine initializeTree(self,colors,generators, arrow_group, color_map, makeG)
+  !!<parameter name="nArrows">The number of sites with arrows on them.</parameter>
+  subroutine initializeTree(self,colors,generators, arrow_group, color_map, nArrows, makeG)
     class(tree)         :: self
     integer, intent(in) :: colors(:)
     integer, intent(in) :: color_map(:,:)
     integer, pointer, intent(in) :: arrow_group(:,:)
     integer, pointer, intent(in)    :: generators(:,:)
+    integer, intent(in) :: nArrows
     logical, optional, intent(in)   :: makeG
     
     integer :: species_i, status
 
-    self%k = size(colors) 
+    self%k = size(colors)
     allocate(self%colors(self%k),STAT=status)
     if(status/=0) stop "Allocation failed in initializeTree: self%colors."       
     self%colors = colors
@@ -97,7 +99,7 @@ CONTAINS
     allocate(self%Gsize(self%k),STAT=status)
     if(status/=0) stop "Allocation failed in initializeTree: self%Gsize."           
     self%loc = -1
-    self%nArrows = count(color_map(:,1)>0)
+    self%nArrows = nArrows
     allocate(self%color_map(size(color_map,1),size(color_map,2)),STAT=status)
     if(status/=0) stop "Allocation failed in initializeTree: self%color_map."       
     self%color_map = color_map
@@ -142,8 +144,17 @@ CONTAINS
     else if (self%k == 1) then
        ! self%done = .True.
        self%unique = .True.
+       allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm
+       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer" 
+       !lists. Don't need one for last color but makes the code
+       !cleaner. Perhaps rethink this later
+       allocate(self%G%layer(1)%perms(size(generators,1),size(generators,2)),STAT=status)
+       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"       
+       allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)),STAT=status)
+       if(status/=0) stop "Allocation failed in initializeTree: self%A%layer%perms"       
+       self%G%layer(1)%perms = generators
+       self%A%layer(1)%perms = arrow_group
     end if
-
   endsubroutine initializeTree
 
   !!<summary>Generate the coloring associated with the current location
@@ -385,10 +396,12 @@ CONTAINS
           ! permutations where n is the number of unit cells in the
           ! system) and if the pemutation is not the identity
           ! (permutiation 1).
-          if ((d == self%k -1) .and. (perm_i <= symsize) .and. (perm_i > 1) .and. (.not. fixedcell)) then
-             ! If this permutation is the same as one if the first n
-             ! permutations of the entire system then the labeling is
-             ! superperiodic and should not be included in the list.
+          if ((d == self%k -1) .and. (perm_i <= symsize) .and. (perm_i > 1) .and. (.not. fixedcell) .and. (self%nArrows == 0)) then
+          ! if ((d == self%k -1) .and. (perm_i <= symsize) .and. (perm_i > 1) .and. (.not. fixedcell)) then
+             ! If this permutation is the same after being acted on by
+             ! one ofiu the first n permutations of the entire system
+             ! then the labeling is superperiodic and should not be
+             ! included in the list.
              do perm_j = 2, symsize
                 if (all(self%G%layer(1)%perms(perm_j,:) == self%G%layer(d)%perms(perm_i,:))) then
                    self%unique = .False.
@@ -544,59 +557,88 @@ CONTAINS
     !!been mapped back to the original ones.</local>
     !!<local name="newindex">The transmogrified arrowings index.</local>
     !!<local name="arrow_dim">The number of directions the arrows can point.</local>
+    !!<local name="nperms">The total number of permutations for this level of the
+    !!tree.</local>
     integer :: all_sites(size(coloring)), rotated_arrowing(size(coloring)), full_coloring(size(coloring))
-    integer :: permuted_arrowing(size(coloring))
+    integer :: permuted_arrowing(size(coloring)), permuted_coloring(size(coloring))
     integer, allocatable :: max_arrowings(:), arrowing(:)
     integer :: maxindex, originalIndex, d, newindex
-    integer :: perm_i, perm_j, site_i, site_j, status, arrow_dim
+    integer :: perm_i, perm_j, site_i, site_j, status, arrow_dim, nperms
 
     d = self%depth()
+
     ! Find the number of directions by finding the largest number in
     ! the arrow perm.
-    arrow_dim = maxval(self%A%layer(d)%perms(1,:), 1)
+    if (d==0) then
+       nperms = size(self%G%layer(1)%perms,1)
+       d = 1
+       arrow_dim = maxval(self%A%layer(1)%perms(1,:), 1)
+    else
+       d = d + 1
+       nperms = self%Gsize(d)
+       arrow_dim = maxval(self%A%layer(d)%perms(1,:), 1)
+    end if
     
-    allocate(max_arrowings(self%narrows),arrowing(self%narrows),STAT=status)
+    allocate(max_arrowings(self%nArrows),arrowing(self%nArrows),STAT=status)
     if(status/=0) stop "Allocation failed in addArrowsToEnumeration: max_arrowings, arrowings."
     ! Within this algorithm the arrowings are treated as an odometer
     ! that increments through all possible arrow arrangements for the
     ! system. Each arrowed site can have 0 to 5 for bulk enumerations
     ! or 3 for surface enumerations. The largest possible odemeter is
     ! then max_arrowings.
-    max_arrowings = arrow_dim -1
-
+    max_arrowings = arrow_dim !-1
     call generateIndexFromArrowing(max_arrowings, arrow_dim, maxindex)
-
     ! Loop over every possible arrow array by going from the index of
     ! 0 to the maxindex found for the max_arrowings array.
     do originalIndex = 0, maxindex
        self%unique = .True.
        ! In order to apply the symmetry group we need to construct a
        ! labeling for every site even this that don't have arrows on them.
-       all_sites = 1
+       all_sites = 0
 
        ! Get the arrowing that goes with this index
-       call generateArrowingFromIndex(originalIndex, self%narrows, arrow_dim, arrowing)
-
+       call generateArrowingFromIndex(originalIndex, self%nArrows, arrow_dim, arrowing)
        ! Create a labeling that includes the sites that don't have arrows.
        site_j = 1
        do site_i = 1, size(coloring)
-          if (any(self%color_map(:,1) == coloring(site_i)) .and. (self%narrows >= site_j)) then
-             all_sites(site_i) = arrowing(site_j) + 1
+          if (any(self%color_map(:,1) == coloring(site_i)) .and. (self%nArrows >= site_j)) then
+             all_sites(site_i) = arrowing(site_j) 
              site_j = site_j + 1
           end if
        end do
 
        ! Use the stabilizers to determine if the arrowing is unique.
-       groupCheck: do perm_i = 1, self%Gsize(d)
+       groupCheck: do perm_i = 1, nperms
           rotated_arrowing = all_sites(self%G%layer(d)%perms(perm_i,:))
-          permuted_arrowing = self%A%layer(d)%perms(perm_i,rotated_arrowing)
-          
-          call generateIndexFromArrowing(permuted_arrowing -1, arrow_dim, newindex)
-          ! If the new index came before the original then this
-          ! arrowing is a duplicate.
-          if (newindex < originalIndex) then
-             self%unique = .False.
-             exit groupCheck
+          permuted_coloring = coloring(self%G%layer(d)%perms(perm_i,:))
+          do site_i =1,size(permuted_arrowing)
+             if (rotated_arrowing(site_i) /= 0) then
+                permuted_arrowing(site_i) = self%A%layer(d)%perms(perm_i,rotated_arrowing(site_i))
+             else
+                permuted_arrowing(site_i) = 0                
+             end if
+          end do
+          if (all(permuted_coloring == coloring) .and. all(permuted_arrowing == all_sites)) then
+             if ((perm_i <= symsize) .and. (perm_i > 1)) then
+                do perm_j = 2, symsize
+                   if (all(self%G%layer(1)%perms(perm_j,:) == self%G%layer(d)%perms(perm_i,:)) &
+                        .and. all(self%A%layer(1)%perms(perm_j,:) == &
+                        self%A%layer(d)%perms(perm_i,:))) then
+                      ! This arrangement is superperiodic and not unique.
+                      self%unique = .False.
+                      exit groupCheck
+                   end if
+                end do
+             end if
+          else
+             call generateIndexFromArrowing(permuted_arrowing, arrow_dim, newindex)
+             ! If the new index came before the original then this
+             ! arrowing is a duplicate.
+
+             if (newindex < originalIndex) then
+                self%unique = .False.
+                exit groupCheck
+             end if
           end if
        end do groupCheck
        if (self%unique .eqv. .True.) then
@@ -604,13 +646,17 @@ CONTAINS
           ! colormap so we can save the labeling to file.
           do site_i=1, size(coloring)
              if (any(self%color_map(:,1) == coloring(site_i))) then
-                full_coloring(site_i) = self%color_map(coloring(site_i)-(self%k-self%narrows)-1,2) -1
+                do site_j = 1, size(self%color_map,1)
+                   if (self%color_map(site_j,1) == coloring(site_i)) then
+                      full_coloring(site_i) = self%color_map(site_j,2) -1
+                   end if
+                end do
              else
                 full_coloring(site_i) = coloring(site_i) -1
              end if
           end do
           call write_single_labeling(full_coloring,symsize,nfound,scount,HNFcnt,&
-               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx,arrow_label=all_sites-1)
+               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx,arrow_label=all_sites)
 
        end if
     end do
