@@ -15,6 +15,8 @@
 - Fixed the color_mapping of the arrowed labels for the site
   restricted cases in labeling_related.
 
+- Added makeStr.py to the repo to replace makeStr.x.
+
 ## Revision 1.0.2
 
 - Fixed a bug where if there was more than one point in the
