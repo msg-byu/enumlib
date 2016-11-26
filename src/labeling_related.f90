@@ -171,6 +171,11 @@ CONTAINS
           ! restrictions for the model.
           if (any(allowed /= 1)) then
              do site_i = 1, this_tree%n
+                ! If there are arrows present then we want to remap
+                ! the arrowed colors back to the original colors and
+                ! check to see if they violate the site restrictions.
+                ! We also add one to each label so that the smallest
+                ! number used is one and not zero.
                 if (use_arrows) then
                    if (any(conc_map(:,1) == labeling(site_i)+1)) then
                       do species_i = 1, size(conc_map,1)
@@ -181,11 +186,15 @@ CONTAINS
                    else
                       temp_label = labeling(site_i) + 1
                    end if
+                   ! If the actual coloring for the site violates the
+                   ! site restrictions then it is not unique.
                    if ((allowed(site_i,temp_label) == 0)) then
                       this_tree%unique = .False.
                       exit
                    end if
-                else 
+                else
+                   ! If there are no arrows being used we can just
+                   ! check the site restrictions like normal.
                    if ((allowed(site_i,labeling(site_i)+1) == 0)) then
                       this_tree%unique = .False.
                       exit
@@ -201,6 +210,10 @@ CONTAINS
              if (this_tree%unique .eqv. .False.) then
                 do perm_j = 1, size(perm,1)
                    temp_labeling = labeling(perm(perm_j,:))
+                   ! If there are arrows present then we want to remap
+                   ! the arrowed colors back to the original colors
+                   ! and check to then find an equivalent labeling
+                   ! that doesn't violate the site restrictions.
                    if (use_arrows) then
                       do site_i =1 ,size(labeling)
                          if (any(conc_map(:,1) == temp_labeling(site_i)+1)) then
@@ -212,6 +225,8 @@ CONTAINS
                          end if
                       end do
                    end if
+                   ! Check to see if the new permutation satisfies the
+                   ! site restrictions.
                    do site_i = 1, this_tree%n
                       if ((allowed(site_i,temp_labeling(site_i)+1) == 0)) then
                          this_tree%unique = .False.
@@ -220,6 +235,8 @@ CONTAINS
                          this_tree%unique = .True.
                       end if
                    end do
+                   ! If the permuted labeling is unique then save it
+                   ! and break from the loop.
                    if (this_tree%unique .eqv. .True.) then
                       labeling = temp_labeling
                       exit
@@ -319,7 +336,8 @@ CONTAINS
 
     nL = multinomial(iConc) ! The hash table is "full size" even if
     ! site-restrictions will reduce the size of the list
-    allocate(lab(nL))
+    allocate(lab(nL),STAT=status)
+    if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
     lab = ""
     nPerm = size(perm,1)
     

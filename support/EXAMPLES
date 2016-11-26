@@ -19,10 +19,10 @@ In the input directory, there is a file for this case called
 "struct_enum.in.fcc". 
 
 You can run this example by typing (in the input directory):
-../multienum.x struct_enum.in.fcc
+../../src/enum.x struct_enum.in.fcc
 
 Or, copy the struct_enum.in.fcc file to "struct_enum.in" and simply:
-../multienum.x
+../../src/enum.x
 
 (See sample output below) 
 
@@ -72,7 +72,7 @@ structures that *crystallographically* distinct. (It doesn't list the
 When your run the case for this input file, you will see output like
 the following:
 
-(hart)~/codes/enumlib/trunk/input> ../multienum.x struct_enum.in.fcc
+(hart)~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.fcc
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
@@ -228,12 +228,12 @@ Line 9: We'll go up to cells of size 10x the parent cell.
 Line 11: We'll to a "partial" listing this time, only enumerating
 *crytalographically* distinct structures
 
-Here's the output when we run (../multienum.x
+Here's the output when we run (../../src/enum.x
 struct_enum.in.square). Note again that you'll want to widen your text
 editor window to make this readable.
 
 **********************************************************************
-(hart)~/codes/enumlib/trunk/input> ../multienum.x struct_enum.in.square 
+(hart)~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.square 
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to 16
@@ -287,7 +287,7 @@ this one as well, though adjustments in the 2Dplot settings are
 necessary to make it look nice. 
 
 **********************************************************************
-(hart)~/codes/enumlib/trunk/input> ../multienum.x *triangle
+(hart)~/codes/enumlib/support/input> ../../src/enum.x *triangle
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
@@ -340,7 +340,7 @@ with a full concentration range for every atomic type.
 
 Here's the sample output for the first part of this example:
 **********************************************************************
-(hart)~/codes/enumlib/trunk/input> ../multienum.x *ions
+(hart)~/codes/enumlib/support/input> ../../src/enum.x *ions
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
 Including only structures of which the concentration of each atom is in the range:
@@ -358,7 +358,7 @@ Volume       CPU        #HNFs  #SNFs    #reduced    % dups      volTot      RunT
 ---------------------------------------------------------------------------------------------
 **********************************************************************
 
-Run multienum.x using this input file and you will find that, unlike
+Run enum.x using this input file and you will find that, unlike
 example 1, there are 376 structures, rather than 631. Also, note that
 the screen output (and the header in the struct_enum.out file) include
 additional information about the concentrations.
@@ -372,7 +372,7 @@ structures. Note in the output below that all of the supercells of
 meet the concentration restrictions. 
 
 **********************************************************************
-(hart)~/codes/enumlib/trunk/input> ../multienum.x *1_1
+(hart)~/codes/enumlib/support/input> ../../src/enum.x *1_1
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
 Including only structures of which the concentration of each atom is in the range:
@@ -395,7 +395,7 @@ concentrations.
 In this example, we want to enumerate inside a large supercell, with a
 fixed shape, with a fixed concentration. We'll use a 2D example that
 is easy to visualize. Suppose we have a square lattice and the
-supercell we are interested is 18 times bigger than the
+supercell we are interested in is 18 times bigger than the
 parent. Suppose further that there are two lattice points in each
 parent cell, one at the corners of the square and one at the
 center. The corner sites can be occupied by either A or B atoms, and
@@ -420,10 +420,10 @@ supercell vectors are defined in Cartesian coordinates (not as
 multiples of the parent cell vectors).
 
 Copy "fixed_cells.in.8x" to "fixed_cells.in" and then run
-"../multienum.x struct_enum.in.ex5".
+"../../src/enum.x struct_enum.in.ex5".
 
 **********************************************************************
-(hart)~/codes/enumlib/trunk/input> ../multienum.x struct_enum.in.ex5 
+(hart)~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.ex5 
 ---------------------------------------------------------------------------------------------
 Generating permutations for fixed cells. index n= 8 to  8
 ---------------------------------------------------------------------------------------------
@@ -438,3 +438,37 @@ Volume       CPU        #HNFs  #SNFs    #reduced    % dups      volTot      RunT
 ---------------------------------------------------------------------------------------------
 **********************************************************************
 
+**********************************************************************
+Ex. 6: Including displacement directions in the enumretation of a
+concentration restricted cell.
+
+In this example we will enumerate a ternary system within a small cell
+that has concentration restrictions. Additionally we will want to
+allow each of the of the third atomic species to be displaced off the
+lattice and find the possible unique displacements. The parent cell
+will be a simple cube with a single lattice site. We will be
+enumerating supercells of up to three atoms.
+
+The atoms will be restricted so that atoms A and B can each have a
+concentration range of 0/5 to 2/5 and atom C can have a concentration
+range of 0/5 to 4/5.
+
+The definition of the system is contained in
+`arrow_enum_struct_enum.in' and the details of the number of arrows to
+be included for each atomic species is contained in 'arrows.in'.
+
+To generate the enumerated system run:
+`../../src/enum.x arrow_enum_struct_enum.in'.
+
+**********************************************************************
+(hart)~/codes/enumlib/support/input> ../../src/enum.x arrow_enum_struct_enum.in 
+---------------------------------------------------------------------------------------------
+Calculating derivative structures for index n= 1 to  3
+Including only structures of which the concentration of each atom is in the range:
+Type: 1: 0/5--2/5
+Type: 2: 0/5--2/5
+Type: 3: 0/5--4/5
+Volume       CPU        #HNFs  #SNFs    #reduced    % dups      volTot      RunTot
+   3         0.0048       13     1         3        0.7692          56          56
+---------------------------------------------------------------------------------------------
+**********************************************************************

@@ -115,10 +115,8 @@ CONTAINS
        ! Initialize the group for layer 1. Generate the group if makeG =
        ! .true., otherwise assume that the list of generators given is
        ! the entire group
-       allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm
+       allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm lists.
        if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer" 
-       !lists. Don't need one for last color but makes the code
-       !cleaner. Perhaps rethink this later
        allocate(self%G%layer(1)%perms(size(generators,1),size(generators,2)),STAT=status)
        if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"       
        allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)),STAT=status)
@@ -144,10 +142,8 @@ CONTAINS
     else if (self%k == 1) then
        ! self%done = .True.
        self%unique = .True.
-       allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm
+       allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm lists
        if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer" 
-       !lists. Don't need one for last color but makes the code
-       !cleaner. Perhaps rethink this later
        allocate(self%G%layer(1)%perms(size(generators,1),size(generators,2)),STAT=status)
        if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"       
        allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)),STAT=status)
@@ -439,24 +435,6 @@ CONTAINS
           end if
        end if
     end do groupCheck
-
-    ! if (self%unique .eqv. .True.) then
-    !    allocate(min_stab(stab_size,self%n),STAT=status)
-    !    if(status/=0) stop "Allocation failed in check_labeling: min_stab."       
-    !    allocate(min_stab_a(stab_size,size(self%A%layer(1)%perms,2)),STAT=status)
-    !    if(status/=0) stop "Allocation failed in check_labeling: min_stab_a."       
-    !    min_stab = self%G%layer(d+1)%perms(1:stab_size,:)
-    !    min_stab_a = self%A%layer(d+1)%perms(1:stab_size,:)
-    !    deallocate(self%G%layer(d+1)%perms)
-    !    deallocate(self%A%layer(d+1)%perms)
-    !    allocate(self%G%layer(d+1)%perms(stab_size,self%n),STAT=status)
-    !    if(status/=0) stop "Allocation failed in check_labeling: self%G%layer%perms."       
-    !    allocate(self%A%layer(d+1)%perms(stab_size,size(self%A%layer(d)%perms,2)),STAT=status)
-    !    if(status/=0) stop "Allocation failed in check_labeling: self%A%layer%perms."       
-    !    self%G%layer(d+1)%perms = min_stab
-    !    self%A%layer(d+1)%perms = min_stab_a
-    !    deallocate(min_stab,min_stab_a)
-    ! end if
    
   END SUBROUTINE check_labeling
 
@@ -569,15 +547,9 @@ CONTAINS
 
     ! Find the number of directions by finding the largest number in
     ! the arrow perm.
-    if (d==0) then
-       nperms = size(self%G%layer(1)%perms,1)
-       d = 1
-       arrow_dim = maxval(self%A%layer(1)%perms(1,:), 1)
-    else
-       d = d + 1
-       nperms = self%Gsize(d)
-       arrow_dim = maxval(self%A%layer(d)%perms(1,:), 1)
-    end if
+    d = d + 1
+    nperms = self%Gsize(d)
+    arrow_dim = maxval(self%A%layer(d)%perms(1,:), 1)
     
     allocate(max_arrowings(self%nArrows),arrowing(self%nArrows),STAT=status)
     if(status/=0) stop "Allocation failed in addArrowsToEnumeration: max_arrowings, arrowings."

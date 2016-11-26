@@ -1,5 +1,16 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.4
+
+- Removed depricated code from line 443 of tree_class.f90.
+
+- Added more extensive comments to explain the loop structure of line
+  171 of labelin_related.f90.
+
+- Removed the `if (d==0) then` statement from addArrowsToEnumeration
+  of tree_class.f90 since the code now handels all depths
+  appropriately.
+
 ## Revision 1.0.3
 
 - Fixed a bug number of bugs in the addArrows subroutine of

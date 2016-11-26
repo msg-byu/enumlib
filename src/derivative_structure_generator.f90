@@ -610,7 +610,7 @@ CONTAINS
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          if (any(dgp==0) .and. (any(dap==0) .and. .not. use_arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
+          if (any(dgp==0) .or. (any(dap==0) .and. arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
@@ -1451,10 +1451,8 @@ CONTAINS
        ! list in rdRPList contains all possible permutations that
        ! identify duplicate labelings.
 
-       ! There is a bug in one of the 2 following routines for the arrow enumeration.
        call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows,surf=(Latdim==2))
        call organize_rotperm_lists(RPList,rdRPList,RPLindx,aperms,rdaperms)
-       ! There is a bug in one of the 2 preceding routines for the arrow enumeration.
        
        ! This next if statement makes the run-time horrible (N^3
        ! scaling) if enabled. (only used for checking once.)
@@ -1466,7 +1464,7 @@ CONTAINS
           ! call write_rotperms_list(rdRPList(iBlock),filename)
           if (conc_check) then
              do iC = 1, size(iRange,1) ! loop over each concentration in the range
-                ! If we are running in polya modethen we only want to
+                ! If we are running in polya mode then we only want to
                 ! run the polya code. Otherwise run the full enumeration.
                 if (present(polya) .and. (polya .eqv. .true.)) then
                    call polya_count(iRange(iC,:), rdRPList(iBlock)%perm, rdaperms(iBlock)%perm,&
