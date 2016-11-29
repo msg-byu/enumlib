@@ -157,24 +157,16 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_rotation_perms_lists">
-    <group name="stuct_enum_tests7" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests7" purpose="testing" staging="../unittests/">
       <test identifier="RPList"
 	    description="Original enumerations tests of basic structures"
-	    cases="[1-38]" timed="true">
+	    cases="[1-58]" timed="true">
 	<output folder="../tests/derivative_structure_generator/get_rotation_perms_lists.out.{}"
 		autoclass = "true" identifier="get_rotation_perms_lists_RPlist_perm.out" />
 	<target name="RPList" autoclass = "true"
 		compareto="get_rotation_perms_lists_RPlist.out"
 		varfile="get_rotation_perms_lists_RPlist.out" when="each"/>
       </test>
-      <!-- <test identifier="debug_file" -->
-      <!-- 	    description="Original enumeration tests" -->
-      <!-- 	    cases="[39-]"> -->
-      <!-- 	<output folder="../tests/derivative_structure_generator" -->
-      <!-- 		file="debug_get_rotation_perms_list.out.{}" template="" -->
-      <!-- 		identifier="debug"/> -->
-      <!-- 	<target name="./debug_get_rotations_perms_lists.out" compareto="struct_enum.out" /> -->
-      <!-- </test> -->
       <assignment name="A" value="Afile" allocate="true">
 	<value identifier="Afile" file="get_rotation_perms_lists_A.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="A.in"/>
@@ -203,6 +195,9 @@
 	<value identifier="epsfile" file="get_rotation_perms_lists_eps.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
       </assignment>
+      <global name="use_arrows" ignore="true" />
+      <global name="aperms" ignore="true" />
+      <global name="surf" ignore="true" />
     </group>
   </decorates>
 
@@ -595,6 +590,17 @@
            <input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
                   rename="fixed_cells.in" />
       	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.cc_fc_{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
+      <test identifier="arrowed_enum" description="Original enumerations tests of basic
+      					       structures. Used to test enum3 against enum4."
+      	    cases="a[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+           <input folder="../tests/derivative_structure_generator" file="arrows.in.{}"
+                  rename="arrows.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
       		template="struct_enum.out.xml" identifier="struct_enum.out" />
       	<target name="./struct_enum.out" compareto="struct_enum.out" />
       </test>
