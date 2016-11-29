@@ -8,7 +8,7 @@
   171 of labelin_related.f90.
 
 - Removed the `if (d==0) then` statement from addArrowsToEnumeration
-  of tree_class.f90 since the code now handels all depths
+  of tree_class.f90 since the code now handles all depths
   appropriately.
 
 - Fixed merge conflits with master branch.
