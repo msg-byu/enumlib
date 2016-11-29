@@ -11,6 +11,8 @@
   of tree_class.f90 since the code now handels all depths
   appropriately.
 
+- Fixed merge conflits with master branch.
+
 ## Revision 1.0.3
 
 - Fixed a bug number of bugs in the addArrows subroutine of

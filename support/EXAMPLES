@@ -72,7 +72,7 @@ structures that *crystallographically* distinct. (It doesn't list the
 When your run the case for this input file, you will see output like
 the following:
 
-(hart)~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.fcc
+~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.fcc
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
@@ -233,7 +233,7 @@ struct_enum.in.square). Note again that you'll want to widen your text
 editor window to make this readable.
 
 **********************************************************************
-(hart)~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.square 
+~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.square 
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to 16
@@ -287,7 +287,7 @@ this one as well, though adjustments in the 2Dplot settings are
 necessary to make it look nice. 
 
 **********************************************************************
-(hart)~/codes/enumlib/support/input> ../../src/enum.x *triangle
+~/codes/enumlib/support/input> ../../src/enum.x *triangle
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
@@ -340,7 +340,7 @@ with a full concentration range for every atomic type.
 
 Here's the sample output for the first part of this example:
 **********************************************************************
-(hart)~/codes/enumlib/support/input> ../../src/enum.x *ions
+~/codes/enumlib/support/input> ../../src/enum.x *ions
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
 Including only structures of which the concentration of each atom is in the range:
@@ -372,7 +372,7 @@ structures. Note in the output below that all of the supercells of
 meet the concentration restrictions. 
 
 **********************************************************************
-(hart)~/codes/enumlib/support/input> ../../src/enum.x *1_1
+~/codes/enumlib/support/input> ../../src/enum.x *1_1
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  8
 Including only structures of which the concentration of each atom is in the range:
@@ -401,7 +401,6 @@ parent cell, one at the corners of the square and one at the
 center. The corner sites can be occupied by either A or B atoms, and
 the center sites by C or D atoms.
 
-
 The supercell has sides of length 3*sqrt(2) and is a large square
 whose sides make an angle of 45 degrees with respect to the Cartesian
 axes. You could make a primitive unit cell, with 18*2 sites, and
@@ -423,7 +422,7 @@ Copy "fixed_cells.in.8x" to "fixed_cells.in" and then run
 "../../src/enum.x struct_enum.in.ex5".
 
 **********************************************************************
-(hart)~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.ex5 
+~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.ex5 
 ---------------------------------------------------------------------------------------------
 Generating permutations for fixed cells. index n= 8 to  8
 ---------------------------------------------------------------------------------------------
@@ -439,15 +438,15 @@ Volume       CPU        #HNFs  #SNFs    #reduced    % dups      volTot      RunT
 **********************************************************************
 
 **********************************************************************
-Ex. 6: Including displacement directions in the enumretation of a
+Ex. 6: Including displacement directions in the enumeration of a
 concentration restricted cell.
 
-In this example we will enumerate a ternary system within a small cell
-that has concentration restrictions. Additionally we will want to
-allow each of the of the third atomic species to be displaced off the
-lattice and find the possible unique displacements. The parent cell
-will be a simple cube with a single lattice site. We will be
-enumerating supercells of up to three atoms.
+In this example, we will enumerate a ternary system within a small
+cell that has concentration restrictions. Additionally, we will want
+to allow each of the third atomic species to be displaced off the
+lattice and find the unique displacements. The parent cell will be a
+simple cube with a single lattice site. We will be enumerating
+supercells of up to three atoms.
 
 The atoms will be restricted so that atoms A and B can each have a
 concentration range of 0/5 to 2/5 and atom C can have a concentration
@@ -461,7 +460,7 @@ To generate the enumerated system run:
 `../../src/enum.x arrow_enum_struct_enum.in'.
 
 **********************************************************************
-(hart)~/codes/enumlib/support/input> ../../src/enum.x arrow_enum_struct_enum.in 
+~/codes/enumlib/support/input> ../../src/enum.x arrow_enum_struct_enum.in 
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  3
 Including only structures of which the concentration of each atom is in the range:

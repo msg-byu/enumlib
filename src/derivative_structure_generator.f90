@@ -1611,4 +1611,3 @@ CONTAINS
   end SUBROUTINE polya_count
   
 END MODULE derivative_structure_generator
-

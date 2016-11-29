@@ -40,13 +40,6 @@ know about bugs/improvements/etc.
 
 ##COMPILING THE CODE
 
-It is possible to compile enumlib using conda on OSX and Linux. To do
-so use the command:
-
-```
-conda install --channel matsci enumlib
-```
-
 To compile the code manually, clone the repository with the `--recursive flag`:
 
 ```
@@ -80,6 +73,13 @@ Finally, make the enumeration library
 Finally, to make a stand-alone executable for enumeration:  
 ```make enum.x```
 
+It is possible to compile enumlib using conda on OSX and Linux. To do
+so use the command:
+
+```
+conda install --channel matsci enumlib
+```
+
 If you have trouble compiling, please send me a note and I'll try and
 assist you.  gus.hart@gmail.com, 801-422-7444
 
@@ -92,35 +92,37 @@ neccessary to provide an `arrows.in` file examples of which can also
 be found in the ('enumlib/support/input') directory.
 
 Detailed directions on how to run the code for several of the example
-input faile can be found in the `enumlib/support/EXAMPLES` file.
+input files can be found in the `enumlib/support/EXAMPLES` file.
 
 There are also helper programs in the aux_src directory for making VASP POSCARs, pictures of
 2-D enumerations, etc.
 
 `makeStr.py' <-- Makes POSCARS for the desired enumerated structures.
+(`makeStr.x` from the fortran code has been superceded by this python script.)
 `make 2Dplot.x` <-- To make a program that plots 2D enumeration results.
 `make polya.x` <-- To make a program that predicts the maximum number
 of unique structures for the system (this program gives an upper bound
 on the number of solutions the user should expect because the polya
 algorithm counts the superperiodic structures but enum.x does not).
 
-'makeStr.py' is a python code which can be accessed by tpying `python
-makeStr.py struct# -(additional options)` into the terminal where
-struct# is the desired structure number from the `struct_en.out`
-file. Additional options for the scipt include:
+'makeStr.py' is a python code which can be accessed by typing `python
+makeStr.py [struct#] -flags` into the terminal where
+struct# is the desired structure number from the `struct_enum.out`
+file. Additional options for the script include:
 
-'-elements' <-- This option uses Vegard's law to make an initial guess
-at the lattice parameter for the system. If using this option list the
-elements in the system in a space sepperated list such as 'Al Cu Ni'.
+'-elements [element list]' <-- This option uses Vegard's law to make an initial guess
+at the lattice parameter for the cell. If using this option, list the
+elements in the system in a space separated list such as 'Al Cu Ni'.
 
-`-displace' <-- This option displaces any atoms that have displacement
-directions associated with them when the displacement directions are
-included in the enumeration. When using this option the desired
-displecement amount as a fraction of the lattice parameter is
-specified after the flag.
+`-displace [distance]' <-- This option displaces atoms by the given
+fraction of the lattice parameter. This will only work if displacement
+directions were included in the enumeration. When using this option,
+express the desired displacement amount as a fraction of the lattice
+parameter.
 
-`-rattle' <-- Randomizes the displacements of the atoms by a random
-distribution of the maximum fraction of the displacement specified.
+`-rattle [amount]' <-- Adjustes the displacements of the atoms by a
+random distribution of the maximum fraction of the displacement
+specified by the `displace` flag.
 
 If you have questions, email or call: gus.hart@gmail.com, 801-422-7444
 
