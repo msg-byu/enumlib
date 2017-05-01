@@ -1,5 +1,10 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.5
+
+-Fixed bug in makeStr.py, the lattice vectors in struct_enum.out were
+ being treated as column and not row vectors.
+
 ## Revision 1.0.4
 
 - Removed depricated code from line 443 of tree_class.f90.
