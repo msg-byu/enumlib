@@ -509,7 +509,6 @@ def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
     
     nD = system_data["nD"]
     n = structure_data["n"]
-
     # DEFINE the non-zero elements of the HNF matrix
     a = structure_data["HNF"][0][0]
     b = structure_data["HNF"][1][0]
@@ -646,6 +645,7 @@ def _read_enum_out(args):
     :arg args: The makeStr.py input arguments
     """
 
+    from numpy import transpose
     # which structures are wanted
     if args["structures"] == None:
         with open(args["input"],"r") as f:
@@ -708,8 +708,11 @@ def _read_enum_out(args):
                     this_struct["directions"] = '0'*len(this_struct["labeling"])
                 structure_data.append(this_struct)
             line_count += 1
-
+            
+    system["plattice"] = transpose(system["plattice"])
+    
     return (system, structure_data)
+
 def _write_POSCAR(system_data,space_data,structure_data,args):
     """Writes a vasp POSCAR style file for the input structure and system
     data.
