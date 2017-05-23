@@ -97,7 +97,7 @@ input files can be found in the `enumlib/support/EXAMPLES` file.
 There are also helper programs in the aux_src directory for making VASP POSCARs, pictures of
 2-D enumerations, etc.
 
-`makeStr.py' <-- Makes POSCARS for the desired enumerated structures.
+`makeStr.py` <-- Makes POSCARS for the desired enumerated structures.
 (`makeStr.x` from the fortran code has been superceded by this python script.)
 `make 2Dplot.x` <-- To make a program that plots 2D enumeration results.
 `make polya.x` <-- To make a program that predicts the maximum number
@@ -105,22 +105,22 @@ of unique structures for the system (this program gives an upper bound
 on the number of solutions the user should expect because the polya
 algorithm counts the superperiodic structures but enum.x does not).
 
-'makeStr.py' is a python code which can be accessed by typing `python
+`makeStr.py` is a python code which can be accessed by typing `python
 makeStr.py [struct#] -flags` into the terminal where
-struct# is the desired structure number from the `struct_enum.out`
+`struct#` an integer specifying the desired structure number from the `struct_enum.out`
 file. Additional options for the script include:
 
-'-elements [element list]' <-- This option uses Vegard's law to make an initial guess
+`-elements [element list]` <-- This option uses Vegard's law to make an initial guess
 at the lattice parameter for the cell. If using this option, list the
-elements in the system in a space separated list such as 'Al Cu Ni'.
+elements in the system in a space-delimited list such as `Al Cu Ni`.
 
-`-displace [distance]' <-- This option displaces atoms by the given
+`-displace [distance]` <-- This option displaces atoms by the given
 fraction of the lattice parameter. This will only work if displacement
 directions were included in the enumeration. When using this option,
 express the desired displacement amount as a fraction of the lattice
 parameter.
 
-`-rattle [amount]' <-- Adjustes the displacements of the atoms by a
+`-rattle [amount]` <-- Adjusts the displacements of the atoms by a
 random distribution of the maximum fraction of the displacement
 specified by the `displace` flag.
 
