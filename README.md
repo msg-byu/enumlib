@@ -1,4 +1,4 @@
-##BRIEF DESCRIPTION
+## BRIEF DESCRIPTION
 
 This code generates the *derivative superstructures* of a parent
 lattice. It works for general lattices, including "multilattices," like
@@ -38,7 +38,7 @@ If you download this code, please send me an email so I can let you
 know about bugs/improvements/etc.
 
 
-##COMPILING THE CODE
+## COMPILING THE CODE
 
 To compile the code manually, clone the repository with the `--recursive flag`:
 
@@ -83,7 +83,7 @@ conda install --channel matsci enumlib
 If you have trouble compiling, please send me a note and I'll try and
 assist you.  gus.hart@gmail.com, 801-422-7444
 
-##HOW TO USE THE CODE:
+## HOW TO USE THE CODE:
 
 Example input files are in the `input` ('enumlib/support/input') directory. 
 
