@@ -1,0 +1,5 @@
+<str>
+# This is a test input for the fixed cell enumeration functionality of multienum.x
+1 0 0
+0 2 0
+0 2 4

@@ -1,0 +1,27 @@
+ # <fortpy version="4" revision="247"></fortpy>
+FCC       
+bulk
+ 0.50000000      0.50000000       0.0000000        # a1 parent lattice vector
+  0.0000000      0.50000000      0.50000000        # a2 parent lattice vector
+ 0.50000000       0.0000000      0.50000000        # a3 parent lattice vector
+    1 # Number of points in the multilattice
+  0.0000000       0.0000000       0.0000000        # d01 d-vector, labels: 0/1/2/3
+ 4-nary case
+   3   6 # Starting and ending cell sizes for search
+ 0.10000000E-02 # Epsilon (finite precision parameter)
+Concentration check:
+    T
+Including only structures of which the concentration   of each atom is in the range:
+Type 1:    0/   6 --    5/   6
+Type 2:    0/   6 --    1/   6
+Type 3:    1/   6 --    2/   6
+Type 4:    0/   6 --    5/   6
+partial list of labelings (complete labelings only) is used
+Equivalency list: 1
+start   #tot      HNF     Hdegn   labdegn   Totdegn   #size idx    pg    SNF             HNF                 Left transform                          labeling
+          1         1       6        0        0           1   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   2333
+          2         2       6        0        0           2   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   0233
+          3         2       6        0        0           3   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   0332
+          4         3       6        0        0           4   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   2300
+          5         3       6        0        0           5   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   2003
+          6         4       6        0        0           6   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   2000

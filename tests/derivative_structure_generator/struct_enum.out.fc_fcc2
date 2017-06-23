@@ -1,0 +1,17 @@
+ # <fortpy version="3" revision="247"></fortpy>
+FCC       
+bulk
+ 0.50000000      0.50000000       0.0000000        # a1 parent lattice vector
+  0.0000000      0.50000000      0.50000000        # a2 parent lattice vector
+ 0.50000000       0.0000000      0.50000000        # a3 parent lattice vector
+    1 # Number of points in the multilattice
+  0.0000000       0.0000000       0.0000000        # d01 d-vector, labels: 0/1/2/3
+ 4-nary case
+   3   6 # Starting and ending cell sizes for search
+ 0.10000000E-02 # Epsilon (finite precision parameter)
+Concentration check:
+    F
+partial list of labelings (complete labelings only) is used
+Equivalency list: 1
+start   #tot      HNF     Hdegn   labdegn   Totdegn   #size idx    pg    SNF             HNF                 Left transform                          labeling
+          1         1       6       24      144           1   4     8   1  2  2    1  0  2  0  0  2      1    0    0    0    1    0    0    0    1   0123

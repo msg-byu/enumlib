@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
   <decorates name="derivative_structure_generator.get_list_at_this_size">
-    <group name="stuct_enum_tests" purpose="testingf_not_used" staging="../unittests/">
+    <group name="stuct_enum_tests1" purpose="testing_bug" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-40]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="get_list_at_this_size_cList.out.{}" template="integer.xml"
-		identifier="get_list_at_this_size.out" />
+		identifier="get_list_at_this_size.out"/>
 	<target name="cList" compareto="get_list_at_this_size.out"
 		varfile="get_list_at_this_size.out" when="each"/>
       </test>
@@ -31,9 +31,9 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_concentration_list">
-    <group name="stuct_enum_tests" purpose="testingf_not_used" staging="../unittests/">
+    <group name="stuct_enum_tests2" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-40]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="get_concentration_list_cList.out.{}" template="integer.xml"
 		identifier="get_consentration_list.out" />
@@ -57,7 +57,8 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.mixed_radix_counter">
-    <group name="stuct_enum_tests" purpose="testingf_not_used" staging="../unittests/">
+    <skip reason="This routine is not used in UNCLE."/>
+    <group name="stuct_enum_tests3" purpose="testing_not_used" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -77,7 +78,8 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.do_rotperms_form_groups">
-    <group name="stuct_enum_tests" purpose="testingf_not_used" staging="../unittests/">
+    <skip reason="This routine is not used in UNCLE."/>
+    <group name="stuct_enum_tests4" purpose="testing_not_used" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -94,146 +96,47 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.organize_rotperm_lists">
-    <group name="stuct_enum_tests" purpose="testing_fortpy_bug" staging="../unittests/">
-      <test identifier="rdRPList" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="organize_rotperm_lists_rdRPList.out.{}" template=""
-		identifier="organize_rotperm_lists_rdRPList.out" />
-	<target name="rdRPList" compareto="organize_rotperm_lists_rdRPList.out"
+    <group name="stuct_enum_tests5" purpose="testing_auxread" staging="../unittests/">
+      <test identifier="organize_rotperm_lists_rdRPList"
+	    description="Original enumerations tests of basic structures" cases="[1-38]"
+	    timed="true">
+	<output folder="../tests/derivative_structure_generator/organize_rotperm_lists_rdRPList.out.{}"
+		autoclass = "true" identifier="organize_rotperm_lists_rdRPList.out" />
+	<target name="rdRPList" autoclass = "true"
+		compareto="organize_rotperm_lists_rdRPList.out"
 		varfile="organize_rotperm_lists_rdRPList.out" when="each"/>
       </test>
-      <assignment name="RPList" value="RPListfile" allocate="true">
-	<value identifier="RPListfile" file="organize_rotperm_lists_RPList.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="RPList.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.organize_rotperm_lists">
-    <group name="stuct_enum_tests" purpose="testing_fortpy_bug" staging="../unittests/">
       <test identifier="RPLindx" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-38]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
-		file="organize_rotperm_lists_RPLindx.out.{}" template=""
+		file="organize_rotperm_lists_RPLindx.out.{}" template="integer.xml"
 		identifier="organize_rotperm_lists_RPLindx.out" />
 	<target name="RPLindx" compareto="organize_rotperm_lists_RPLindx.out"
 		varfile="organize_rotperm_lists_RPLindx.out" when="each"/>
       </test>
-      <assignment name="RPList" value="RPListfile" allocate="true">
-	<value identifier="RPListfile" file="organize_rotperm_lists_RPList.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="RPList.in"/>
+      <global name="rdRPList" type="type" kind="RotPermList" modifiers="pointer" dimensions=":"/>
+      <global name="RPLindx" type="integer" modifiers="pointer" dimensions=":"/>
+      <assignment name="RPList" value="RPListfile">
+	<value identifier="RPListfile" autoclass = "true"
+	       folder="../tests/derivative_structure_generator/organize_rotperm_lists_RPList.in.{}"/>
       </assignment>
     </group>
   </decorates>
 
+
   <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="RPList_perm"
+    <group name="stuct_enum_tests6" purpose="testing" staging="../unittests/">
+      <test identifier="get_dvector_permutations_dRPList"
 	    description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_dvector_permutations_dRPList_perm.out.{}" template=""
-		identifier="get_dvector_permutations_dRPList_perm.out" />
-	<target name="dRPList" member="perm"
-		compareto="get_dvector_permutations_dRPList_perm.out"
-		varfile="get_dvector_permutations_dRPList_perm.out" when="each"/>
+	    cases="[1-20]" timed="true">
+	<output folder="../tests/derivative_structure_generator/get_dvector_permutations_dRPList.out.{}"
+		autoclass = "true" identifier="get_dvector_permutations_dRPList.out" />
+	<target name="dRPList" autoclass = "true"
+		compareto="get_dvector_permutations_dRPList.out"
+		varfile="get_dvector_permutations_dRPList.out" when="each"/>
       </test>
       <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
-      <assignment name="pLV" value="pLVfile" allocate="true">
-	<value identifier="pLVfile" file="get_dvector_permutations_pLV.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pLV.in"/>
-      </assignment>
-      <assignment name="pd" value="pdfile" allocate="true">
-	<value identifier="pdfile" file="get_dvector_permutations_pd.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pd.in"/>
-      </assignment>
-      <assignment name="LatDim" value="LatDimfile">
-	<value identifier="LatDimfile" file="get_dvector_permutations_LatDim.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="LatDim.in"/>
-      </assignment>
-      <assignment name="eps" value="epsfile" >
-	<value identifier="epsfile" file="get_dvector_permutations_eps.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="RPList_RotIndx"
-	    description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_dvector_permutations_dRPList_RotIndx.out.{}" template=""
-		identifier="get_dvector_permutations_dRPList_RotIndx.out" />
-	<target name="dRPList" member="RotIndx"
-		compareto="get_dvector_permutations_dRPList_RotIndx.out"
-		varfile="get_dvector_permutations_dRPList_RotIndx.out" when="each"/>
-      </test>
-      <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
-      <assignment name="pLV" value="pLVfile" allocate="true">
-	<value identifier="pLVfile" file="get_dvector_permutations_pLV.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pLV.in"/>
-      </assignment>
-      <assignment name="pd" value="pdfile" allocate="true">
-	<value identifier="pdfile" file="get_dvector_permutations_pd.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pd.in"/>
-      </assignment>
-      <assignment name="LatDim" value="LatDimfile">
-	<value identifier="LatDimfile" file="get_dvector_permutations_LatDim.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="LatDim.in"/>
-      </assignment>
-      <assignment name="eps" value="epsfile" >
-	<value identifier="epsfile" file="get_dvector_permutations_eps.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="RPList_nL" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_dvector_permutations_dRPList_nL.out.{}" template=""
-		identifier="get_dvector_permutations_dRPList_nL.out" />
-	<target name="dRPList" member="nL"
-		compareto="get_dvector_permutations_dRPList_nL.out"
-		varfile="get_dvector_permutations_dRPList_nL.out" when="each"/>
-      </test>
-      <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
-      <assignment name="pLV" value="pLVfile" allocate="true">
-	<value identifier="pLVfile" file="get_dvector_permutations_pLV.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pLV.in"/>
-      </assignment>
-      <assignment name="pd" value="pdfile" allocate="true">
-	<value identifier="pdfile" file="get_dvector_permutations_pd.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pd.in"/>
-      </assignment>
-      <assignment name="LatDim" value="LatDimfile">
-	<value identifier="LatDimfile" file="get_dvector_permutations_LatDim.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="LatDim.in"/>
-      </assignment>
-      <assignment name="eps" value="epsfile" >
-	<value identifier="epsfile" file="get_dvector_permutations_eps.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="RPList_v" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_dvector_permutations_dRPList_v.out.{}" template=""
-		identifier="get_dvector_permutations_dRPList_v.out" />
-	<target name="dRPList" member="v"
-		compareto="get_dvector_permutations_dRPList_v.out"
-		varfile="get_dvector_permutations_dRPList_v.out" when="each"/>
-      </test>
-      <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="dRPList" allocate="true"/>
       <assignment name="pLV" value="pLVfile" allocate="true">
 	<value identifier="pLVfile" file="get_dvector_permutations_pLV.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="pLV.in"/>
@@ -254,16 +157,15 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_rotation_perms_lists">
-    <group name="stuct_enum_tests" purpose="testing_rank3_and_user_type" staging="../unittests/">
-      <test identifier="RPList_perm"
+    <group name="stuct_enum_tests7" purpose="testing" staging="../unittests/">
+      <test identifier="RPList"
 	    description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_rotation_perms_lists_RPlist_perm.out.{}" template=""
-		identifier="get_rotation_perms_lists_RPlist_perm.out" />
-	<target name="RPList" member="perm"
-		compareto="get_rotation_perms_lists_RPlist_perm.out"
-		varfile="get_rotation_perms_lists_RPlist_perm.out" when="each"/>
+	    cases="[1-58]" timed="true">
+	<output folder="../tests/derivative_structure_generator/get_rotation_perms_lists.out.{}"
+		autoclass = "true" identifier="get_rotation_perms_lists_RPlist_perm.out" />
+	<target name="RPList" autoclass = "true"
+		compareto="get_rotation_perms_lists_RPlist.out"
+		varfile="get_rotation_perms_lists_RPlist.out" when="each"/>
       </test>
       <assignment name="A" value="Afile" allocate="true">
 	<value identifier="Afile" file="get_rotation_perms_lists_A.in.{}"
@@ -281,153 +183,28 @@
 	<value identifier="SNFfile" file="get_rotation_perms_lists_SNF.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="SNF.in"/>
       </assignment>
-      <assignment name="Op" value="Opfile" allocate="true">
-	<value identifier="Opfile" file="get_rotation_perms_lists_Op.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="Op.in"/>
+      <assignment name="Op" value="Opfile">
+	<value identifier="Opfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_rotation_perms_lists_Op.in.{}"/>
       </assignment>
-      <assignment name="dperms" value="dpermsfile" allocate="true">
-	<value identifier="dpermsfile" file="get_rotation_perms_lists_dperms.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="dperms.in"/>
-      </assignment>
-      <assignment name="eps" value="epsfile" >
-	<value identifier="epsfile" file="get_rotation_perms_lists_eps.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.get_rotation_perms_lists">
-    <group name="stuct_enum_tests" purpose="testing_rank3_and_user_type" staging="../unittests/">
-      <test identifier="RPList_RotIndx"
-	    description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_rotation_perms_lists_RPlist_RotIndx.out.{}" template=""
-		identifier="get_rotation_perms_lists_RPlist_RotIndx.out" />
-	<target name="RPList" member="RotIndx"
-		compareto="get_rotation_perms_lists_RPlist_RotIndx.out"
-		varfile="get_rotation_perms_lists_RPlist_RotIndx.out" when="each"/>
-      </test>
-      <assignment name="A" value="Afile" allocate="true">
-	<value identifier="Afile" file="get_rotation_perms_lists_A.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="A.in"/>
-      </assignment>
-      <assignment name="HNF" value="HNFfile" allocate="true">
-	<value identifier="HNFfile" file="get_rotation_perms_lists_HNF.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="HNF.in"/>
-      </assignment>
-      <assignment name="L" value="Lfile" allocate="true">
-	<value identifier="Lfile" file="get_rotation_perms_lists_L.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="L.in"/>
-      </assignment>
-      <assignment name="SNF" value="SNFfile" allocate="true">
-	<value identifier="SNFfile" file="get_rotation_perms_lists_SNF.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="SNF.in"/>
-      </assignment>
-      <assignment name="Op" value="Opfile" allocate="true">
-	<value identifier="Opfile" file="get_rotation_perms_lists_Op.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="Op.in"/>
-      </assignment>
-      <assignment name="dperms" value="dpermsfile" allocate="true">
-	<value identifier="dpermsfile" file="get_rotation_perms_lists_dperms.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="dperms.in"/>
+      <assignment name="dperms" value="dpermsfile">
+	<value identifier="dpermsfile"
+	       folder="../tests/derivative_structure_generator/get_rotation_perms_lists_dperms.in.{}"/>
       </assignment>
       <assignment name="eps" value="epsfile" >
 	<value identifier="epsfile" file="get_rotation_perms_lists_eps.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
       </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.get_rotation_perms_lists">
-    <group name="stuct_enum_tests" purpose="testing_rank3_and_user_type" staging="../unittests/">
-      <test identifier="RPList_nL"
-	    description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_rotation_perms_lists_RPlist_nL.out.{}" template=""
-		identifier="get_rotation_perms_lists_RPlist_nL.out" />
-	<target name="RPList" member="nL"
-		compareto="get_rotation_perms_lists_RPlist_nL.out"
-		varfile="get_rotation_perms_lists_RPlist_nL.out" when="each"/>
-      </test>
-      <assignment name="A" value="Afile" allocate="true">
-	<value identifier="Afile" file="get_rotation_perms_lists_A.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="A.in"/>
-      </assignment>
-      <assignment name="HNF" value="HNFfile" allocate="true">
-	<value identifier="HNFfile" file="get_rotation_perms_lists_HNF.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="HNF.in"/>
-      </assignment>
-      <assignment name="L" value="Lfile" allocate="true">
-	<value identifier="Lfile" file="get_rotation_perms_lists_L.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="L.in"/>
-      </assignment>
-      <assignment name="SNF" value="SNFfile" allocate="true">
-	<value identifier="SNFfile" file="get_rotation_perms_lists_SNF.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="SNF.in"/>
-      </assignment>
-      <assignment name="Op" value="Opfile" allocate="true">
-	<value identifier="Opfile" file="get_rotation_perms_lists_Op.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="Op.in"/>
-      </assignment>
-      <assignment name="dperms" value="dpermsfile" allocate="true">
-	<value identifier="dpermsfile" file="get_rotation_perms_lists_dperms.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="dperms.in"/>
-      </assignment>
-      <assignment name="eps" value="epsfile" >
-	<value identifier="epsfile" file="get_rotation_perms_lists_eps.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="derivative_structure_generator.get_rotation_perms_lists">
-    <group name="stuct_enum_tests" purpose="testing_rank3_and_user_type" staging="../unittests/">
-      <test identifier="RPList_v"
-	    description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_rotation_perms_lists_RPlist_v.out.{}" template=""
-		identifier="get_rotation_perms_lists_RPlist_v.out" />
-	<target name="RPList" member="v"
-		compareto="get_rotation_perms_lists_RPlist_v.out"
-		varfile="get_rotation_perms_lists_RPlist_v.out" when="each"/>
-      </test>
-      <assignment name="A" value="Afile" allocate="true">
-	<value identifier="Afile" file="get_rotation_perms_lists_A.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="A.in"/>
-      </assignment>
-      <assignment name="HNF" value="HNFfile" allocate="true">
-	<value identifier="HNFfile" file="get_rotation_perms_lists_HNF.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="HNF.in"/>
-      </assignment>
-      <assignment name="L" value="Lfile" allocate="true">
-	<value identifier="Lfile" file="get_rotation_perms_lists_L.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="L.in"/>
-      </assignment>
-      <assignment name="SNF" value="SNFfile" allocate="true">
-	<value identifier="SNFfile" file="get_rotation_perms_lists_SNF.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="SNF.in"/>
-      </assignment>
-      <assignment name="Op" value="Opfile" allocate="true">
-	<value identifier="Opfile" file="get_rotation_perms_lists_Op.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="Op.in"/>
-      </assignment>
-      <assignment name="dperms" value="dpermsfile" allocate="true">
-	<value identifier="dpermsfile" file="get_rotation_perms_lists_dperms.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="dperms.in"/>
-      </assignment>
-      <assignment name="eps" value="epsfile" >
-	<value identifier="epsfile" file="get_rotation_perms_lists_eps.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
-      </assignment>
+      <global name="use_arrows" ignore="true" />
+      <global name="aperms" ignore="true" />
+      <global name="surf" ignore="true" />
     </group>
   </decorates>
 
   <decorates name="derivative_structure_generator.find_permutation_of_group">
-    <group name="stuct_enum_tests" purpose="testing_fortpy_bug" staging="../unittests/">
-      <test identifier="original" description="Original enumerations tests of basic structures"
+    <group name="stuct_enum_tests8" purpose="testing_need_perm.in" staging="../unittests/">
+      <test identifier="find_permutation_of_group"
+	    description="Original enumerations tests of basic structures"
 	    cases="[1-634]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="find_permutation_of_group_perm.out.{}" template="integer.xml"
@@ -447,9 +224,9 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.map_dvector_permutation">
-    <group name="stuct_enum_tests" purpose="testing_fortpy_bug" staging="../unittests/">
+    <group name="stuct_enum_tests9" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[1-119]" timed="true">
+	    cases="[1-200]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="map_dvector_permutation_RP.out.{}" template="integer.xml"
 		identifier="map_dvector_permutation_RP.out" />
@@ -464,6 +241,10 @@
 	<value identifier="dfile" file="map_dvector_permutation_d.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="d.in"/>
       </assignment>
+      <assignment name="RP" value="RPfile" allocate="true">
+	<value identifier="RPfile" file="map_dvector_permutation_RP.in.{}"
+	       folder="../tests/derivative_structure_generator" rename="RP.in"/>
+      </assignment>
       <assignment name="eps" value="epsfile" >
 	<value identifier="epsfile" file="map_dvector_permutation_eps.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
@@ -472,7 +253,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_diagonals">
-    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
+    <group name="stuct_enum_tests10" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-100]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -490,11 +271,12 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_all_HNFs">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+    <group name="stuct_enum_tests11" purpose="testing_f" staging="../unittests/">
+      <test identifier="get_all_HNFs"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-28]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
-		file="get_all_HNFs_hnf.out.{}" template="integer.xml"
+		file="get_all_HNFs_HNFList.out.{}" template="integer.xml"
 		identifier="get_all_HNFs.out" />
 	<target name="hnf" compareto="get_all_HNFs.out"
 		varfile="get_all_HNFs.out" when="each"/>
@@ -508,14 +290,74 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_SNF">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+    <group name="stuct_enum_tests12" purpose="testing_bug" staging="../unittests/">
+      <test identifier="get_SNF_SNF"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-38]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="get_SNF_SNF.out.{}" template="integer.xml"
-		identifier="get_SNF.out" />
-	<target name="SNF" compareto="get_SNF.out"
-		varfile="get_SNF.out" when="each"/>
+		identifier="get_SNF_SNF.out" />
+	<target name="SNF" compareto="get_SNF_SNF.out"
+		varfile="get_SNF_SNF.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_A" description="Original enumerations tests of basic structures"
+	    cases="[1-38]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="get_SNF_A.out.{}" template="integer.xml"
+		identifier="get_SNF_A.out" />
+	<target name="A" compareto="get_SNF_A.out"
+		varfile="get_SNF_A.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_B" description="Original enumerations tests of basic structures"
+	    cases="[1-38]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="get_SNF_B.out.{}" template="integer.xml"
+		identifier="get_SNF_B.out" />
+	<target name="B" compareto="get_SNF_B.out"
+		varfile="get_SNF_B.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_F" description="Original enumerations tests of basic structures"
+	    cases="[1-38]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="get_SNF_F.out.{}" template="integer.xml"
+		identifier="get_SNF_F.out" />
+	<target name="F" compareto="get_SNF_F.out"
+		varfile="get_SNF_F.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_HNF"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-38]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="get_SNF_HNF.out.{}" template="integer.xml"
+		identifier="get_SNF_HNF.out" />
+	<target name="F" compareto="get_SNF_HNF.out"
+		varfile="get_SNF_HNF.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_SNF_label"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-38]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="get_SNF_SNF_label.out.{}" template="integer.xml"
+		identifier="get_SNF_SNF_label.out" />
+	<target name="F" compareto="get_SNF_SNF_label.out"
+		varfile="get_SNF_SNF_label.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_fixing_op"
+	    description="Original enumerations tests of basic structures" cases="[1-38]"
+	    timed="true">
+	<output folder="../tests/derivative_structure_generator/get_SNF_fixing_op.out.{}"
+		autoclass = "true" identifier="get_SNF_fixing_op.out" />
+	<target name="fixing_op" autoclass = "true"
+		compareto="get_SNF_fixing_op.out"
+		varfile="get_SNF_fixing_op.out" when="each"/>
+      </test>
+      <test identifier="get_SNF_RPList"
+	    description="Original enumerations tests of basic structures" cases="[1-38]"
+	    timed="true">
+	<output folder="../tests/derivative_structure_generator/get_SNF_RPList.out.{}"
+		autoclass = "true" identifier="get_SNF_RPList.out" />
+	<target name="RPList" autoclass = "true" compareto="get_SNF_RPList.out"
+		varfile="get_SNF_RPList.out" when="each"/>
       </test>
       <global name="HNF" type="integer" modifiers="pointer" dimensions=":,:,:"/>
       <global name="SNF_label" type="integer" modifiers="pointer" dimensions=":"/>
@@ -527,29 +369,70 @@
 	<value identifier="HNFfile" file="get_SNF_HNF.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="HNF.in"/>
       </assignment>
-      <assignment name="fixing_op" value="fixing_opfile" allocate="true">
-	<value identifier="fixing_opfile" file="get_SNF_fixing_op.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="fixing_op.in"/>
+      <assignment name="fixing_op" value="fixing_opfile">
+	<value identifier="fixing_opfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_SNF_fixing_op.in.{}"/>
+      </assignment>
+      <assignment name="RPList" value="RPListfile">
+	<value identifier="RPListfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_SNF_RPList.in.{}"/>
       </assignment>
     </group>
   </decorates>
 
   <decorates name="derivative_structure_generator.remove_duplicate_lattices">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+    <group name="stuct_enum_tests13" purpose="testing_bug" staging="../unittests/">
+      <test identifier="remove_duplicate_lattices_uq_hnf"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-37]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
 		file="remove_duplicate_lattices_uq_hnf.out.{}" template="integer.xml"
 		identifier="remove_duplicate_lattices_uq_hnf.out" />
 	<target name="uq_hnf" compareto="remove_duplicate_lattices_uq_hnf.out"
 		varfile="remove_duplicate_lattices_uq_hnf.out" when="each"/>
       </test>
+      <test identifier="remove_duplicate_lattices_degeneracy_list"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-37]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="remove_duplicate_lattices_degeneracy_list.out.{}" template="integer.xml"
+		identifier="remove_duplicate_lattices_degeneracy_list.out" />
+	<target name="degeneracy_list" compareto="remove_duplicate_lattices_degeneracy_list.out"
+		varfile="remove_duplicate_lattices_degeneracy_list.out" when="each"/>
+      </test>
+      <test identifier="remove_duplicate_lattices_latts"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-37]" timed="true">
+	<output folder="../tests/derivative_structure_generator"
+		file="remove_duplicate_lattices_latts.out.{}" template="float.xml"
+		identifier="remove_duplicate_lattices_latts.out" />
+	<target name="latts" compareto="remove_duplicate_lattices_latts.out"
+		varfile="remove_duplicate_lattices_latts.out" when="each"/>
+      </test>
+      <test identifier="remove_duplicate_lattices_RPList"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-37]" timed="true">
+	<output folder="../tests/derivative_structure_generator/remove_duplicate_lattices_RPList.out.{}"
+		autoclass = "true" identifier="remove_duplicate_lattices_RPList.out" />
+	<target name="RPList" autoclass = "true"
+		compareto ="remove_duplicate_lattices_RPList.out"
+		varfile="remove_duplicate_lattices_RPList.out" when="each"/>
+      </test>
+      <test identifier="remove_duplicate_lattices_fixing_op"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-37]" timed="true">
+	<output folder="../tests/derivative_structure_generator/remove_duplicate_lattices_fixing_op.out.{}"
+		autoclass = "true" identifier="remove_duplicate_lattices_fixing_op.out"/>
+	<target name="fixing_op" autoclass = "true"
+		compareto="remove_duplicate_lattices_fixing_op.out"
+		varfile="remove_duplicate_lattices_fixing_op.out" when="each"/>
+      </test>
       <global name="hnf" type="integer" modifiers="pointer" dimensions=":,:,:"/>
       <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
       <global name="uq_hnf" type="integer" modifiers="pointer" dimensions=":,:,:"/>
-      <global name="fixing_op" type="opList" modifiers="pointer" dimensions=":"/>
+      <global name="fixing_op" type="type" kind="OpList" modifiers="pointer" dimensions=":"/>
       <global name="d" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
-      <global name="RPList" type="RotPermList" modifiers="pointer" dimensions=":"/>
+      <global name="RPList" type="type" kind="RotPermList" modifiers="pointer" dimensions=":"/>
       <global name="latts" type="real(dp)" modifiers="pointer" dimensions=":,:,:"/>
       <assignment name="hnf" value="hnffile" allocate="true">
 	<value identifier="hnffile" file="remove_duplicate_lattices_hnf.in.{}"
@@ -568,18 +451,30 @@
 	<value identifier="epsfile" file="remove_duplicate_lattices_eps.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
       </assignment>
+      <assignment name="dperms" value="dpermsfile">
+	<value identifier="dpermsfile" autoclass="true" 
+	       folder="../tests/derivative_structure_generator/remove_duplicate_lattices_dperms.in.{}"/>
+      </assignment>
     </group>
   </decorates>
 
   <decorates name="derivative_structure_generator.get_sLV_fixing_operations">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
-      <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
-	<output folder="../tests/derivative_structure_generator"
-		file="get_sLV_fixing_operations_fixOp.out.{}" template="integer.xml"
-		identifier="get_sLV_fixing_operations_fixOp.out" />
-	<target name="fixOp" compareto="get_sLV_fixing_operations_fixOp.out"
+    <group name="stuct_enum_tests14" purpose="testing" staging="../unittests/">
+      <test identifier="get_sLV_fixing_operations_fixOp"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-151]" timed="true">
+	<output folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_fixOp.out.{}"
+		autoclass="true" identifier="get_sLV_fixing_operations_fixOp.out" />
+	<target name="fixOp" autoclass="true" compareto="get_sLV_fixing_operations_fixOp.out"
 		varfile="get_sLV_fixing_operations_fixOp.out" when="each"/>
+      </test>
+      <test identifier="get_sLV_fixing_operations_rotPerm"
+	    description="Original enumerations tests of basic structures"
+	    cases="[1-51]" timed="true">
+	<output folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_rotPerm.out.{}"
+		autoclass="true" identifier="get_sLV_fixing_operations_rotPerm.out" />
+	<target name="rotPerm" autoclass="true" compareto="get_sLV_fixing_operations_rotPerm.out"
+		varfile="get_sLV_fixing_operations_rotPerm.out" when="each"/>
       </test>
       <assignment name="HNF" value="HNFfile" allocate="true">
 	<value identifier="HNFfile" file="get_sLV_fixing_operations_HNF.in.{}"
@@ -602,8 +497,16 @@
 	       folder="../tests/derivative_structure_generator" rename="shift.in"/>
       </assignment>
       <assignment name="dPerm" value="dPermfile">
-	<value identifier="dPermfile" file="get_sLV_fixing_operations_dPerm.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="dPerm.in"/>
+	<value identifier="dPermfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_dPerm.in.{}"/>
+      </assignment>
+      <assignment name="fixOp" value="FOfile">
+	<value identifier="FOfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_fixOp.in.{}"/>
+      </assignment>
+      <assignment name="rotPerm" value="rPfile">
+	<value identifier="rPfile" autoclass="true"
+	       folder="../tests/derivative_structure_generator/get_sLV_fixing_operations_rotPerm.in.{}"/>
       </assignment>
       <assignment name="eps" value="epsfile">
 	<value identifier="epsfile" file="get_sLV_fixing_operations_eps.in.{}"
@@ -613,11 +516,11 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_all_2D_HNFs">
-    <group name="stuct_enum_tests" purpose="testing_rank3_array" staging="../unittests/">
+    <group name="stuct_enum_tests15" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
-	    cases="[]" timed="true">
+	    cases="[1-10]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
-		file="get_all_2d_HNFs_hnf.out.{}" template="integer.xml"
+		file="get_all_2d_HNFs_HNFList.out.{}" template="integer.xml"
 		identifier="get_all_2d_HNFs.out" />
 	<target name="hnf" compareto="get_all_2d_HNFs.out"
 		varfile="get_all_2d_HNFs.out" when="each"/>
@@ -631,7 +534,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_2D_diagonals">
-    <group name="stuct_enum_tests" purpose="testing" staging="../unittests/">
+    <group name="stuct_enum_tests16" purpose="testing_f" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-50]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -649,15 +552,57 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.gen_multilattice_derivatives">
-    <group name="stuct_enum_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="original" description="Original enumerations tests of basic
-					       structures. Used to test enum3 against enum4."
-	    cases="001, 002, 003, 004, 005, 006" timed="true">
-	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
-	       rename="struct_enum.in" />
-	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
-		template="struct_enum.out.xml" identifier="struct_enum.out" />
-	<target name="./struct_enum.out" compareto="struct_enum.out" />
+    <group name="stuct_enum_tests17" purpose="testing" staging="../unittests/">
+      <test identifier="fixed_cell_enum" description="Original enumerations tests of basic
+      					       structures. Used to test enum3 against enum4."
+      	    cases="sc[1-6],fcc[1-5],bcc[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+      	<input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
+      	       rename="fixed_cells.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.fc_{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
+      <test identifier="vanilla_enum" description="Original enumerations tests of basic
+      					       structures. Used to test enum3 against enum4."
+      	    cases="sc[1-6],fcc[1-5],bcc[1-5],hcp[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
+      <test identifier="conc_check_enum" description="Original enumerations tests of basic
+      					       structures. Used to test enum3 against enum4."
+      	    cases="cc_sc[1-5],cc_fcc[1-5],cc_bcc[1-5],cc_hcp[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
+      <test identifier="conc_and_fc_enum" description="Original enumerations tests of basic
+      					       structures. Used to test enum3 against enum4."
+      	    cases="sc[1-5],fcc[1-5],bcc[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.cc_{}"
+      	       rename="struct_enum.in" />
+           <input folder="../tests/derivative_structure_generator" file="fixed_cells.in.{}"
+                  rename="fixed_cells.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.cc_fc_{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
+      <test identifier="arrowed_enum" description="Original enumerations tests of basic
+      					       structures. Used to test enum3 against enum4."
+      	    cases="a[1-5]" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+           <input folder="../tests/derivative_structure_generator" file="arrows.in.{}"
+                  rename="arrows.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
       </test>
       <global name="dFull" type="real(dp)" modifiers="pointer" default="> null()" 
 	      dimensions=":,:" />
@@ -667,8 +612,8 @@
 	      dimensions=":" />
       <global name="equivalencies" type="integer" modifiers="pointer" 
 	      dimensions=":" />
-      <global name="fname" type="character" kind="80" 
-	      default=" 'struct_enum.in'" />
+      <global name="fname" type="character" kind="80"
+      	      default=" 'struct_enum.in'" />
       <global name="cRange" type="integer" modifiers="pointer" 
 	      dimensions=":,:" />
       <global name="LatDim" type="integer" />
@@ -687,5 +632,4 @@
       </assignment>
     </group>
   </decorates>
-
 </fortpy>

@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
 
+  <decorates name="sorting.sort_concs">
+    <group name="sort_concentrations" purpose="testing" staging="../unittests/">
+      <test identifier="sort_concs" description="Sorting tests."
+	    timed="true" cases="[1-10]">
+	<output identifier="sort_concs.out" folder="../tests/sorting"
+		file="sort_concs.out.{}" template="integer.xml" />
+	<target name="list" compareto="sort_concs.out"
+		varfile="sort_concs.out" when="each" />
+	<output identifier="sort_concs_labels.out" folder="../tests/sorting"
+		file="sort_concs_labels.out.{}" template="integer.xml" />
+	<target name="labels" compareto="sort_concs_labels.out"
+		varfile="sort_concs_labels.out" when="each" />
+      </test>
+      <assignment name="list" value="listfile" allocate="true">
+  	<value identifier="listfile" file="sort_concs.in.{}"
+  	       folder="../tests/sorting" rename="cocns.in"/>
+      </assignment>
+      <assignment name="labels" value="labelfile" allocate="true">
+  	<value identifier="labelfile" file="sort_concs_labels.in.{}"
+  	       folder="../tests/sorting" rename="labels.in"/>
+      </assignment>
+    </group>   
+  </decorates>
+
   <decorates name="sorting.sort_permutations_list">
-    <group name="sort_tests" purpose="testing" staging="../unittests/">
+    <group name="sort_tests1" purpose="testing" staging="../unittests/">
       <test identifier="sort_permutations_list" description="Sorting tests."
-	    timed="true" cases="[1-264]">
+	    timed="true" cases="[1-64],[66-264]">
 	<output identifier="sort_permutations_list.out" folder="../tests/sorting"
 		file="sort_permutations_list_key.out.{}" 
-		template="integer" />
+		template="integer.xml" />
 	<target name="key" compareto="sort_permutations_list.out"
 		varfile="sort_permutations_list.out" when="each" />
       </test>
@@ -19,30 +43,9 @@
     </group>   
   </decorates>
 
-  <decorates name="sorting.greater_than">
-    <group name="sorting_tests" purpose="testingf_too_deep" staging="../unittests/">
-      <test identifier="greater_than" description="Sorting tests."
-	    timed="true" cases="[1-999]">
-	<output identifier="greater_than.out" folder="../tests/sorting"
-		file="greater_than.out.{}" 
-		template="string.xml" />
-	<target name="[default]" compareto="greater_than.out" varfile="greater_than.out"
-		when="each" />
-      </test>
-      <assignment name="vecA" value="vecAfile" allocate="true">
-  	<value identifier="vecAfile" file="greater_than_vecA.in.{}"
-  	       folder="../tests/sorting" rename="vecA.in"/>
-      </assignment>
-      <assignment name="vecB" value="vecBfile" allocate="true">
-  	<value identifier="vecBfile" file="greater_than_vecB.in.{}"
-  	       folder="../tests/sorting" rename="vecB.in"/>
-      </assignment>
-    </group>   
-  </decorates>
-
   <decorates name="sorting.heapsort_records_int">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+    <group name="sort_tests3" purpose="testingf" staging="../unittests/">
       <test identifier="heapsort_records_int_key" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_int_key.out" folder="../tests/sorting"
@@ -61,7 +64,7 @@
 
   <decorates name="sorting.heapsort_records_int">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+    <group name="sort_tests4" purpose="testingf" staging="../unittests/">
       <test identifier="heapsort_records_int_list" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_int_list.out" folder="../tests/sorting"
@@ -79,7 +82,7 @@
   </decorates>
 
   <decorates name="sorting.heapsort_records_dp">
-    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+    <group name="sort_tests5" purpose="testingf" staging="../unittests/">
       <test identifier="heapsort_records_dp_key" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_dp_key.out" folder="../tests/sorting"
@@ -97,7 +100,7 @@
   </decorates>
 
   <decorates name="sorting.heapsort_records_dp">
-    <group name="sort_tests" purpose="testingf" staging="../unittests/">
+    <group name="sort_tests6" purpose="testingf" staging="../unittests/">
       <test identifier="heapsort_records_dp_list" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_dp_list.out" folder="../tests/sorting"

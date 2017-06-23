@@ -1,0 +1,32 @@
+ # <fortpy version="4" revision="247"></fortpy>
+BCC       
+bulk
+ 0.50000000      0.50000000     -0.50000000        # a1 parent lattice vector
+-0.50000000      0.50000000      0.50000000        # a2 parent lattice vector
+ 0.50000000     -0.50000000      0.50000000        # a3 parent lattice vector
+    1 # Number of points in the multilattice
+  0.0000000       0.0000000       0.0000000        # d01 d-vector, labels: 0/1
+ 2-nary case
+   7  10 # Starting and ending cell sizes for search
+ 0.10000000E-02 # Epsilon (finite precision parameter)
+Concentration check:
+    T
+Including only structures of which the concentration   of each atom is in the range:
+Type 1:    0/  10 --    8/  10
+Type 2:    0/  10 --    9/  10
+partial list of labelings (complete labelings only) is used
+Equivalency list: 1
+start   #tot      HNF     Hdegn   labdegn   Totdegn   #size idx    pg    SNF             HNF                 Left transform                          labeling
+          1         1       1        0        0           1   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   01111111
+          2         2       1        0        0           2   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00111111
+          3         2       1        0        0           3   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   01101111
+          4         3       1        0        0           4   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00011111
+          5         3       1        0        0           5   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   01101011
+          6         4       1        0        0           6   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00001111
+          7         4       1        0        0           7   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00010111
+          8         4       1        0        0           8   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00011011
+          9         4       1        0        0           9   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   01101001
+         10         5       1        0        0          10   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   11100000
+         11         5       1        0        0          11   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   10010100
+         12         6       1        0        0          12   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   11000000
+         13         6       1        0        0          13   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   10010000

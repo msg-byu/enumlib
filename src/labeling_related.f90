@@ -7,54 +7,266 @@ use numerical_utilities
 use rational_mathematics, only: gcd
 use combinatorics
 use tree_class
+use classes, only: polya
+use num_types
+use sorting, only:  heapsort
+use io_utils, only: read_arrows
+use arrow_related, only: arrow_concs
 implicit none
 private
 public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
         generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
-        write_labelings, generate_permutation_labelings_new
+        write_labelings, recursively_stabilized_enum
 CONTAINS
 
-  !!<summary>This subroutine uses the "recursively stabilized"
-  !!enumeration algorithm (enum4) to enumerate the number of
-  !!symmetrically-distinct colors of a lattice for a given symmetry
-  !!group.
-  !! GLWH Fall 2014</summary>
-  !!<parameter name="n" regular="true">Index of the superlattice
-  !!(volume factor).</parameter>
-  !!<parameter name="nD" regular="true">Number of sites in the parent
-  !!lattice (parent lattice is an nD-lattice)</parameter>
-  !!<parameter name="perms">list of translation and rotation
-  !!permutations.</parameter>
-  !!<parameter name="colors" regular="true">concentration; the numerator of each
-  !!rational number that is the concentration for each
-  !!label.</parameter>
-  !!<parameter name="fixed_cells" regular="true">if this is true, then
-  !!superperiodic cells are not removed from the list</parameter>
-  SUBROUTINE generate_permutation_labelings_new(n,nD,perms,colors,fixed_cells)
-    integer, intent(in)          :: n        
-    integer, intent(in)          :: nD       
-    integer, intent(in), pointer :: perms(:,:)
-    integer, intent(in)          :: colors(:) 
-    logical, intent(in)          :: fixed_cells 
-    class(tree), pointer         :: t ! a tree structure to use for the enumeration
-    integer, pointer, dimension(:,:):: labelings ! on output contains
-                               ! the symmetrically-distinct labelings
-    integer i
-    write(*,'("n,nd,colors  ",i2,1x,i1,1x,20(i2,1x))')n,nd,colors
-    write(*,'("shape(perms)",2(i4,1x))') shape(perms)
-    do i = 1,size(perms,1)
-       write(*,'("perm #",i3," :",20(i2,1x))') i,perms(i,:)
-    enddo
-    allocate(t)
-    call t%enumerate_unique_permutations(colors,perms,.false.,labelings)
-    write(*,'("shape(labelings) ",2(i4))') shape(labelings)
-    do i = 1, size(labelings,1)
-       write(*,'("labeling #:",i3," <>",20(i5,1x))') i,labelings(i,:)
-    enddo
+  !!<summary>The new subroutine for enum4 that uses the recursively
+  !!stabilized method to enumerate the symmetrically-distinct colors
+  !!of a lattice for a given symmetry group.
+  !!WSM Summer 2016</summary>
+  !!<parameter name="perm" regular="true">The group operations for permutating the
+  !!sites. Rows are operations, columns are perumations.</parameter>
+  !!<parameter name="conc" regular="true">The 1D integer array of the concentrations
+  !!of the atomic species for the system.</parameter>
+  !!<parameter name="symsize" regular="true">The total number of sites in
+  !!the system.</parameter>
+  !!<parameter name="knary" regular="true">The number of atomic
+  !!species in the system.</parameter>
+  !!<parameter name="SNF" regular="true">The list of SNFs.</parameter>
+  !!<parameter name="LT" regular="true">The list of left transforms.</parameter>
+  !!<parameter name="HNF" regular="true">The list of HNFs.</parameter>
+  !!<parameter name="HNFcnt" regular="true">The HNF's number for this
+  !!size of system.</parameter>
+  !!<parameter name="hnf_degen" regular="true">The degeneracy of this HNF.</parameter>
+  !!<parameter name="nfound" regular="true">The number of unique
+  !!configurations found so far.</parameter>
+  !!<parameter name="fixOp" regular="true">The number of elements in
+  !!the point group.</parameter>
+  !!<parameter name="scount" regular="true">The number unique configurations found
+  !!at this size</parameter>
+  !!<parameter name="iBlock" regular="true">Which grouping of the
+  !!symmetry group we're on.</parameter>
+  !!<parameter name="equivalencies" regular="true">The site
+  !!equivalencies for the system.</parameter>
+  !!<parameter name="permIndx" regular="true">The list of permutation indices.</parameter>
+  !!<parameter name="allowed" regular="true">The labels that are allowed on each
+  !!site in the cell.</parameter>
+  !!<parameter name="fixedcell" regular="true">A logical that for if this is a
+  !!fixed cell.</parameter>
+  !!<parameter name="aperms" regular="true">The list of arrow permutations.</parameter>
+  SUBROUTINE recursively_stabilized_enum(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell,aperms)
+    integer, pointer, intent(in) :: perm(:,:)
+    integer, pointer, intent(in) :: aperms(:,:)
+    integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:)
+    integer, intent(in) :: symsize, knary, iBlock
+    type(oplist), pointer, intent(in) :: fixop(:)
+    integer, intent(inout) :: nfound, HNFcnt, scount
+    integer, intent(in) :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
+    integer, intent(in) :: allowed(:,:)
+    logical, intent(in) :: fixedcell
     
-  ENDSUBROUTINE generate_permutation_labelings_new
+    !!<local name="this_tree">A tree structure for use in the
+    !!enumeration.</local>
+    !!<local name="labeling">The labeling that is currently being
+    !!checked to see if it is unique.</local>
+    !!<local name="tconc">A copy of the concentrations that allow them
+    !!to be sorted.</local>
+    !!<local name="site_i">Variable for loops.</local>
+    !!<local name="species_i">Variable for loops.</local>
+    !!<local name="species_j">Variable for loops.</local>
+    !!<local name="perm_j">Variable for loops.</local>
+    !!<local name="nHNF">The number of HNFs that use this permutation group.</local>
+    !!<local name="labels">The labels of the atoms present.</local>
+    !!<local name="allowed">A vector that stores which labels are allowed where.</local>
+    !!<local name="temp_labeling">A copy of the labeling before it's been formated for
+    !!the write out statement.</local>
+    !!<local name="arrows">The number of arrows for each color.</local>
+    !!<local name="a_conc">The concentrations with the arrows included.</local>
+    !!<local name="temp_label">A temporary integer of a arrowed species mapped back to
+    !!the non-arrowed equivalent.</local>
+    !!<local name="use_arrows">Logical, true if arrows.in is present.</local>
+    !!<local name="status">Allocation status flag.</local>
+    !!<local name="conc_map">Stores the mapping from the arrow labels
+    !!to the non arrow labels</local>
+    !!<local name="nArrows">The number of arrowed sites in the enumeration.</local>
+    integer :: site_i, species_i, species_j, nHNF, temp_label, perm_j, status, nArrows
+    class(tree), pointer :: this_tree
+    integer, allocatable :: labeling(:), tconc(:), labels(:), temp_labeling(:), a_conc(:)
+    integer, allocatable :: conc_map(:,:)
+    integer :: arrows(size(conc))
+    logical:: use_arrows
+
+    inquire(FILE="arrows.in",EXIST=use_arrows)
+    ! Get the arrow concentrations and adjust the input concentrations
+    ! if needed. Also create a mapping that will later allow us to
+    ! undo the transformations in the colorings that happen in the
+    ! next step.
+    if (use_arrows) then
+       call read_arrows(size(conc), arrows)
+       call arrow_concs(conc,arrows,a_conc,conc_map,nArrows)
+    else
+       allocate(a_conc(size(conc)),STAT=status)
+       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: a_conc."
+       a_conc = conc
+       allocate(conc_map(1,2),STAT=status)
+       if(status/=0) stop "Allocation failed in recursively_stabilized_enum: conc_map."
+       conc_map(1,:) = (/0,0/)
+    end if
+    allocate(tconc(count(a_conc > 0)),labels(count(a_conc > 0)),STAT=status)
+    if(status/=0) stop "Allocation failed in recursively_stabilized_enum: tconc, poly, labels."
+    ! remove any of the zero concentration elements from the list.
+    species_j = 1
+    do species_i = 1, size(a_conc)
+       if (a_conc(species_i) > 0) then
+          tconc(species_j) = a_conc(species_i)
+          labels(species_j) = species_i-1
+          species_j = species_j + 1
+       end if
+    end do
+    ! sort the concentrations to be in the optimal order
+    call heapsort(tconc,labels,conc_map)
+    ! Initialize the tree class and the labeling variables for the
+    ! algorithm
+    allocate(this_tree,STAT=status)
+    if(status/=0) stop "Allocation failed in recursively_stabilized_enum: this_tree."
+    call this_tree%init(tconc, perm, aperms, conc_map, nArrows, .False.)
+    ! Now we move through through the possible branches to see which
+    ! will contribute
+    do while (.not. this_tree%done)
+       ! If this is the first iteration of the loop then we don't have
+       ! a location yet and we need to try and step to the first
+       ! location in the tree.
+       if (all(this_tree%loc == -1)) then
+          call this_tree%increment_location()
+          allocate(labeling(this_tree%n),STAT=status)
+          if(status/=0) stop "Allocation failed in recursively_stabilized_enum: labeling."
+          labeling = 0
+       end if
+
+       ! We need a copy of the current labeling to apply the group
+       ! operations to.
+       call this_tree%coloring(temp_labeling)
+       this_tree%unique = .True.
+
+       if (this_tree%k /= 1) then
+          call this_tree%check(temp_labeling,symsize,fixedcell)
+       else if ((symsize > 1) .and. (this_tree%nArrows ==0)) then
+          this_tree%unique = .False.
+       end if
+
+       if ((this_tree%unique .eqv. .True.) .and. (this_tree%depth() == this_tree%k -1)) then
+          ! If we've generated a full labeling that is unique then we
+          ! need to write it out to file only if it doesn't
+          ! violate site restrictions
+          do site_i = 1, this_tree%n
+             if (temp_labeling(site_i) == 0) then
+                labeling(site_i) = labels(this_tree%k)
+             else
+                labeling(site_i) = labels(temp_labeling(site_i))
+             end if
+          end do
+
+          ! We neet to check if the full labeling violates the site
+          ! restrictions for the model.
+          if (any(allowed /= 1)) then
+             do site_i = 1, this_tree%n
+                ! If there are arrows present then we want to remap
+                ! the arrowed colors back to the original colors and
+                ! check to see if they violate the site restrictions.
+                ! We also add one to each label so that the smallest
+                ! number used is one and not zero.
+                if (use_arrows) then
+                   if (any(conc_map(:,1) == labeling(site_i)+1)) then
+                      do species_i = 1, size(conc_map,1)
+                         if (conc_map(species_i,1)  == (labeling(site_i)+1)) then
+                            temp_label = conc_map(species_i,2)
+                         end if
+                      end do
+                   else
+                      temp_label = labeling(site_i) + 1
+                   end if
+                   ! If the actual coloring for the site violates the
+                   ! site restrictions then it is not unique.
+                   if ((allowed(site_i,temp_label) == 0)) then
+                      this_tree%unique = .False.
+                      exit
+                   end if
+                else
+                   ! If there are no arrows being used we can just
+                   ! check the site restrictions like normal.
+                   if ((allowed(site_i,labeling(site_i)+1) == 0)) then
+                      this_tree%unique = .False.
+                      exit
+                   end if
+                end if
+             end do
+
+             ! If the original violates site restrictions we need to
+             ! see if any of the arrangements it was equivalent to
+             ! don't. If a symmetrically equivalent labeling exists
+             ! that does not violate the site restrictions then that
+             ! is the labeling we want to save.
+             if (this_tree%unique .eqv. .False.) then
+                do perm_j = 1, size(perm,1)
+                   temp_labeling = labeling(perm(perm_j,:))
+                   ! If there are arrows present then we want to remap
+                   ! the arrowed colors back to the original colors
+                   ! and check to then find an equivalent labeling
+                   ! that doesn't violate the site restrictions.
+                   if (use_arrows) then
+                      do site_i =1 ,size(labeling)
+                         if (any(conc_map(:,1) == temp_labeling(site_i)+1)) then
+                            do species_i = 1, size(conc_map,1)
+                               if (conc_map(species_i,1)  == (temp_labeling(site_i)+1)) then
+                                  temp_labeling(site_i) = conc_map(species_i,2)-1
+                               end if
+                            end do
+                         end if
+                      end do
+                   end if
+                   ! Check to see if the new permutation satisfies the
+                   ! site restrictions.
+                   do site_i = 1, this_tree%n
+                      if ((allowed(site_i,temp_labeling(site_i)+1) == 0)) then
+                         this_tree%unique = .False.
+                         exit
+                      else
+                         this_tree%unique = .True.
+                      end if
+                   end do
+                   ! If the permuted labeling is unique then save it
+                   ! and break from the loop.
+                   if (this_tree%unique .eqv. .True.) then
+                      labeling = temp_labeling
+                      exit
+                   end if
+                end do
+             end if
+          end if
+
+          if (this_tree%unique .eqv. .True.) then
+             if (use_arrows) then
+                call this_tree%add_arrows(labeling+1,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             else
+                call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
+                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+             end if
+          end if
+       end if
+
+       ! It's time to move to the next location in the tree.
+       call this_tree%increment_location()
+    end do
+
+    nHNF = count(permIndx==iBlock)
+    HNFcnt = HNFcnt + nHNF
+    if (allocated(labeling)) then
+       deallocate(labeling)
+    end if
+    deallocate(a_conc)
+  END SUBROUTINE recursively_stabilized_enum
 
   !!<summary>This subroutine is conceptually the same as
   !!generate_unique_labelings. That routine generates labelings as a
@@ -143,7 +355,7 @@ CONTAINS
        end if
     end do; end do
     ! Write a file containing the mask for site restrictions
-    open(22,file="debug_site_restrictions.out",access="append")
+    open(22,file="debug_site_restrictions.out",position="append")
     write(22,'("site #   parent site #        Mask")') 
     do iD = 1, n*nD
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
@@ -158,7 +370,13 @@ CONTAINS
     endif
     degeneracy_list = 0
     nUniq = 0
-    
+
+    ! a in the lattice, initially set to be all -1, as we loop through
+    ! the second loop we change the sitePointerth, a(sitePointer),
+    ! sites occupation to increase it by one. Here we build the
+    ! labeling then use the labeling to generate the index, in enum4
+    ! we use the index to generate the labeling thus avoiding the
+    ! neccessity of a concentration check
     a = -1; flag = .true.
     sitePointer = 1
     do while (flag) ! Loop over digits (place holders) in the labeling
@@ -224,8 +442,6 @@ CONTAINS
                    write(*,'("iConc",100(i3,1x))') iConc
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
-                   print *,"idx",idx
-                   print *,"max expected",nL
                    print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
                    stop
                 endif
@@ -710,7 +926,7 @@ CONTAINS
   !!label among the remaining slots as we loop over labels</parameter>
   !!<parameter name="m" regular="true">m is the number of remaining
   !!slots (slots for i-th label and > i-th labels).</parameter>n
-  !!<parameter name="j">j is the number of the current
+  !!<parameter name="j" regular="true">j is the number of the current
   !!label.</parameter>
   SUBROUTINE get_Xmj_for_labeling(idx,conc,x,m,j)
     integer(li), intent(in) :: idx
@@ -719,8 +935,7 @@ CONTAINS
     integer,     intent(out):: m(:), j(:)
     
     integer k, n, iL
-    integer(li) :: quot
-    integer c
+    integer(li) :: quot, c
     
     quot = idx
     j = conc
@@ -929,7 +1144,7 @@ CONTAINS
   !!super-periodic labelings (non-primitive superstructures). If the
   !!"full" variable is false, it also removes "label-permutation"
   !!duplicates---labelings that are not unique when the labels
-  !!themselves (not their positions) are permuted (e.g., 00111 &lt--&gt
+  !!themselves (not their positions) are permuted (e.g., 00111 &lt;--&gt;
   !!11000).  The basic idea of the routine is to run like an
   !!"odometer", generating all numbers (base k) from 0 to k^n - 1, and
   !!then use rotation and translation permutations to eliminate
@@ -946,8 +1161,8 @@ CONTAINS
   !!<parameter name="full" regular="true">specify whether the full
   !!labelings list should be used or not.</parameter>
   !!<parameter name="lab">Array to store markers for every raw
-  !!labeling I=&gt incomplete labeling, U=&gt unique, D=&gt rot/trans
-  !!duplicate, N=&gt non-primitive, E=&gt label exchange Need to pass lab
+  !!labeling I=&gt; incomplete labeling, U=&gt; unique, D=&gt; rot/trans
+  !!duplicate, N=&gt; non-primitive, E=&gt; label exchange Need to pass lab
   !!out to write out the labelings.</parameter>
   !!<parameter name="parLabel" regular="true">The *labels* (index 1)
   !!for each d-vector (index 2) in the parent.</parameter>
@@ -1182,8 +1397,6 @@ CONTAINS
     degeneracy_list = temp
     deallocate(temp)
     if (ic /= nexp) then
-       print *, 'number of permutations counted', iC
-       print *, 'number expected', nexp
        stop 'Bug: Found the wrong number of labels!'
     endif
     if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
@@ -1213,7 +1426,7 @@ CONTAINS
     do im = 2,product(n)  ! Loop over the members of the translation group
        p(:,im) = p(:,im-1) ! Start with the same digits as in the previous increment
        p(3,im) = mod(p(3,im-1)+1,n(3))  ! Increment the first cyclic group
-       if (p(3,im)==0) then             ! If it rolled over then 
+       if (p(3,im)==0) then             ! If it rolled over then
           p(2,im) = mod(p(2,im-1)+1,n(2))! increment the next cyclic group
           if (p(2,im)==0) then          ! If this one rolled over too
              p(1,im) = mod(p(1,im-1)+1,n(1)) ! Then increment the third one
@@ -1367,7 +1580,6 @@ CONTAINS
     !> *** Might be easier to read if iConc was renamed to something
     !> *** that indicated sets... ****
 
-    print *,"Change iConc declaration back when done"
     iConc = (/2,2,0,0/)
     !if (size(iConc)/=nSets) stop "ERROR: number of disjoint subsets does not match entries in iConc"
     nl = multinomial(iConc)
@@ -1387,7 +1599,7 @@ CONTAINS
        end if
     end do; end do
     ! Write a file containing the mask for site restrictions
-    open(22,file="debug_site_restrictions.out",access="append")
+    open(22,file="debug_site_restrictions.out",position="append")
     write(22,'("site #   parent site #        Mask")') 
     do iD = 1, n*nD
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
@@ -1417,14 +1629,13 @@ CONTAINS
     !   -1 -1 -1 -1
     forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
     ! Write a file containing the table of allowed labels/site
-    open(22,file="debug_label_table.out",access="append")
+    open(22,file="debug_label_table.out",position="append")
     write(22,'("label #     Label table (k.n*nD)")') 
     do ik = 1, k
        write(22,'(i4,8x,30(i2,1x))') ik,label(ik,:)
     end do; write(22,*); close(22)
     
 
-    print *,"DEBUG, n,k,nD",n,k,nD
     a = -1; flag = .true.
     sitePointer = 1
     
@@ -1437,7 +1648,6 @@ CONTAINS
           endif
           digCnt(sitePointer) = digCnt(sitePointer) + 1   ! Advance
           ! the current digit (rotate the wheel one click)
-          print *,"label at current spot",label(digCnt(sitePointer),sitePointer)
           if (label(digCnt(sitePointer),sitePointer) == -1) then  ! If
              ! the wheel is rolling over, reset the label to "zero"
              digCnt(sitePointer) = 1                  ! (i.e., lowest allowed label, ordinal 1)
@@ -1445,7 +1655,7 @@ CONTAINS
              ! one digit (i.e., go left one "wheel")
              cycle
           endif
-          write(*,'("DEBUG: sp,dig,E:" 3(i2,1x))') sitepointer,digit(sitepointer),E(sitePointer,digit(sitepointer))
+          write(*,'("DEBUG: sp,dig,E:", 3(i2,1x))') sitepointer,digit(sitepointer),E(sitePointer,digit(sitepointer))
           if(E(sitePointer,digit(sitePointer))==1) exit ! Found a
           ! valid label for this site, so exit loop
        enddo
@@ -1485,8 +1695,6 @@ CONTAINS
                    write(*,'("iConc",100(i3,1x))') iConc
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
-                   print *,"idx",idx
-                   print *,"max expected",nL
                    print *,"An index outside the expected range occurred in get_permutations_labeling"
                    stop
                 endif
@@ -1522,5 +1730,5 @@ CONTAINS
       
     END FUNCTION is_valid_multiplicity
   END SUBROUTINE generate_disjoint_permutation_labelings
-
+  
 END MODULE labeling_related

@@ -1,42 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fortpy mode="template" versions="1,2,3">
-  <comments versions="1,2">#</comments>
-  <preamble versions="1,2">
-    <line id="label" type="string" values="*" versions="1,2,3" />
+<fortpy mode="template" versions="1,2,3,4">
+  <comments versions="1,2,3,4">#</comments>
+  <preamble versions="1,2,3,4">
+    <line id="label" type="string" values="*" versions="1,2,3,4" />
     <line id="lattice_type" type="string" values="1" 
-	  versions="3" />
+	  versions="3,4" />
     <line id="a1_par_lattice_vector" type="float" values="3" 
-	  versions="1,2,3" />
+	  versions="1,2,3,4" />
     <line id="a2_par_lattice_vector" type="float" values="3" 
-	  versions="1,2,3" />
+	  versions="1,2,3,4" />
     <line id="a3_par_lattice_vector" type="float" values="3" 
-	  versions="1,2,3" />
-    <line id="point_count" type="int" values="1" versions="3" 
+	  versions="1,2,3,4" />
+    <line id="point_count" type="int" values="1" versions="3,4" 
 	  store="points=$[0]" />
     <lines id="points" count="points" type="float" values="3" 
-	   versions="3" names="x,y,z" />
-    <line id="n-nary_case" type="string" values="1" versions="1,2,3" />
-    <line id="search_cell_sizes" type="int" values="2" versions="1,2,3" />
-    <line id="eps" type="float" values="1" versions="3" />
-    <line id="conc_check_string" type="string" values="0" versions="3" />
-    <line id="conc_check" type="string" values="1" versions="3" />
-    <line id="separator" type="string" values="0" versions="1,2,3" />
+	   versions="3,4" names="x,y,z" />
+    <line id="n-nary_case" type="string" values="1" versions="1,2,3,4" store="knary=int($[0].split('-')[0])"/>
+    <line id="search_cell_sizes" type="int" values="2" versions="1,2,3,4" />
+    <line id="eps" type="float" values="1" versions="3,4" />
+    <line id="conc_check_string" type="string" values="0" versions="3,4"
+	  />
+    <line id="conc_check" type="string" values="1" versions="3,4"
+	  store="conc=(True if operator.eq($[0].lower(), 't') else False)" />
+    <lines id="conc_check_header" type="string" values="0" versions="3,4"
+	  count="$(1 if conc else 0)" />
+    <lines id="conclist" type="string" values="*" versions="3,4"
+	   count="$(knary if conc else 0)" />
+    <line id="separator" type="string" values="0" versions="1,2,3,4" />
     <line id="equivalency_list" type="string, int" values="2,1"
-	  versions="3" />
-    <line id="headings" type="string" values="0" versions="1,2,3" />
+	  versions="3,4" />
+    <line id="headings" type="string" values="0" versions="1,2,3,4" />
   </preamble>
-  <body stop="EOF" key="structure.size" versions="1,2">
+  <body stop="EOF" key="structure.natoms, structure.SNF, structure.HNF,
+			structure.left_transform, structure.labeling" versions="1,2,3,4">
     <line id="structure" type="int" values="23" versions="1,2"
 	  names="numtot, size, natoms, pg, SNF*3, HNF*6, 
 		 left_transform*9, labeling" />
-    <line id="structure" type="int" values="27" versions="3"
+    <line id="structure" type="int" values="27" versions="3,4"
 	  names="numtot, numHNF, Hdegn, labdegn, Totdegn, size, natoms, 
 		 pg, SNF*3, HNF*6, left_transform*9, labeling" />
   </body>
-  <outcomes versions="1,2,3">
+  <outcomes versions="1,2,3,4">
     <ignore id="label" />
     <ignore id="separator" />
     <ignore id="conc_check_string" />
     <ignore id="headings" />
+    <ignore id="structure.numtot" />
+    <ignore id="structure.size" />
+    <ignore id="structure.pg" />
+    <ignore id="structure.numHNF" />
+    <ignore id="structure.Hdegn" />
+    <ignore id="structure.labdegn" />
+    <ignore id="structure.Totdegn" />
+    <ignore id="structure.size" />
   </outcomes>
 </fortpy>

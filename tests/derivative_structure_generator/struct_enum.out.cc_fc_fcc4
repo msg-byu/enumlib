@@ -1,0 +1,37 @@
+ # <fortpy version="4" revision="247"></fortpy>
+FCC       
+bulk
+ 0.50000000      0.50000000       0.0000000        # a1 parent lattice vector
+  0.0000000      0.50000000      0.50000000        # a2 parent lattice vector
+  5.0000000       0.0000000       5.0000000        # a3 parent lattice vector
+    5 # Number of points in the multilattice
+  0.0000000       0.0000000       0.0000000        # d01 d-vector, labels: 0
+  1.0000000       0.0000000       1.0000000        # d02 d-vector, labels: 0/1/2
+  2.0000000       0.0000000       2.0000000        # d03 d-vector, labels: 0/1/2
+  3.0000000       0.0000000       3.0000000        # d04 d-vector, labels: 0/1/2
+  4.0000000       0.0000000       4.0000000        # d05 d-vector, labels: 0
+ 3-nary case
+   1   2 # Starting and ending cell sizes for search
+ 0.10000000E-02 # Epsilon (finite precision parameter)
+Concentration check:
+    T
+Including only structures of which the concentration   of each atom is in the range:
+Type 1:    0/  10 --    5/  10
+Type 2:    0/  10 --    1/  10
+Type 3:    3/  10 --    6/  10
+full list of labelings (including incomplete labelings) is used
+Equivalency list: 1  2  3  4  5
+start   #tot      HNF     Hdegn   labdegn   Totdegn   #size idx    pg    SNF             HNF                 Left transform                          labeling
+          1         2       3        5       15           1   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0022222200
+          2         3       3       20       60           2   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0012222200
+          3         3       3       10       30           3   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0022122200
+          4         4       3       20       60           4   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0002222200
+          5         4       3       10       30           5   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0022022200
+          6         5       3       20       60           6   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0001222200
+          7         5       3       20       60           7   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0012022200
+          8         5       3       20       60           8   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0012202200
+          9         5       3       20       60           9   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0002122200
+         10         5       3       20       60          10   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0002212200
+         11         5       3       20       60          11   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0022012200
+         12         5       3       20       60          12   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0002221200
+         13         5       3       10       30          13   2    20   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0002222100

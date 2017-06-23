@@ -2,7 +2,7 @@
 <fortpy mode="docstring">
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests1" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_title" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}" rename="struct_enum.out"/>
@@ -25,7 +25,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests2" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_LatDim" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -49,7 +49,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests3" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_pLV" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -73,7 +73,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests4" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_nD" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -97,7 +97,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests5" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_d" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -121,7 +121,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests6" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_k" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -145,7 +145,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests7" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_eq" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -169,7 +169,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests8" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_Nmin" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -193,7 +193,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests9" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_Nmax" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -217,7 +217,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests10" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_eps" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -241,7 +241,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests11" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_full" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -265,7 +265,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests12" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_label" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -289,7 +289,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests13" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_digit" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -313,7 +313,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests14" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_cRange" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out.in.{}"
@@ -337,7 +337,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests15" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_title" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -361,7 +361,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests16" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_LatDim" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -385,7 +385,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests17" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_pLV" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -409,7 +409,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests18" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_nD" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -433,7 +433,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests19" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_d" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -457,7 +457,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests20" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_k" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -481,7 +481,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests21" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_eq" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -505,7 +505,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests22" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_Nmin" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -529,7 +529,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests23" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_Nmax" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -553,7 +553,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests24" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_eps" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -577,7 +577,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests25" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_full" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -601,7 +601,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests26" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_label" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -625,7 +625,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests27" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_digit" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -649,7 +649,7 @@
   </decorates>
 
   <decorates name="io_utils.read_struct_enum_out_oldstyle">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests28" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_struct_cRange" description="Read struct_enum.out file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="struct_enum_out_oldstyle.in.{}"
@@ -673,7 +673,7 @@
   </decorates>
 
   <decorates name="io_utils.read_in_cells_from_file">
-    <group name="read_in_cells_from_file_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="read_in_cells_from_file_tests1" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_cell" description="Calculates the binomial coefficients."
   	    timed="true" >
 	<input folder="../tests/io_utils" file="read_in_cells_from_file.in.{}"
@@ -700,7 +700,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests30" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_title" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -720,7 +720,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests31" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_LatDim" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -740,7 +740,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests32" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_pLV" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -760,7 +760,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests33" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_nD" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -780,7 +780,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests34" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_d" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -800,7 +800,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests35" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_k" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -820,7 +820,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests36" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_eq" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -840,7 +840,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests37" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_Nmin" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -860,7 +860,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests38" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_Nmax" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -880,7 +880,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests39" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_eps" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -900,7 +900,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests40" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_full" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -920,7 +920,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests41" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_label" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -940,7 +940,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests42" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_digit" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -960,7 +960,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests43" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_cRange" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -980,7 +980,7 @@
   </decorates>
 
   <decorates name="io_utils.read_input">
-    <group name="io_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="io_tests44" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="read_in_conc_check" description="Read struct_enum.in file."
 	    timed="true" cases="[]">
 	<input folder="../tests/io_utils" file="read_input.in.{}"
@@ -1001,7 +1001,7 @@
 
   <skip reason="Indirectly tested by the other input reading routines." />
   <decorates name="io_utils.co_ca">
-    <group name="co_ca_tests" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="co_ca_tests1" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="co_ca" description="Tests skipping comments in files."
   	    timed="true" cases="[]">
   	<output identifier="" folder="../tests/io_utils"
@@ -1013,7 +1013,7 @@
   </decorates>
 
   <decorates name="io_utils.write_lattice_symmetry_ops">
-    <group name="write_lattice_sym_op_3D" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="write_lattice_sym_op_3D1" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="write_lattice_symmetry_ops" description="Find unique subroutine testing"
   	    timed="true" cases="[]">
   	<output identifier="write_lattice_symmetry.out" folder="../tests/io_utils"
@@ -1036,7 +1036,7 @@
   </decorates>
 
   <decorates name="io_utils.write_lattice_symmetry_ops">
-    <group name="write_lattice_sym_op_2D" purpose="testingf_fortpy_bug" staging="../unittests/">
+    <group name="write_lattice_sym_op_2D1" purpose="testingf_fortpy_bug" staging="../unittests/">
       <test identifier="write_lattice_symmetry_ops" description="Find unique subroutine testing"
   	    timed="true" cases="[]">
   	<output identifier="write_lattice_symmetry.out" folder="../tests/io_utils"
@@ -1059,8 +1059,8 @@
     </group>
   </decorates>
 
-  <decorates name="io_utils.write_rot_perm_list">
-    <group name="write_rot_perm_list_tests" purpose="testingf_fortpy_bug"
+  <decorates name="io_utils.write_rotperms_list">
+    <group name="write_rot_perm_list_tests1" purpose="testingf_fortpy_bug"
 	   staging="../unittests/">
       <test identifier="write_rot_perm_list"
 	    description="Testing of the write_rotperms_list subroutine." timed="true"

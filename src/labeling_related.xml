@@ -1,42 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
 
-  <decorates name="labeling_related.generate_permutation_labelings_new">
-  <skip reason="This routine is not finished or used yet"/>
-    <group name="labeling tests" purpose="testing_not_finished" staging="../unittests/">
-      <test identifier="original" description="New permutation routine tests."
-  	    timed="true" cases="[]">
-  	<output identifier="" folder="../tests/labeling_related" file=""
-  		template="" />
-  	<target name="[default]" compareto="" varfile="" when="each" />
-      </test>
-      <global name="perms" type="integer" modifiers="pointer" dimensions=":,:"/>
-      <assignment name="n" value="nfile">
-  	<value identifier="nfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="nD" value="nDfile">
-  	<value identifier="nDfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="perm" value="permfile">
-  	<value identifier="permfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="colors" value="colorsfile">
-  	<value identifier="colorsfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-      <assignment name="fixed_cells" value="fixed_cellsfile">
-  	<value identifier="fixed_cellsfile" file=""
-  	       folder="../tests/labeling_related" rename=""/>
-      </assignment>
-    </group>
-  </decorates>
-
   <decorates name="labeling_related.generate_permutation_labelings">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testing_not_used" staging="../unittests/">
+    <group name="labeling_tests2" purpose="testing_not_used" staging="../unittests/">
       <test identifier="generate_permutation_labelings_lab"
   	    description="Finds all possible labels at fixed concentration." timed="true"
   	    cases="[]">
@@ -85,7 +52,7 @@
 
   <decorates name="labeling_related.generate_permutation_labelings">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testing_not_used" staging="../unittests/">
+    <group name="labeling_tests3" purpose="testing_not_used" staging="../unittests/">
       <test identifier="generate_permutation_labelings_degeneracy_list"
   	    description="Finds all possible labels at fixed concentration." timed="true"
   	    cases="[]">
@@ -133,28 +100,8 @@
     </group>
   </decorates>
 
-  <decorates name="labeling_related.is_valid_multiplicity">
-  <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testing_too_deep" staging="../unittests/">
-      <test identifier="is_valid_multiplicity" description="" timed="true" cases="[]">
-  	<output identifier="is_valid_multiplicity.out" folder="../tests/labeling_related"
-  		file="is_valid_multiplicity.out.{}" template="string.xml" />
-  	<target name="[default]" compareto="is_valid_multiplicity.out"
-  		varfile="is_valid_multiplicity.out" when="each" />
-      </test>
-      <assignment name="labeling" value="labelingfile" allocate="true">
-  	<value identifier="labelingfile" file="is_valid_multiplicity_labeling.in{}"
-  	       folder="../tests/labeling_related" rename="labeling.in"/>
-      </assignment>
-      <assignment name="concList" value="concListfile" allocate="true">
-  	<value identifier="concListfile" file="is_valid_multiplicity_concList.in{}"
-  	       folder="../tests/concList_related" rename="concList.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
-    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests5" purpose="testing" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_label"
 	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
   	<output identifier="setup_mixed_radix_multiplier_label.out"
@@ -186,7 +133,7 @@
   </decorates>
 
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
-    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests6" purpose="testing" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_digit"
 	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
   	<output identifier="setup_mixed_radix_multiplier_digit.out"
@@ -218,7 +165,7 @@
   </decorates>
 
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
-    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests7" purpose="testing" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_multiplier"
 	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
   	<output identifier="setup_mixed_radix_multiplier_multiplier.out"
@@ -250,7 +197,7 @@
   </decorates>
 
   <decorates name="labeling_related.write_labelings">
-    <group name="label_tests" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="label_tests8" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="write_labelings_Tcnt"
   	    description="Get info for writing out labelings." timed="true" cases="[]">
   	<output identifier="write_labelings_Tcnt.out" folder="../tests/labeling_related"
@@ -338,7 +285,7 @@
   </decorates>
 
   <decorates name="labeling_related.write_labelings">
-    <group name="label_tests" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="label_tests9" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="write_labelings_Scnt"
   	    description="Get info for writing out labelings." timed="true" cases="[]">
   	<output identifier="write_labelings_Scnt.out" folder="../tests/labeling_related"
@@ -426,7 +373,7 @@
   </decorates>
 
   <decorates name="labeling_related.write_labelings">
-    <group name="label_tests" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="label_tests10" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="write_labelings_Hcnt"
   	    description="Get info for writing out labelings." timed="true" cases="[]">
   	<output identifier="write_labelings_Hcnt.out" folder="../tests/labeling_related"
@@ -513,37 +460,8 @@
     </group>
   </decorates>
 
-  <decorates name="labeling_related.postprocess_labeling">
-    <group name="label_tests" purpose="testing_too_deep" staging="../unittests/">
-      <test identifier="postprocess_labeling" description="Testing of k array building routine."
-  	    timed="true" cases="[]" >
-  	<output identifier="postprocess_labeling_newlabeling.out"
-  		folder="../tests/labeling_related"
-		file="postprocess_labeling_newlabeling.out.{}" template="integer.xml" />
-  	<target name="newlabeling" compareto="postprocess_labeling_newlabeling.out"
-  		varfile="postprocess_labeling_newlabeling.out" when="each" />
-      </test>
-      <assignment name="nUC" value="nUCfile">
-  	<value identifier="nUCfile" file="postprocess_labeling_nUC.in.{}"
-  	       folder="../tests/labeling_related" rename="nUC.in"/>
-      </assignment>
-      <assignment name="nAllD" value="nAllDfile">
-  	<value identifier="nAllDfile" file="postprocess_labeling_nAllD.in.{}"
-  	       folder="../tests/labeling_related" rename="nAllD.in"/>
-      </assignment>
-      <assignment name="oldlabeling" value="oldlabelingfile" allocate="true">
-  	<value identifier="oldlabelingfile" file="postprocess_labeling_oldlabeling.in.{}"
-  	       folder="../tests/labeling_related" rename="oldlabeling.in"/>
-      </assignment>
-      <assignment name="newD2oldD" value="newD2oldDfile" allocate="true">
-  	<value identifier="newD2oldDfile" file="postprocess_labeling_newD2oldD.in.{}"
-  	       folder="../tests/labeling_related" rename="newD2oldD.in"/>
-      </assignment>
-    </group>
-  </decorates>
-
   <decorates name="labeling_related.generate_labeling_from_index">
-    <group name="labeling_tests" purpose="testingf_can't_get_too_ungle_bug"
+    <group name="labeling_tests12" purpose="testingf_can't_get_too_ungle_bug"
 	   staging="../unittests/">
       <test identifier="generate_labeling_from_index"
   	    description="Testing of get labeling form index routine." timed="true"
@@ -567,7 +485,7 @@
 
   <decorates name="labeling_related.generate_index_from_labeling">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+    <group name="labeling_tests13" purpose="testingf" staging="../unittests/">
       <test identifier="generate_index_from_labeling"
   	    description="Testing of the hash function routine." timed="true" >
   	<output identifier="generate_index_from_labeling_idx.out"
@@ -589,7 +507,7 @@
 
   <decorates name="labeling_related.get_Cs">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+    <group name="labeling_tests14" purpose="testingf" staging="../unittests/">
       <test identifier="get_Cs" description="Testing of the find concentration routine."
   	    timed="true" cases="[]">
   	<output identifier="get_Cs_C.out" folder="../tests/labeling_related"
@@ -605,7 +523,7 @@
 
   <decorates name="labeling_related.get_Xs_from_labeling">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testing?_fortpy_bug" staging="../unittests/">
+    <group name="labeling_tests15" purpose="testing?_fortpy_bug" staging="../unittests/">
       <test identifier="get_Xs_from_labeling"  description="Testing."
   	    timed="true" cases="[]">
   	<output identifier="get_Xs_from_labeling.out" folder="../tests/labeling_related"
@@ -625,7 +543,7 @@
   </decorates>
 
   <decorates name="labeling_related.generate_BitStringEqv">
-    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+    <group name="labeling_tests16" purpose="testingf_uncle_bug_can't_get_to"
 	   staging="../unittests/">
       <test identifier="generate_BitStringEqv"
   	    description="Testing of bit string routine." timed="true" cases="[]">
@@ -650,7 +568,7 @@
   </decorates>
 
   <decorates name="labeling_related.get_Xmj_for_labeling">
-    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+    <group name="labeling_tests17" purpose="testingf_uncle_bug_can't_get_to"
 	   staging="../unittests/">
       <test identifier="get_Xmj_for_labeling_x"
   	    description="Testing of the get X's, m's, and j's."
@@ -672,7 +590,7 @@
   </decorates>
 
   <decorates name="labeling_related.get_Xmj_for_labeling">
-    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+    <group name="labeling_tests18" purpose="testingf_uncle_bug_can't_get_to"
 	   staging="../unittests/">
       <test identifier="get_Xmj_for_labeling_m"
   	    description="Testing of the get X's, m's, and j's."
@@ -694,7 +612,7 @@
   </decorates>
 
   <decorates name="labeling_related.get_Xmj_for_labeling">
-    <group name="labeling_tests" purpose="testingf_uncle_bug_can't_get_to"
+    <group name="labeling_tests19" purpose="testingf_uncle_bug_can't_get_to"
 	   staging="../unittests/">
       <test identifier="get_Xmj_for_labeling_j"
   	    description="Testing of the get X's, m's, and j's."
@@ -717,7 +635,7 @@
 
   <decorates name="labeling_related.make_label_rotation_table">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="labeling_tests20" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="make_label_rotation_table_lrTab"
   	    description="Testing." timed="true" cases="[]">
   	<output identifier="make_label_rotation_table_lrTab.out"
@@ -763,7 +681,7 @@
 
   <decorates name="labeling_related.make_label_rotation_table">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="labeling_tests21" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="make_label_rotation_table_lrIndx"
   	    description="Testing." timed="true" cases="[]">
   	<output identifier="make_label_rotation_table_lrIndx.out"
@@ -809,7 +727,7 @@
 
   <decorates name="labeling_related.lists_match">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+    <group name="labeling_tests22" purpose="testingf" staging="../unittests/">
       <test identifier="lists_match" description="Testing of matching labels routine."
   	    timed="true" cases="[]">
   	<output identifier="lists_match.out" folder="../tests/labeling_related"
@@ -829,7 +747,7 @@
   </decorates>
 
   <decorates name="labeling_related.labeling_is_legal">
-    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests23" purpose="testing" staging="../unittests/">
       <test identifier="labeling_is_legal" description="Testing of matching labels routine."
   	    timed="true" cases="[1-999]">
   	<output identifier="labeling_is_legal.out" folder="../tests/labeling_related"
@@ -853,7 +771,7 @@
   </decorates>
 
   <decorates name="labeling_related.generate_unique_labelings">
-    <group name="labeling_tests" purpose="testingf_fortpy_character" staging="../unittests/">
+    <group name="labeling_tests24" purpose="testingf_fortpy_character" staging="../unittests/">
       <test identifier="generate_unique_labelings_lab" description="Testing of label generation."
   	    timed="true" cases="[]">
   	<output identifier="generate_unique_labelings_lab.out" folder="../tests/labeling_related"
@@ -899,7 +817,7 @@
   </decorates>
 
   <decorates name="labeling_related.generate_unique_labelings">
-    <group name="labeling_tests" purpose="testingf_fortpy_character" staging="../unittests/">
+    <group name="labeling_tests25" purpose="testingf_fortpy_character" staging="../unittests/">
       <test identifier="generate_unique_labelings_degeneracy_list"
   	    description="Testing of label generation." timed="true" cases="[]">
   	<output identifier="generate_unique_labelings_degeneracy_list.out"
@@ -946,7 +864,7 @@
   </decorates>
 
   <decorates name="labeling_related.make_member_list">
-    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests26" purpose="testing" staging="../unittests/">
       <test identifier="make_member_list"
   	    description="Testing of making permutations." timed="true" cases="[1-112]">
   	<output identifier="make_member_list.out" folder="../tests/labeling_related"
@@ -964,7 +882,7 @@
 
   <decorates name="labeling_related.make_translation_group">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+    <group name="labeling_tests27" purpose="testingf" staging="../unittests/">
       <test identifier="make_translation_group"
   	    description="Testing of making permutations." timed="true" cases="[]">
   	<output identifier="make_translation_group.out" folder="../tests/labeling_related"
@@ -982,7 +900,7 @@
 
   <decorates name="labeling_related.count_full_colorings">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+    <group name="labeling_tests28" purpose="testingf" staging="../unittests/">
       <test identifier="count_full_colorings"
   	    description="Testing of counting of possible configurations." timed="true"
   	    cases="[]">
@@ -1008,7 +926,7 @@
 
   <decorates name="labeling_related.generate_disjoint_permutation_labelings">
   <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests" purpose="testingf" staging="../unittests/">
+    <group name="labeling_tests29" purpose="testingf" staging="../unittests/">
       <test identifier="generate_disjoint_permutation_labelings"
   	    description="Testing of counting of possible configurations." timed="true"
   	    cases="[]">

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
   <decorates name="enumeration_utilities.map_enumStr_to_real_space">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils1" purpose="testingf" staging="../unittests/">
       <test identifier="original_sLV"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -63,7 +63,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.map_enumStr_to_real_space">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils2" purpose="testingf" staging="../unittests/">
       <test identifier="original_gIndx"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -124,7 +124,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.map_enumStr_to_real_space">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils3" purpose="testingf" staging="../unittests/">
       <test identifier="original_spin"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -185,7 +185,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.map_enumStr_to_real_space">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils4" purpose="testingf" staging="../unittests/">
       <test identifier="original_aBas"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -246,7 +246,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.map_enumStr_to_real_space">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils5" purpose="testingf" staging="../unittests/">
       <test identifier="original_x"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -307,7 +307,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.cartesian2direct">
-    <group name="enum_utils" purpose="testing" staging="../unittests/">
+    <group name="enum_utils6" purpose="testing" staging="../unittests/">
       <test identifier="cartesian2direct"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">
@@ -331,7 +331,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.read_poscar">
-    <group name="enum_utils" purpose="testing?fortpy_bug?" staging="../unittests/">
+    <group name="enum_utils7" purpose="testing?fortpy_bug?" staging="../unittests/">
       <test identifier="read_poscar_title"
 	    description="Original tests of mapping structure to real space." cases="[1-1000]"
 	    timed="true">
@@ -349,7 +349,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.read_poscar">
-    <group name="enum_utils" purpose="testing?fortyp_bug?" staging="../unittests/">
+    <group name="enum_utils8" purpose="testing?fortyp_bug?" staging="../unittests/">
       <test identifier="read_poscar_sLV"
 	    description="Original tests of mapping structure to real space." cases="[1-1000]"
 	    timed="true">
@@ -367,7 +367,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.read_poscar">
-    <group name="enum_utils" purpose="testing?fortpy_bug?" staging="../unittests/">
+    <group name="enum_utils9" purpose="testing?fortpy_bug?" staging="../unittests/">
       <test identifier="read_poscar_aBas"
 	    description="Original tests of mapping structure to real space." cases="[1-1000]"
 	    timed="true">
@@ -385,7 +385,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.read_poscar">
-    <group name="enum_utils" purpose="testing?fortpy_bug?" staging="../unittests/">
+    <group name="enum_utils10" purpose="testing?fortpy_bug?" staging="../unittests/">
       <test identifier="read_poscar_aTyp"
 	    description="Original tests of mapping structure to real space." cases="[1-1000]"
 	    timed="true">
@@ -403,7 +403,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
-    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+    <group name="enum_utils11" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
       <test identifier="get_HNF_of_derivative_structure_aBas"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -442,7 +442,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
-    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+    <group name="enum_utils12" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
       <test identifier="get_HNF_of_derivative_structure_dset"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -481,7 +481,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
-    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+    <group name="enum_utils13" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
       <test identifier="get_HNF_of_derivative_structure_HNF"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -520,7 +520,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
-    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+    <group name="enum_utils14" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
       <test identifier="get_HNF_of_derivative_structure_SNF"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -559,7 +559,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_HNF_of_derivative_structure">
-    <group name="enum_utils" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
+    <group name="enum_utils15" purpose="testing?fortpy_rank3_array?" staging="../unittests/">
       <test identifier="get_HNF_of_derivative_structure_L"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -598,7 +598,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_labeling_from_atom_basis">
-    <group name="enum_utils" purpose="testing_fortpy_bug" staging="../unittests/">
+    <group name="enum_utils16" purpose="testing_fortpy_bug" staging="../unittests/">
       <test identifier="find_labeling_from_atom_basis_aBas"
 	    description="Original tests of mapping structure to real space." cases="[1-129]"
 	    timed="true">
@@ -641,7 +641,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_labeling_from_atom_basis">
-    <group name="enum_utils" purpose="testing_fortpy_bug" staging="../unittests/">
+    <group name="enum_utils17" purpose="testing_fortpy_bug" staging="../unittests/">
       <test identifier="find_labeling_from_atom_basis_labeling"
 	    description="Original tests of mapping structure to real space." cases="[1-129]"
 	    timed="true">
@@ -684,7 +684,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_permutation_of_group_and_dset">
-    <group name="enum_utils" purpose="testing_fortpy_bug_allocatable" staging="../unittests/">
+    <group name="enum_utils18" purpose="testing_fortpy_bug_allocatable" staging="../unittests/">
       <test identifier="find_permutation_of_group_and_dset"
 	    description="Original tests of mapping structure to real space." cases="[1-129]"
 	    timed="true">
@@ -713,7 +713,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_gspace_representation">
-    <group name="enum_utils" purpose="testingf_rank_3_array" staging="../unittests/">
+    <group name="enum_utils19" purpose="testingf_rank_3_array" staging="../unittests/">
       <test identifier="get_gspace_representation_dset"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -771,7 +771,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_gspace_representation">
-    <group name="enum_utils" purpose="testingf_rank_3_array" staging="../unittests/">
+    <group name="enum_utils20" purpose="testingf_rank_3_array" staging="../unittests/">
       <test identifier="get_gspace_representation_aBas"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -829,7 +829,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_gspace_representation">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils21" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="get_gspace_representation_pLabel"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -887,7 +887,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.get_gspace_representation">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils22" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="get_gspace_representation_rotProdLabeling"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -945,7 +945,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_equivalent_labelings">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils23" purpose="testingf" staging="../unittests/">
       <test identifier="find_equivalent_labelings_lab"
 	    description="Original tests of mapping structure to real space." cases="[1-129]"
 	    timed="true">
@@ -972,7 +972,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_equivalent_labelings">
-    <group name="enum_utils" purpose="testingf" staging="../unittests/">
+    <group name="enum_utils24" purpose="testingf" staging="../unittests/">
       <test identifier="find_equivalent_labelings_rotProdLab"
 	    description="Original tests of mapping structure to real space." cases="[1-129]"
 	    timed="true">
@@ -1000,7 +1000,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_match_in_structenumout">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils25" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="find_match_in_structenumout_dset"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -1049,7 +1049,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_match_in_structenumout">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils26" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="find_match_in_structenumout_pLabel"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -1098,7 +1098,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_match_in_structenumout">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils27" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="find_match_in_structenumout_HNFin"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -1147,7 +1147,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.find_match_in_structenumout">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils28" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="find_match_in_structenumout_match"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -1196,7 +1196,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.compare_two_gstructures">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils29" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="compare_two_gstructures_dset"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">
@@ -1244,7 +1244,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.compare_two_gstructures">
-    <group name="enum_utils" purpose="testingf_rank3_array" staging="../unittests/">
+    <group name="enum_utils30" purpose="testingf_rank3_array" staging="../unittests/">
       <test identifier="compare_two_gstructures_match"
 	    description="Original tests of mapping structure to real space." cases="[]"
 	    timed="true">

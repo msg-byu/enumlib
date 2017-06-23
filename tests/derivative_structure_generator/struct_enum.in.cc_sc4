@@ -1,0 +1,18 @@
+SC
+surf
+1 0 0
+0 1 0 
+0 0 1
+5 #
+1 # Number of points in the multilattice
+# Cartesian coordinates: 
+0 0 0    0/1/2/3/4
+   2 5    # Starting and ending cell sizes for search
+0.001    # eps
+full list of labelings (including incomplete labelings) is used
+# Concentration ranges
+2 5 10
+0 5 10
+1 2 10
+0 10 10
+0 5 10

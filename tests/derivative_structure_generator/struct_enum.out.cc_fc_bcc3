@@ -1,0 +1,32 @@
+ # <fortpy version="4" revision="247"></fortpy>
+BCC       
+bulk
+ 0.50000000      0.50000000     -0.50000000        # a1 parent lattice vector
+-0.50000000      0.50000000      0.50000000        # a2 parent lattice vector
+ 0.50000000     -0.50000000      0.50000000        # a3 parent lattice vector
+    2 # Number of points in the multilattice
+  0.0000000       0.0000000       0.0000000        # d01 d-vector, labels: 0/1/2/3/4
+ 0.25000000       0.0000000       0.0000000        # d02 d-vector, labels: 0/1/2
+ 5-nary case
+   1   3 # Starting and ending cell sizes for search
+ 0.10000000E-02 # Epsilon (finite precision parameter)
+Concentration check:
+    T
+Including only structures of which the concentration   of each atom is in the range:
+Type 1:    0/   5 --    5/   5
+Type 2:    0/   5 --    1/   5
+Type 3:    2/   5 --    4/   5
+Type 4:    0/   5 --    3/   5
+Type 5:    0/   5 --    1/   5
+full list of labelings (including incomplete labelings) is used
+Equivalency list: 1  2
+start   #tot      HNF     Hdegn   labdegn   Totdegn   #size idx    pg    SNF             HNF                 Left transform                          labeling
+          1         1       2        2        4           1   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   3322
+          2         2       2        4        8           2   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   2322
+          3         3       2        4        8           3   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   2302
+          4         3       2        4        8           4   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   2320
+          5         3       2        4        8           5   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0322
+          6         4       2        4        8           6   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0222
+          7         5       2        2        4           7   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0022
+          8         5       2        2        4           8   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0202
+          9         5       2        2        4           9   2     8   1  1  2    1  0  2  0  0  1      1    0    0    0    1    1    0   -1    0   0220

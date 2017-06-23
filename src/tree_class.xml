@@ -1,296 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
-  <decorates name="tree_class.enumerate_unique_permutations">
-    <group name="enum4_tests" purpose="testingp" staging="../unittests/">
-      <test identifier="enum4fortran"
-	    description="Test the fortran translation of enum4 against python enum4" timed="true"
-	    cases="120_5_5a, 120_5_5b, Z10_Z10_5_5_10, 1110, 576_9, 228_8, 216_12, 1152_12,
-		   256_16, 16_8, 64_8, 360_6, 20_10, 50_10, 120_10, 32_16, 1024_16, 441_20, 40_20,
-		   200_20, 2500_20, 118_44_fcc, 118_44_32_fcc, 111_22_fcc, 111_13_fcc, 111_53_fcc,
-		   111_233_fcc, 111_2222_fcc, 111_512_fcc, 651_88_fcc, 651_448_fcc, 651_646_fcc,
-		   651_4444_fcc, 114_22_sc, 118_26_sc, 118_44_sc, 1110_55_sc, 1110_433_sc,
-		   1116_88_sc, 1116_655_sc, 1116_4426_sc, 114_22_bcc, 118_44_bcc, 118_323_bcc,
-		   1116_88_bcc, 1116_358_bcc, 1116_3544_bcc, 113_33_hcp, 113_222_hcp, 116_66_hcp,
-		   116_633_hcp, 116_3333_hcp"> 
-	<output identifier="enum4.out" folder="../tests/tree_class" file="enum4.out.{}"
-		template="integer.xml" />
-	<target name="uqperms" compareto="enum4.out" varfile="enum4.out" when="each" />
+  <decorates name="tree_class.initializeTree">
+    <group name="enum4_initialization" purpose="testing" staging="../unittests/">
+      <test identifier="initializeTree" description="Test the fortran translation of enum4"
+	    timed="true" cases="120a, 120b, Z10, 1110, 576_9, 228_8, 216_12,
+	1152_12, 256_16, 16_8, 64_8, 360_6, 20_10, 50_10, 120_10, 32_16,
+	1024_16, 441_20, 40_20, 200_20, 2500_20, 118_44_fcc,
+	118_44_32_fcc, 111_22_fcc, 111_13_fcc, 111_53_fcc, 111_233_fcc,
+	111_2222_fcc, 111_512_fcc, 651_88_fcc, 651_448_fcc, 651_646_fcc,
+	651_4444_fcc, 114_22_sc, 118_26_sc, 118_44_sc, 1110_55_sc,
+	1110_433_sc, 1116_88_sc, 1116_655_sc, 1116_4426_sc, 114_22_bcc,
+	116_633_hcp, 116_3333_hcp, 118_44_bcc, 118_323_bcc, 1116_88_bcc, 113_33_hcp,
+	113_222_hcp, 116_66_hcp" >
+      	<output folder="../tests/tree_class/initializeTree.out.{}"
+		identifier="initializeTree.out" autoclass = "true" />
+      	<target name="self" autoclass = "true" compareto="initializeTree.out"
+      		varfile="initializeTree.out" when="each" />
       </test>
       <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class" file="colors.in.{}"
-	       rename="colors.in"/>
+	<value identifier="colorsFile" folder="../tests/tree_class"
+	       file="colors.in.{}" rename="colors.in"/>
       </assignment>
       <assignment name="generators" value="generatorsFile"> 
 	<value identifier="generatorsFile" folder="../tests/tree_class"
 	       file="generators.in.{}" rename="generators.in"/>
       </assignment>
-      <assignment name="makeG" value=".true."/> 
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <assignment name="arrow_group" value="AGFile">
+	<value identifier="AGFile" folder="../tests/tree_class"
+		 file="arrow_group.in.{}" rename="arrow_group.in"/>
       </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_k" description="Test the fortran translation of enum4"
-	    timed="true" cases=""> 
-	<output identifier="initializeTree_k.out" folder="../tests/tree_class"
-		file="initializeTree_k.out.{}" template="integer.xml" />
-	<target name="self" member="k" compareto="initializeTree_k.out"
-		varfile="initializeTree_k.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
+      <assignment name="color_map" value="CMFile">
+	<value identifier="CMFile" folder="../tests/tree_class"
+		 file="conc_map.in.{}" rename="color_map.in"/>
       </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_colors"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="initializeTree_colors.out" folder="../tests/tree_class"
-		file="initializeTree_colors.out.{}" template="integer.xml" />
-	<target name="self" member="colors" compareto="initializeTree_colors.out"
-		varfile="initializeTree_colors.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_n"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="initializeTree_n.out" folder="../tests/tree_class"
-		file="initializeTree_n.out.{}" template="integer.xml" />
-	<target name="self" member="n" compareto="initializeTree_n.out"
-		varfile="initializeTree_n.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_Gsize" description="Test the fortran translation of enum4"
-	    timed="true" cases=""> 
-	<output identifier="initializeTree_Gsize.out" folder="../tests/tree_class"
-		file="initializeTree_Gsize.out.{}" template="integer.xml" />
-	<target name="self" member="Gsize" compareto="initializeTree_Gsize.out"
-		varfile="initializeTree_Gsize.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_loc" description="Test the fortran translation of enum4"
-	    timed="true" cases=""> 
-	<output identifier="initializeTree_loc.out" folder="../tests/tree_class"
-		file="initializeTree_loc.out.{}" template="integer.xml" />
-	<target name="self" member="loc" compareto="initializeTree_loc.out"
-		varfile="initializeTree_loc.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_branches"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="initializeTree_branches.out" folder="../tests/tree_class"
-		file="initializeTree_branches.out.{}" template="integer.xml" />
-	<target name="self" member="branches" compareto="initializeTree_branches.out"
-		varfile="initializeTree_branches.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="initializeTree_done" description="Test the fortran translation of enum4"
-	    timed="true" cases=""> 
-	<output identifier="initializeTree_done.out" folder="../tests/tree_class"
-		file="initializeTree_done.out.{}" template="integer.xml" />
-	<target name="self" member="done" compareto="initializeTree_done.out"
-		varfile="initializeTree_done.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.initializeTree">
-    <group name="enum4_tests" purpose="testingf_triple_embedded_types" staging="../unittests/">
-      <test identifier="initializeTree_G%layer%perm"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="initializeTree_G%layer%perm.out" folder="../tests/tree_class"
-		file="initializeTree_G%layer%perm.out.{}" template="integer.xml" />
-	<target name="self" member="G%layer%perm" compareto="initializeTree_G%layer%perm.out"
-		varfile="initializeTree_G%layer%perm.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
-	<value identifier="colorsFile" folder="../tests/tree_class"
-	       file="initializeTree_colors.in.{}" rename="colors.in"/>
-      </assignment>
-      <assignment name="generators" value="generatorsFile"> 
-	<value identifier="generatorsFile" folder="../tests/tree_class"
-	       file="initializeTree_generators.in.{}" rename="generators.in"/>
-      </assignment>
-      <assignment name="makeG" value="makeGfile">
-	<value identifier="makeGfile" folder="../tests/tree_class"
-	       file="initializeTree_makeG.in.{}" rename="makeG.in"/>
-      </assignment>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
-      </assignment>
+      <assignment name="makeG" constant=".true."/>
+      <assignment name="self" allocate="true"/>      
     </group>
   </decorates>
 
   <decorates name="tree_class.generateColoringFromLocation">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests10" purpose="testing" staging="../unittests/">
       <test identifier="generateColoringFromLocation"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="generateColoringFromLocation_labeling.out"
-		folder="../tests/tree_class" file="generateColoringFromLocation_labeling.out.{}"
+	    description="Test the fortran translation of enum4" timed="true" cases="[1-20]"> 
+	<output identifier="coloring_labeling.out"
+		folder="../tests/tree_class" file="coloring_labeling.out.{}"
 		template="integer.xml" />
-	<target name="labeling" compareto="generateColoringFromLocation.out"
-		varfile="generateColoringFromLocation.out" when="each" />
+	<target name="labeling" compareto="coloring_labeling.out"
+		varfile="coloring_labeling.out" when="each" />
       </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <global name="self" type="class" kind="tree" modifiers="pointer"/>
+      <assignment name="self" allocate="true"/>      
+      <assignment name="self" value="locfile">
+	<value identifier="locfile" member="loc" folder="../tests/tree_class"
+	       file="coloring_loc.in.{}" rename="loc.in"/>
       </assignment>
-    </group>
-  </decorates>
-
-  <decorates name="tree_class.indexOfCurrentColor">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="indexOfCurrentColor"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="indexOfCurrentColor.out"
-		folder="../tests/tree_class" file="indexOfCurrentColor.out.{}"
-		template="integer.xml" />
-	<target name="[default]" compareto="indexOfCurrentColor.out"
-		varfile="indexOfCurrentColor.out" when="each" />
-      </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <assignment name="self" value="nfile">
+	<value identifier="nfile" member="n" folder="../tests/tree_class"
+	       file="coloring_n.in.{}" rename="n.in"/>
+      </assignment>
+      <assignment name="self" value="colorsfile">
+	<value identifier="colorsfile" member="colors" folder="../tests/tree_class"
+	       file="coloring_colors.in.{}" rename="colors.in"/>
       </assignment>
     </group>
   </decorates>
 
   <decorates name="tree_class.integer2coloring">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_tests12" purpose="testingf" staging="../unittests/">
       <test identifier="integer2coloring"
 	    description="Test the fortran translation of enum4" timed="true" cases=""> 
 	<output identifier="integer2coloring.out"
@@ -315,70 +91,85 @@
   </decorates>
 
   <decorates name="tree_class.depth">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
+    <group name="enum4_depth" purpose="testing" staging="../unittests/">
       <test identifier="depth"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
+	    description="Test the fortran translation of enum4" timed="true" cases="[1-10],21"> 
 	<output identifier="depth.out"
 		folder="../tests/tree_class" file="depth.out.{}"
 		template="integer.xml" />
 	<target name="[default]" compareto="depth.out"
 		varfile="depth.out" when="each" />
       </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <global name="self" type="class" kind="tree" modifiers="pointer"/>
+      <assignment name="self" allocate="true"/>      
+      <assignment name="self" value="locfile">
+	<value identifier="locfile" member="loc" folder="../tests/tree_class"
+	       file="get_loc.in.{}" rename="loc.in"/>
       </assignment>
     </group>
   </decorates>
 
   <decorates name="tree_class.increment_location">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="increment_location"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="increment_location.out"
-		folder="../tests/tree_class" file="increment_location.out.{}"
-		template="integer.xml" />
-	<target name="self" member="loc" compareto="increment_location.out"
-		varfile="increment_location.out" when="each" />
+    <group name="enum4_location" purpose="testing" staging="../unittests/">
+      <test identifier="increment_location" description="Test the fortran translation of enum4"
+	    timed="true" cases="[1-22]"> 
+      	<output folder="../tests/tree_class/incr_loc.out.{}"
+		identifier="incr_loc.out" autoclass = "true" />
+      	<target name="self" autoclass = "true" compareto="incr_loc.out"
+      		varfile="incr_loc.out" when="each" />
       </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <assignment name="self" value="self_file">
+	<value identifier="self_file" autoclass="true"
+	       folder="../tests/tree_class/incr_loc.in.{}"/>
       </assignment>
     </group>
   </decorates>
 
-  <decorates name="tree_class.next_branch">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="next_branch"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="next_branch.out"
-		folder="../tests/tree_class" file="next_branch.out.{}"
+  <decorates name="tree_class.generateLocationFromColoring">
+    <group name="enum4_hashing_test" purpose="testing" staging="../unittests/">
+      <test identifier="generateLocationFromColoring"
+	    description="Test the fortran translation of enum4" timed="true" cases="[1-20]"> 
+	<output identifier="get_loc.out" folder="../tests/tree_class" file="get_loc.out.{}"
 		template="integer.xml" />
-	<target name="self" member="loc" compareto="next_branch.out"
-		varfile="next_branch.out" when="each" />
+	<target name="index" compareto="get_loc.out" varfile="get_loc.out" when="each" />
       </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <global name="self" type="class" kind="tree" modifiers="pointer"/>
+      <assignment name="self" allocate="true"/>      
+      <assignment name="self" value="locfile">
+	<value identifier="locfile" member="loc" folder="../tests/tree_class"
+	       file="get_loc.in.{}" rename="loc.in"/>
+      </assignment>
+      <assignment name="labeling" value="labelfile">
+	<value identifier="labelfile" folder="../tests/tree_class"
+	       file="get_loc_labeling.in.{}" rename="labeling.in"/>
       </assignment>
     </group>
   </decorates>
 
-  <decorates name="tree_class.listGroup">
-    <group name="enum4_tests" purpose="testingf" staging="../unittests/">
-      <test identifier="listGroup"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
-	<output identifier="listGroup.out"
-		folder="../tests/tree_class" file="listGroup.out.{}"
-		template="integer.xml" />
-	<target name="self" member="loc" compareto="listGroup.out"
-		varfile="listGroup.out" when="each" />
+
+  <decorates name="tree_class.check_labeling">
+    <group name="enum4_labeling_check" purpose="testing" staging="../unittests/">
+      <test identifier="check_labeling" description="Test the fortran translation of enum4"
+	    timed="true" cases="[2-18]"> 
+      	<output folder="../tests/tree_class/check.out.{}"
+		identifier="check.out" autoclass = "true" />
+      	<target name="self" autoclass = "true" compareto="check.out"
+      		varfile="check.out" when="each" />
       </test>
-      <global name="self" type="class(tree)"/>
-      <assignment name="self" value="initialize">
-	<value identifier="initialize" embedded="init" />
+      <assignment name="self" value="self_file">
+	<value identifier="self_file" autoclass="true"
+	       folder="../tests/tree_class/check.in.{}"/>
       </assignment>
+      <assignment name="label" value="lab_f">
+	<value identifier="lab_f" folder="../tests/tree_class/"
+	       file="check_labeling.in.{}" rename="label.in"/>
+      </assignment>
+    </group>
+  </decorates>
+
+  <skip reason="Explicitly tested by the gen_multilatice_derivative subroutine."/>
+  <decorates name="tree_class.addArrowsToEnumeration">
+    <group name="arrow_test" purpose="testing" staging="../unittests/">
     </group>
   </decorates>
 </fortpy>

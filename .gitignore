@@ -35,3 +35,11 @@ src/compile.log
 *.exe
 *.out
 *.app
+*.x
+
+# version files
+version.enum
+
+# Test folders
+unittests/
+stagging/
