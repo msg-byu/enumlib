@@ -125,7 +125,12 @@ CONTAINS
     nL = multinomial(iConc) ! The hash table is "full size" even if
     ! site-restrictions will reduce the size of the list
     allocate(lab(nL),STAT=status)
-    if(status/=0) stop "Allocation of 'lab' failed in generate_permutation_labelings"
+    if(status/=0) then
+       write(*,*) "Allocation of 'lab' failed in generate_permutation_labelings"
+       write(*,*) "This typically happens when the enumeration problem attempted"
+       write(*,*) "is too big and the hash table cannot be allocated."
+       stop
+    endif
     lab = ""
     nPerm = size(perm,1)
     
@@ -144,7 +149,13 @@ CONTAINS
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
     end do; write(22,*); close(22)
     
-    allocate(degeneracy_list(nL) )
+    allocate(degeneracy_list(nL),STAT=staus )
+    if(status/=0) then
+       write(*,*) "Allocation of 'degeneracy list' failed in generate_permutation_labelings"
+       write(*,*) "This typically happens when the enumeration problem attempted"
+       write(*,*) "is too big and the hash table cannot be allocated."
+       stop
+    endif
     degeneracy_list = 0
     nUniq = 0
     
@@ -154,7 +165,7 @@ CONTAINS
        do while (flag) ! Loop over possible values for each digit
           !This loop "walks the tree" until it hits a bottom branch
           ! (i.e., a complete labeling, not necessarily already a
-          ! leagl labeling)
+          ! legal labeling)
           if (sitePointer < 1) then
              flag = .false.; exit
           endif
