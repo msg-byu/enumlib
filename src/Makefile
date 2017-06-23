@@ -118,7 +118,7 @@ compare_enum_files.x:  compare_two_enum_files.o
 	${F90} ${FFLAGS} -c $<
 .f90.o : 
 #	bash -c "perl -pi -e 's/write\(21.*/write\(21,\*\) \"SVN revision number:'`svnversion`'\"/' derivative_structure_generator.f90 "
-	bash -c "echo `svnversion` > version.enum"
+
 	${F90} ${FFLAGS} -c $<
 .f.o : 
 	${F90} -c $<
