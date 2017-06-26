@@ -9,10 +9,12 @@
   entering the recursively_stabilized_enum algorithm. The max_binomial
   is now 1E10 to force the correct behavior.
   
-- Updated the README.md to warn users about potential overflow issues
-  with the calculation of large multinomials.
+- Updated the EXAMPLES to include an example of potential overflow
+  issues with the calculation of large multinomials.
 
 - Added unit tests for recursively_stabilized_enum in labeling_related.f90.
+
+- Fixed a typo in labeling_related.f90, changed staus to status on line 361.
 
 ## Revision 1.0.5
 
