@@ -669,7 +669,7 @@ CONTAINS
           tg = modulo(tg,spread(diag,2,n)) ! mod by the SNF entries to
           ! bring it back to the "primitive" representation
           call find_permutation_of_group(g,tg,perm)
-          tperms%perm(ig,:) = reshape(transpose(ident(:,perm)),(/n*nD/)) 
+          tperms%perm(ig,:) = reshape(transpose(ident(:,perm)),(/n*nD/))
        enddo
        
        RPlist(iH)%nL = size(rperms%perm,1)*n
@@ -1055,7 +1055,7 @@ CONTAINS
     real(dp), allocatable      :: tv(:,:,:), degen_lattices(:,:,:)
     integer, allocatable       :: tIndex(:)
     logical :: inList
-    
+
     nRot = size(rot,3)
     allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
     allocate(tmpOp%rot(3,3,nRot),tmpOp%shift(3,nRot))
@@ -1277,7 +1277,7 @@ CONTAINS
     type(RotPermList), pointer :: aperms(:), rdaperms(:)
     real(dp) :: max_binomial
 
-    max_binomial = 2.63E14
+    max_binomial = 1E10
 
     ! Divide the dset into members that are enumerated and those that are not
     nD = count( (/(i,i=1,nDFull)/)==equivalencies)
@@ -1483,7 +1483,7 @@ CONTAINS
                    ! efficient. Unless there are arrows present in the
                    ! enumeration or the multinomial of possible
                    ! arrangements is to large for enum3 to handle.
-                   if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < max_binomial) .and. (arrows .eqv. .false.)) then
+                   if (any(site_res == 0) .and. (0<multinomial(iRange(iC,:))) .and. (multinomial(iRange(iC,:)) < max_binomial) .and. (arrows .eqv. .false.)) then
                       call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
                            lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
                       call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&

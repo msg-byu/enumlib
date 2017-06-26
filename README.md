@@ -126,3 +126,19 @@ specified by the `displace` flag.
 
 If you have questions, email or call: gus.hart@gmail.com, 801-422-7444
 
+## Common Issues:
+
+### Multinomial overflow
+
+In order to determine which algorithm to use and, at times, to
+allocate memory the code computes the total number of possible
+arrangemens (this is the multinomial of the concenrations of the
+atomic species). Internally the largest integer the code supports is
+10E18, this means that if the multinomial ever exceeds 10E18 the
+integer will overflow and often results in the code failing. This
+usually manifests as an attemp to access an arrray index that doesn't
+exist, for example:
+
+```
+Fortran runtime error: Index '1' of dimension 1 of array 'lab' above upper bound of -7061685723885593328
+```

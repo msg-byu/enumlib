@@ -1,9 +1,23 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.6
+
+- The maximum allowed binomial, max_binomial in
+  src/derivative_structure_generator.f90, had been set to
+  2.63E14. This number was to large and allowed the code to enter the
+  generate_permutation_labelings algorithm when it should have been
+  entering the recursively_stabilized_enum algorithm. The max_binomial
+  is now 1E10 to force the correct behavior.
+  
+- Updated the README.md to warn users about potential overflow issues
+  with the calculation of large multinomials.
+
+- Added unit tests for recursively_stabilized_enum in labeling_related.f90.
+
 ## Revision 1.0.5
 
--Fixed bug in makeStr.py, the lattice vectors in struct_enum.out were
- being treated as column and not row vectors.
+- Fixed bug in makeStr.py, the lattice vectors in struct_enum.out were
+  being treated as column and not row vectors.
 
 ## Revision 1.0.4
 
