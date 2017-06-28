@@ -361,7 +361,7 @@ CONTAINS
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
     end do; write(22,*); close(22)
     
-    allocate(degeneracy_list(nL),STAT=staus )
+    allocate(degeneracy_list(nL),STAT=status)
     if(status/=0) then
        write(*,*) "Allocation of 'degeneracy list' failed in generate_permutation_labelings"
        write(*,*) "This typically happens when the enumeration problem attempted"

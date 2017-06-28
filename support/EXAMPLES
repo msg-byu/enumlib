@@ -471,3 +471,29 @@ Volume       CPU        #HNFs  #SNFs    #reduced    % dups      volTot      RunT
    3         0.0048       13     1         3        0.7692          56          56
 ---------------------------------------------------------------------------------------------
 **********************************************************************
+
+**********************************************************************
+Ex. 7: Multinomial overflow.
+
+In this example a common issue with the code is demonstrated. The
+issue is caused by the size restrictions on an integer within enumlib,
+the largest allowed integer is 1E18. If the user attempts to enumerate
+a system whose number of possible arrangements exceeds 1E18 it can
+cause the code to fail. An exmple system con be found in
+'overflow_struct_enum.in'.
+
+**********************************************************************
+~/codes/enumlib/support/input> ../../src/enum.x overflow_struct_enum.in 
+---------------------------------------------------------------------------------------------
+Calculating derivative structures for index n= 1 to  1
+Including only structures of which the concentration of each atom is in the range:
+Type: 1: 1/10--1/10
+Type: 2: 1/5--1/5
+Type: 3: 1/10--1/10
+Type: 4: 1/2--1/2
+Type: 5: 1/10--1/10
+Volume       CPU        #HNFs  #SNFs    #reduced    % dups      volTot      RunTot
+At line 416 of file labeling_related.f90
+Fortran runtime error: Index '1' of dimension 1 of array 'lab' above upper bound of -7061685723885593328
+---------------------------------------------------------------------------------------------
+**********************************************************************

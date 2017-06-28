@@ -1,50 +1,200 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
 
+  <decorates name="labeling_related.recursively_stabilized_enum">
+  <!-- <skip reason="This routine is not currently used in UNCLE"/> -->
+    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+      <!-- <test identifier="binary" -->
+      <!-- 	    description="Finds all possible labels at fixed concentration for binary systems." -->
+      <!-- 	    timed="true" -->
+      <!-- 	    cases="[1-19]"> -->
+      <!-- 	<output identifier="scnt.out" -->
+      <!-- 		folder="../tests/labeling_related" -->
+      <!-- 		file="recursively_stabilized_enum_scnt.out.{}" -->
+      <!-- 		template="integer.xml" /> -->
+      <!-- 	<target name="scount" compareto="recursively_stabilized_enum_scnt.out" -->
+      <!-- 		varfile="recursively_stabilized_enum_scnt.out" when="each" /> -->
+      <!-- </test> -->
+      <!-- <test identifier="ternary" -->
+      <!-- 	    description="Finds all possible labels at fixed concentration for binary systems." -->
+      <!-- 	    timed="true" -->
+      <!-- 	    cases="[1-14]"> -->
+      <!-- 	<output identifier="scount.out" -->
+      <!-- 		folder="../tests/labeling_related" -->
+      <!-- 		file="recursively_stabilized_enum_scnt.out.{}" -->
+      <!-- 		template="integer.xml" /> -->
+      <!-- 	<target name="scount" compareto="recursively_stabilized_enum_scount.out" -->
+      <!-- 		varfile="recursively_stabilized_enum_scount.out" when="each" /> -->
+      <!-- </test> -->
+      <test identifier="quaternary"
+      	    description="Finds all possible labels at fixed concentration for binary systems."
+      	    timed="true"
+      	    cases="[1-16]">
+      	<output identifier="scount.out"
+      		folder="../tests/labeling_related"
+      		file="recursively_stabilized_enum_scnt.out.{}"
+      		template="integer.xml" />
+      	<target name="scount" compareto="recursively_stabilized_enum_scount.out"
+      		varfile="recursively_stabilized_enum_scount.out" when="each" />
+      </test>
+      <global name="fixop" type="type" kind="OpList" modifiers="pointer" dimensions=":"
+	      allocate="False"/>
+      <global name="perm" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <global name="aperms" type="integer" modifiers="pointer" dimensions=":,:"/>
+      <assignment name="perm" value="permf">
+  	<value identifier="permf" file="recursively_stabilized_enum_perm.in.{}"
+  	       folder="../tests/labeling_related" rename="perm.in"/>
+      </assignment>
+      <assignment name="conc" value="concf">
+  	<value identifier="concf" file="recursively_stabilized_enum_conc.in.{}"
+  	       folder="../tests/labeling_related" rename="conc.in"/>
+      </assignment>
+      <assignment name="symsize" value="symsizefile">
+  	<value identifier="symsizefile" file="recursively_stabilized_enum_symsize.in.{}"
+  	       folder="../tests/labeling_related" rename="symsize.in"/>
+      </assignment>
+      <assignment name="knary" value="knaryfile">
+  	<value identifier="knaryfile" file="recursively_stabilized_enum_knary.in.{}"
+  	       folder="../tests/labeling_related" rename="knary.in"/>
+      </assignment>
+      <assignment name="SNF" value="SNFf">
+  	<value identifier="SNFf" file="recursively_stabilized_enum_SNF.in.{}"
+  	       folder="../tests/labeling_related" rename="SNF.in"/>
+      </assignment>
+      <assignment name="LT" value="LTfile">
+  	<value identifier="LTfile" file="recursively_stabilized_enum_LT.in.{}"
+  	       folder="../tests/labeling_related" rename="LT.in"/>
+      </assignment>
+      <assignment name="HNF" value="HNFfile">
+  	<value identifier="HNFfile" file="recursively_stabilized_enum_HNF.in.{}"
+  	       folder="../tests/labeling_related" rename="HNF.in"/>
+      </assignment>
+      <assignment name="HNFcnt" value="HNFcntfile">
+  	<value identifier="HNFcntfile"
+  	       file="recursively_stabilized_enum_HNFcnt.in.{}"
+  	       folder="../tests/labeling_related" rename="HNFcnt.in"/>
+      </assignment>
+      <assignment name="hnf_degen" value="hnf_degenfile">
+  	<value identifier="hnf_degenfile"
+  	       file="recursively_stabilized_enum_hnf_degen.in.{}"
+  	       folder="../tests/labeling_related" rename="hnf_degen.in"/>
+      </assignment>
+      <assignment name="nfound" value="nfoundfile">
+  	<value identifier="nfoundfile"
+  	       file="recursively_stabilized_enum_nfound.in.{}"
+  	       folder="../tests/labeling_related" rename="nfound.in"/>
+      </assignment>
+      <assignment name="scount" value="scountfile">
+  	<value identifier="scountfile"
+  	       file="recursively_stabilized_enum_scnt.in.{}"
+  	       folder="../tests/labeling_related" rename="scnt.in"/>
+      </assignment>
+      <assignment name="fixOp" value="fixOpfile">
+  	<value identifier="fixOpfile" autoclass = "true"
+  	       folder="../tests/labeling_related/recursively_stabilized_enum_fixOp.in.{}"/>
+      </assignment>
+      <assignment name="iBlock" value="iBlockf">
+  	<value identifier="iBlockf"
+  	       file="recursively_stabilized_enum_iBlock.in.{}"
+  	       folder="../tests/labeling_related" rename="iBlock.in"/>
+      </assignment>
+      <assignment name="equivalencies" value="equivalenciesf">
+  	<value identifier="equivalenciesf"
+  	       file="recursively_stabilized_enum_equivalencies.in.{}"
+  	       folder="../tests/labeling_related" rename="equivalencies.in"/>
+      </assignment>
+      <assignment name="permIndx" value="permIndxf">
+  	<value identifier="permIndxf"
+  	       file="recursively_stabilized_enum_permIndx.in.{}"
+  	       folder="../tests/labeling_related" rename="permIndx.in"/>
+      </assignment>
+      <assignment name="allowed" value="allowedf">
+  	<value identifier="allowedf"
+  	       file="recursively_stabilized_enum_allowed.in.{}"
+  	       folder="../tests/labeling_related" rename="allowed.in"/>
+      </assignment>
+      <assignment name="fixedcell" value="fixedcellf">
+  	<value identifier="fixedcellf"
+  	       file="recursively_stabilized_enum_fixedcell.in.{}"
+  	       folder="../tests/labeling_related" rename="fixedcell.in"/>
+      </assignment>
+      <assignment name="aperms" value="apermsf">
+  	<value identifier="apermsf"
+  	       file="recursively_stabilized_enum_aperms.in.{}"
+  	       folder="../tests/labeling_related" rename="aperms.in"/>
+      </assignment>
+    </group>
+  </decorates>
+  
   <decorates name="labeling_related.generate_permutation_labelings">
-  <skip reason="This routine is not currently used in UNCLE"/>
-    <group name="labeling_tests2" purpose="testing_not_used" staging="../unittests/">
-      <test identifier="generate_permutation_labelings_lab"
-  	    description="Finds all possible labels at fixed concentration." timed="true"
-  	    cases="[]">
-  	<output identifier="generate_permutation_labelings_lab.out"
-  		folder="../tests/labeling_related" file="nchoosek.out" template="string.xml" />
-  	<target name="lab" compareto="generate_permutation_labelings_lab.out"
-  		varfile="generate_permutation_labelings_lab.out" when="each" />
+  <!-- <skip reason="This routine is not currently used in UNCLE"/> -->
+    <group name="labeling_tests_old" purpose="testing" staging="../unittests/">
+      <!-- <test identifier="binary" -->
+      <!-- 	    description="Finds all possible labels at fixed concentration for binary systems." -->
+      <!-- 	    timed="true" -->
+      <!-- 	    cases="[1-19]"> -->
+      <!-- 	<output identifier="generate_permutation_labelings_lab.out" -->
+      <!-- 		folder="../tests/labeling_related" -->
+      <!-- 		file="generate_permutation_labelings_lab.out.{}" -->
+      <!-- 		template="string.xml" /> -->
+      <!-- 	<target name="lab" compareto="generate_permutation_labelings_lab.out" -->
+      <!-- 		varfile="generate_permutation_labelings_lab.out" when="each" /> -->
+      <!-- </test> -->
+      <!-- <test identifier="ternary" -->
+      <!-- 	    description="Finds all possible labels at fixed concentration for ternary systems." -->
+      <!-- 	    timed="true" -->
+      <!-- 	    cases="[1-14]"> -->
+      <!-- 	<output identifier="generate_permutation_labelings_lab.out" -->
+      <!-- 		folder="../tests/labeling_related/ternary" -->
+      <!-- 		file="generate_permutation_labelings_lab.out.{}" -->
+      <!-- 		template="string.xml" /> -->
+      <!-- 	<target name="lab" compareto="generate_permutation_labelings_lab.out" -->
+      <!-- 		varfile="generate_permutation_labelings_lab.out" when="each" /> -->
+      <!-- </test> -->
+      <test identifier="quaternary"
+      	    description="Finds all possible labels at fixed concentration for ternary systems."
+      	    timed="true"
+      	    cases="[1-16]">
+      	<output identifier="generate_permutation_labelings_lab.out"
+      		folder="../tests/labeling_related/quaternary"
+      		file="generate_permutation_labelings_lab.out.{}"
+      		template="string.xml" />
+      	<target name="lab" compareto="generate_permutation_labelings_lab.out"
+      		varfile="generate_permutation_labelings_lab.out" when="each" />
       </test>
       <global name="lab" type="character" modifiers="pointer" dimensions=":"/>
       <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
       <assignment name="k" value="kfile">
-  	<value identifier="kfile" file="generate_permutation_labelings_k.in{}"
+  	<value identifier="kfile" file="generate_permutation_labelings_k.in.{}"
   	       folder="../tests/labeling_related" rename="k.in"/>
       </assignment>
       <assignment name="n" value="nfile">
-  	<value identifier="nfile" file="generate_permutation_labelings_n.in{}"
+  	<value identifier="nfile" file="generate_permutation_labelings_n.in.{}"
   	       folder="../tests/labeling_related" rename="n.in"/>
       </assignment>
       <assignment name="nD" value="nDfile">
-  	<value identifier="nDfile" file="generate_permutation_labelings_nD.in{}"
+  	<value identifier="nDfile" file="generate_permutation_labelings_nD.in.{}"
   	       folder="../tests/labeling_related" rename="nD.in"/>
       </assignment>
       <assignment name="perm" value="permfile">
-  	<value identifier="permfile" file="generate_permutation_labelings_perm.in{}"
+  	<value identifier="permfile" file="generate_permutation_labelings_perm.in.{}"
   	       folder="../tests/labeling_related" rename="perm.in"/>
       </assignment>
       <assignment name="iConc" value="iConcfile">
-  	<value identifier="iConcfile" file="generate_permutation_labelings_iConc.in{}"
+  	<value identifier="iConcfile" file="generate_permutation_labelings_iConc.in.{}"
   	       folder="../tests/labeling_related" rename="iConc.in"/>
       </assignment>
       <assignment name="parLabel" value="parLabelfile">
-  	<value identifier="parLabelfile" file="generate_permutation_labelings_parLabel.in{}"
+  	<value identifier="parLabelfile" file="generate_permutation_labelings_parLabel.in.{}"
   	       folder="../tests/labeling_related" rename="parLabel.in"/>
       </assignment>
       <assignment name="parDigit" value="parDigitfile">
-  	<value identifier="parDigitfile" file="generate_permutation_labelings_parDigit.in{}"
+  	<value identifier="parDigitfile" file="generate_permutation_labelings_parDigit.in.{}"
   	       folder="../tests/labeling_related" rename="parDigit.in"/>
       </assignment>
       <assignment name="fixed_cells" value="fixed_cellsfile">
   	<value identifier="fixed_cellsfile"
-  	       file="generate_permutation_labelings_fixed_cells.in{}"
+  	       file="generate_permutation_labelings_fixed_cells.in.{}"
   	       folder="../tests/labeling_related" rename="fixed_cells.in"/>
       </assignment>
     </group>
@@ -65,43 +215,43 @@
       <global name="lab" type="character" modifiers="pointer" dimensions=":"/>
       <global name="degeneracy_list" type="integer" modifiers="pointer" dimensions=":"/>
       <assignment name="k" value="kfile">
-  	<value identifier="kfile" file="generate_permutation_labelings_k.in{}"
+  	<value identifier="kfile" file="generate_permutation_labelings_k.in.{}"
   	       folder="../tests/labeling_related" rename="k.in"/>
       </assignment>
       <assignment name="n" value="nfile">
-  	<value identifier="nfile" file="generate_permutation_labelings_n.in{}"
+  	<value identifier="nfile" file="generate_permutation_labelings_n.in.{}"
   	       folder="../tests/labeling_related" rename="n.in"/>
       </assignment>
       <assignment name="nD" value="nDfile">
-  	<value identifier="nDfile" file="generate_permutation_labelings_nD.in{}"
+  	<value identifier="nDfile" file="generate_permutation_labelings_nD.in.{}"
   	       folder="../tests/labeling_related" rename="nD.in"/>
       </assignment>
       <assignment name="perm" value="permfile">
-  	<value identifier="permfile" file="generate_permutation_labelings_perm.in{}"
+  	<value identifier="permfile" file="generate_permutation_labelings_perm.in.{}"
   	       folder="../tests/labeling_related" rename="perm.in"/>
       </assignment>
       <assignment name="iConc" value="iConcfile">
-  	<value identifier="iConcfile" file="generate_permutation_labelings_iConc.in{}"
+  	<value identifier="iConcfile" file="generate_permutation_labelings_iConc.in.{}"
   	       folder="../tests/labeling_related" rename="iConc.in"/>
       </assignment>
       <assignment name="parLabel" value="parLabelfile">
-  	<value identifier="parLabelfile" file="generate_permutation_labelings_parLabel.in{}"
+  	<value identifier="parLabelfile" file="generate_permutation_labelings_parLabel.in.{}"
   	       folder="../tests/labeling_related" rename="parLabel.in"/>
       </assignment>
       <assignment name="parDigit" value="parDigitfile">
-  	<value identifier="parDigitfile" file="generate_permutation_labelings_parDigit.in{}"
+  	<value identifier="parDigitfile" file="generate_permutation_labelings_parDigit.in.{}"
   	       folder="../tests/labeling_related" rename="parDigit.in"/>
       </assignment>
       <assignment name="fixed_cells" value="fixed_cellsfile">
   	<value identifier="fixed_cellsfile"
-  	       file="generate_permutation_labelings_fixed_cells.in{}"
+  	       file="generate_permutation_labelings_fixed_cells.in.{}"
   	       folder="../tests/labeling_related" rename="fixed_cells.in"/>
       </assignment>
     </group>
   </decorates>
 
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
-    <group name="labeling_tests5" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests5" purpose="testing_temp" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_label"
 	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
   	<output identifier="setup_mixed_radix_multiplier_label.out"
@@ -133,7 +283,7 @@
   </decorates>
 
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
-    <group name="labeling_tests6" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests6" purpose="testing_temp" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_digit"
 	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
   	<output identifier="setup_mixed_radix_multiplier_digit.out"
@@ -165,7 +315,7 @@
   </decorates>
 
   <decorates name="labeling_related.setup_mixed_radix_multiplier">
-    <group name="labeling_tests7" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests7" purpose="testing_temp" staging="../unittests/">
       <test identifier="setup_mixed_radix_multiplier_multiplier"
 	    description="Tests for the radix number setup." timed="true" cases="[1-156]">
   	<output identifier="setup_mixed_radix_multiplier_multiplier.out"
@@ -747,7 +897,7 @@
   </decorates>
 
   <decorates name="labeling_related.labeling_is_legal">
-    <group name="labeling_tests23" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests23" purpose="testing_temp" staging="../unittests/">
       <test identifier="labeling_is_legal" description="Testing of matching labels routine."
   	    timed="true" cases="[1-999]">
   	<output identifier="labeling_is_legal.out" folder="../tests/labeling_related"
@@ -864,7 +1014,7 @@
   </decorates>
 
   <decorates name="labeling_related.make_member_list">
-    <group name="labeling_tests26" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests26" purpose="testing_temp" staging="../unittests/">
       <test identifier="make_member_list"
   	    description="Testing of making permutations." timed="true" cases="[1-112]">
   	<output identifier="make_member_list.out" folder="../tests/labeling_related"

@@ -125,4 +125,3 @@ random distribution of the maximum fraction of the displacement
 specified by the `displace` flag.
 
 If you have questions, email or call: gus.hart@gmail.com, 801-422-7444
-
