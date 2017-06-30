@@ -8,31 +8,30 @@ SHELL		= /bin/bash
 
 # enumlib library paths
 LBD1 = ../symlib/src
-LBD2 = ../polya/fortran
 
 FOUND = false
 ifeq (${F90},gfortran)  # gfortran compiler
   ifeq (${DEBUG},false)
-     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBD1} -I${LBD2}
+     FFLAGS = -O3 -ffree-line-length-none -fno-underscoring -I${LBD1} 
      FOUND = true
   else
-     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBD1} -I${LBD2}
+     FFLAGS = -fPIC -g -fbounds-check -Wall -ffree-line-length-none -fno-underscoring -I${LBD1} 
      FOUND = true
   endif
 endif
 
 ifeq (${F90},ifc)  # Intel compiler
-  FFLAGS = -fPIC -g -error-limit 7 -traceback -check bounds -warn  -I${LBD1} -I${LBD2}
+  FFLAGS = -fPIC -g -error-limit 7 -traceback -check bounds -warn  -I${LBD1}
   FOUND = true
 endif
 
 ifeq (${F90},ifort)  # Intel compiler
   ifeq (${DEBUG},false)
-     FFLAGS =  -fPIC -O3 -I${LBD1} -I${LBD2}
+     FFLAGS =  -fPIC -O3 -I${LBD1} 
      FOUND = true
   else
 #  F90 =  /opt/intel/fc/10.0.016/bin/ifort
-     FFLAGS =  -fPIC -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBD1} -I${LBD2}
+     FFLAGS =  -fPIC -g -debug -error-limit 7 -heap-arrays -traceback -check bounds -warn -I${LBD1}
      FOUND = true
 #-prof-use -prof-dir .
    endif
@@ -40,12 +39,12 @@ endif
 
 
 ifeq (${F90},xlf90) # IBM compiler
-  FFLAGS = -g -C -fPIC -qsuffix=f=f90  -I${LBD1} -I${LBD2}
+  FFLAGS = -g -C -fPIC -qsuffix=f=f90  -I${LBD1}
   FOUND = true
 endif
 ifeq (${F90},f95) # Absoft PPC compiler
 #  FFLAGS =  -profile -p ${LBDR} 
-  FFLAGS = -g -Rb -Rc  -fPIC -nodefaultmod -p ${LBD1} -I${LBD2} #-ea
+  FFLAGS = -g -Rb -Rc  -fPIC -nodefaultmod -p ${LBD1} #-ea
 # B80  show entry in subprograms ; Rb bounds; Rc array conformance;
 # z2 warning level
 # -O3 optimization
@@ -67,17 +66,18 @@ endif
 
 SRC = sorting.f90 enumeration_types.f90 io_utils.f90 arrow_related.f90 tree_class.f90 \
       labeling_related.f90 \
-      derivative_structure_generator.f90 enumeration_utilities.f90  #\
-      #kgrid_utilities.f90 cwrapper.f90
+      derivative_structure_generator.f90 enumeration_utilities.f90
 
-OBJS = ${SRC:.f90=.o}
+OBJS = ${SRC:.f90=.o} 
 LIBS =  $(LBD1)/libcomparestructs.a $(LBD1)/libutils.a $(LBD1)/libsym.a \
-         $(LBD1)/librational.a $(LBD1)/libcombinatorics.a $(LBD2)/libpolya.a
+         $(LBD1)/librational.a $(LBD1)/libcombinatorics.a
 VPATH:= ../aux_src: ../src 
 
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
 
+pre_comp:
+	+$(MAKE) -C ../symlib/src
 
 libenum.a: ${OBJS}
 	ar ru $@ $?
@@ -85,40 +85,37 @@ libenum.a: ${OBJS}
 
 all: libenum.a enum.x find_structure_in_list.x 2Dplot.x makestr.x compare_enum_files.x polya.x
 
-enum.x: ${OBJS} driver.o
+enum.x: pre_comp ${OBJS} driver.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver.o ${LIBS}
 
-polya.x: ${OBJS} driver_polya.o
+polya.x: pre_comp ${OBJS} driver_polya.o
 	${F90} ${LDFLAGS} -o $@ ${OBJS} driver_polya.o ${LIBS}
 
 #HNF_counter.x: ${OBJS} HNF_counter.o
 #	${F90} ${LDFLAGS} -o $@ kgrid_utilities.o HNF_counter.o libenum.a ${#LIBS}
 
-2Dplot.x: make2Dplot.o splot.o
+2Dplot.x: pre_comp make2Dplot.o splot.o
 	${F90} ${LDFLAGS} -o $@ splot.o make2Dplot.o ${LIBS}
 
-makestr.x: makeStr.o
+makestr.x: pre_comp libenum.a makeStr.o
 	${F90} ${LDFLAGS} -o $@ makeStr.o libenum.a ${LIBS} 
 
-find_structure_in_list.x: ${OBJS} find_structure_in_list.o
+find_structure_in_list.x: pre_comp ${OBJS} find_structure_in_list.o
 	${F90} ${LDFLAGS} -o $@ enumeration_utilities.o find_structure_in_list.o libenum.a ${LIBS}
 
-convert_structures_to_enumformat.x: ${OBJS} convert_structures_to_enumformat.o
-	${F90} ${LDFLAGS} -o $@  enumeration_utilities.o convert_structures_to_enumformat.o libenum.a ${LIBS}
+convert_structures_to_enumformat.x: pre_comp ${OBJS} convert_structures_to_enumformat.o
+	${F90} ${LDFLAGS} -o $@ convert_structures_to_enumformat.o libenum.a ${LIBS}
 
-makestr.2d: makeStr2d.o
+makestr.2d: pre_comp makeStr2d.o
 	${F90} ${LDFLAGS} -o $@ makeStr2d.o libenum.a ${LIBS} 
 
-makeperovstr.x: makePerovStr.o
-	${F90} ${LDFLAGS} -o $@ makePerovStr.o ${LIBS}
+makeperovstr.x: pre_comp cwrapper.o makePerovStr.o
+	${F90} ${LDFLAGS} -o $@ cwrapper.o makePerovStr.o ${LIBS}
 
-makestructin.x: makeStrIn.o
-	${F90} ${LDFLAGS} -o $@ makeStrIn.o libenum.a ${LIBS}
+randReduceTest.x: pre_comp cwrapper.o random_lattice_driver.o
+	${F90} ${LDFLAGS} -o $@ cwrapper.o random_lattice_driver.o libenum.a ${LIBS}
 
-randReduceTest.x: random_lattice_driver.o
-	${F90} ${LDFLAGS} -o $@ random_lattice_driver.o libenum.a ${LIBS}
-
-compare_enum_files.x:  compare_two_enum_files.o
+compare_enum_files.x: pre_comp compare_two_enum_files.o
 	${F90} ${LDFLAGS} -o $@ compare_two_enum_files.o libenum.a ${LIBS}
 
 .f95.o : 
@@ -131,8 +128,10 @@ compare_enum_files.x:  compare_two_enum_files.o
 
 
 CLEAN  = *.o *.mod *.a *.x svn-commit.*
-clean : 
+clean :
+	+$(MAKE) clean -C ../symlib/src
 	rm -f ${CLEAN}
 clobber : 
+	+$(MAKE) clobber -C ../symlib/src
 	rm -f  ${CLEAN}  *~ \#*
 	make

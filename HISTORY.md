@@ -1,5 +1,31 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.8
+
+- Removed Polya submodule.
+
+## Revision 1.0.7
+
+- Removed makestructin.x from the makefile since it's driver is no
+  longer part of the repository.
+
+- Swapped the order of fname in the calling interface of
+  read_struct_enum_out in io_utils.f90 so that it appears last in the
+  list as discussed is issue #33.
+
+- Changed f2name in compare_two_enum_file.f90 so that it is
+  allocatable as discussed in issue #33.
+
+- Rewrote the driver so that it will compile the symlib and polya
+  depenencies when it compiles enumlib.
+
+- Removed the 'use io_utils' from
+  aux_src/convert_structures_to_enumform.f90 as mentioned in issue
+  #37. The convert_structures_to_enumform.x executable now compiles.
+
+- Fixed the maxLabLength in makePerovStr.f90 to be 100. Also fixed the
+  call to reduce_to_shortest_basis as described in issue #38. 
+
 ## Revision 1.0.6
 
 - The maximum allowed binomial, max_binomial in

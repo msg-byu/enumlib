@@ -8,7 +8,8 @@ use enumeration_utilities
 use io_utils
 use derivative_structure_generator
 implicit none
-character(800) f1name, title, f2name, dummy
+character(800) f1name, title, dummy
+character(len=:), allocatable :: f2name
 real(dp), dimension(3,3) :: pLV1, pLV2
 integer, dimension(3,3,1):: L, SNF
 real(dp), pointer :: dset1(:,:), dset2(:,:), sLVlist(:,:,:)
@@ -45,7 +46,7 @@ if(iargc()/=2) stop "Need two arguments: source and target struct_enum.out-type 
 call read_struct_enum_out_oldstyle(title,LatDim1,pLV1,nD1,dset1,k,eq,Nmin,Nmax,eps,full,dLabel,digit,f1name,crange)
 !call read_struct_enum_out(title,LatDim2,pLV2,nD2,dset2,k,eq,Nmin,Nmax,eps,full,pLabel,digit,f2name,crange,conc_check)
 !write(*,'("Read file ",a80)') f1name
-call read_struct_enum_out(title,LatDim2,pLV2,nD2,dset2,k,eq,Nmin,Nmax,eps,full,dLabel,digit,f2name,crange)
+call read_struct_enum_out(title,LatDim2,pLV2,nD2,dset2,k,eq,Nmin,Nmax,eps,full,dLabel,digit,crange,f2name)
 !!print *,"latdim1",latdim1,"latdim2"
 !!if (LatDim1/=LatDim2) stop "Bulk/surf modes are not the same in the input files"
 if (.not. equal(pLV2,pLV1,eps)) stop "Parent lattice vectors are not equivalent"

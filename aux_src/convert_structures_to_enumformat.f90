@@ -563,11 +563,9 @@ END MODULE
 !! file to enumformat with the help of lat.in the main concept is
 !! taken from find_structure_in_list. </summary>
 program convert_structures_to_enumformat
-!use num_types
 use enumeration_utilities
 use ce_types
 use vector_matrix_utilities
-use io_utils
 use symmetry
 implicit none
 
