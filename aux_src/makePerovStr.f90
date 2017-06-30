@@ -4,9 +4,10 @@
 PROGRAM makeStr
 use num_types
 use vector_matrix_utilities
+use cwrapper
 implicit none
 character(80) fname, title, strname, strNstring
-character(maxLabLength) :: labeling
+character(100) :: labeling
 integer ioerr, iline, z1, z2, z3, ic, i, ilab, pgOps, nD, hnfN, iFace
 integer k, strN, sizeN, nAt, diag(3), a,b,c,d,e,f, HNF(3,3), L(3,3)
 real(dp) :: p(3,3), sLV(3,3), Sinv(3,3), sLVorig(3,3), eps, v(3), Binv(3,3), sLVinv(3,3), face(3,3)
@@ -94,7 +95,7 @@ write(12,'(a80)') trim(adjustl(title)) // " str #: " // adjustl(strNstring)
 write(12,'("scale factor")')
 ! Make "nice" superlattice vectors (maximally orthogonal, Minkowski reduced)
 sLVorig = matmul(p,HNF)
-call reduce_to_shortest_basis(sLVorig,sLV,eps)
+call aflow_reduce_to_shortest_basis(sLVorig,sLV,eps)
 call matrix_inverse(sLV,sLVinv)
 do i = 1,3
    write(12,'(3f12.8)') sLV(:,i)
