@@ -1,5 +1,9 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.8
+
+- Removed Polya submodule.
+
 ## Revision 1.0.7
 
 - Removed makestructin.x from the makefile since it's driver is no

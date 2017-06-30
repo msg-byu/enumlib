@@ -1,6 +1,3 @@
-[submodule "polya"]
-	path = polya
-	url = https://github.com/rosenbrockc/polya
 [submodule "symlib"]
 	path = symlib
 	url = https://github.com/msg-byu/symlib
