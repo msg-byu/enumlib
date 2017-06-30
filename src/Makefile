@@ -76,6 +76,8 @@ VPATH:= ../aux_src: ../src
 .SUFFIXES :  
 .SUFFIXES :  .f .f90 .f95 .o
 
+lib: pre_comp libenum.a
+
 pre_comp:
 	+$(MAKE) -C ../symlib/src
 
