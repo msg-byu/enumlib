@@ -1,5 +1,10 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.9
+
+- Fixed the bug reported in [issue
+  #45](https://github.com/msg-byu/enumlib/issues/45).
+
 ## Revision 1.0.8
 
 - Removed Polya submodule.
