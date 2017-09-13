@@ -2,7 +2,7 @@
 
 ## Revision 1.0.9
 
-- Fixed the dug reported in [issue
+- Fixed the bug reported in [issue
   #45](https://github.com/msg-byu/enumlib/issues/45).
 
 ## Revision 1.0.8
