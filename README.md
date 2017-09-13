@@ -20,7 +20,7 @@ lattice).
 
 A discussion of the algorithm and its applications can be found in the
 following publications. If you use this code in a publication, we
-would appreciate it if you would cite these papers. Thank you.
+would appreciate it if you would cite the appropriate paper below. Thank you.
 
 
 [Gus L. W. Hart and Rodney W. Forcade, "Algorithm for generating
@@ -46,8 +46,8 @@ To compile the code manually, clone the repository with the `--recursive flag`:
 git clone --recursive https://github.com/msg-byu/enumlib.git
 ```
 
-Now we need to compile the `polya` and `symlib` submodules before
-compiling enumlib. First, compile `symlib`.   
+We need to compile the `symlib` submodule before
+compiling enumlib.    
 Go to the `enumlib/symlib/src` directory:  
 ```cd enumlib/symlib/src```
 
@@ -61,12 +61,7 @@ Then compile using the Makefile:
 
 (Alternatively, instead of setting the `F90` environmental variable first, you may just specify the variable during the make: `make F90=gfortran`.)
 
-Next we need to compile the `polya` submodule.
-```cd ../../polya/fortran/
-make
-```
-
-Finally, make the enumeration library  
+Next, make the enumeration library  
 ```cd ../../enumlib/src```  
 `make`
 
