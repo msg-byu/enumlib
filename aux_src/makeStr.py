@@ -665,6 +665,7 @@ def _read_enum_out(args):
     system["dvecs"] = []
     line_count = 1
     system["nD"] = 0
+    adjust = 0
     for line in structf:
         temp = line.rstrip()
         if not temp.startswith("#") and "#" not in temp.split()[0]:
@@ -684,7 +685,12 @@ def _read_enum_out(args):
                 system["k"] = int(temp.split('-')[0].strip())
             if line_count == 9 + system["nD"]:
                 system["eps"] = float(temp.strip().split()[0])
-            if line_count - (14 + system["nD"]) in structures:
+            if line_count == 11 + system["nD"]:
+                if "T" == temp.strip().split()[0]:
+                    adjust = system["nD"] + system["k"] + 1
+                else:
+                    adjust = system["nD"]
+            if line_count - (14 + adjust) in structures:
                 data = temp.split()
                 this_struct = {}
                 this_struct["strN"] = int(data[0])
