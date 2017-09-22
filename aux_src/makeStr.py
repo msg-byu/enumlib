@@ -466,7 +466,7 @@ def _get_lattice_parameter(elements, concentrations, default_title):
                 if concentrations[i] > 0:
                     title += " {} ".format(elements[i])
             lat_param = float(lat_param) / sum(concentrations)
-            title = "{0} {1}\n".format(default_title.strip(),title)
+            title = "{0} {1}\n".format(title,default_title.strip()) # Change made by mouli swapped title and default title. Useful for quippy.
     return lat_param, title
 
 def _cartesian2direct(sLV,aBas, eps):
@@ -765,6 +765,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
     # user.
     lattice_parameter, title = _get_lattice_parameter(args["species"],concs,def_title)
 
+    
     # Find out the directions for each arrow.
     for arrow in arrows:
         directions.append(array(arrow_directions[int(arrow)]))

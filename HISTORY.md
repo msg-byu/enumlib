@@ -1,5 +1,9 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.10
+
+- Changed makeStr.py -- For quippy reads a VASP file only if the species name is written first in the title. Changed the way title is written.
+
 ## Revision 1.0.9
 
 - Fixed the bug reported in [issue
