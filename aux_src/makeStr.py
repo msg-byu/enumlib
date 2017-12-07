@@ -441,32 +441,58 @@ def _reduce_C_in_ABC(A,B,C,eps):
 
     return A, B, C
 
-def _get_lattice_parameter(elements, concentrations, default_title):
-    """Finds the lattice parameters for the provided atomic species using Vagars law.
+def _get_lat_param_element(lat_vecs,n_basis_atoms,element):
+    """Finds the lattice parameter of an element for the given set of lattice.
 
-    :arg elements: A dictionary of elements in the system and their concentrations.
-    :arg title: The default system title.
-    :arg concentrations: The concentrations of each element.
+    Args:
+        lat_vecs (list): The lattice vectors for the system.
+        n_basis_atoms (int): The number of atoms in the atomic basis.
+        element (str): The symbol for the element.
+    
+    Returns:
+        lat_param (float): The lattice parameter.
     """
 
-    if elements == None:
+    lat_vol = abs(np.linalg.det(lat_vecs)/n_basis_atoms)
+    atom_vol = element_volume[element]/lat_vol
+
+    return atom_vol**(1./3.)   
+
+def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title):
+    """Finds the lattice parameters for the provided atomic species using Vagars law.
+
+    Args:
+        elements (list of str): A list of the elements in the system.
+        default_title (str): The default system title.
+        concentrations (list of int): The concentrations of each element.
+        lat_vecs (list): The lattice vectors for the system.
+        n_basis_atoms (int): The number of atoms in the atomic basis.
+
+    Returns:
+        lat_param (float): The lattice parameter of the system.
+
+    Raises:
+        ValueError: if the number of elements doesn't match the len of the concentration array.
+    """
+
+    if elements is None:
         lat_param = 1.0
         title = default_title
     else:
         if len(elements) != len(concentrations):
-            raise ValueError("You have provided {} element names when {} elements are present "
+            raise ValueError("You have provided {0} element names when {1} elements are present "
                 "in the system. Please provide the correct number of elements."
                 .format(len(elements),len(concentrations)))
 
         else:
             title = ""
             lat_param = 0
-            for i in range(len(elements)):
-                lat_param += concentrations[i]*all_elements[elements[i]]
+            for i, elem in enumerate(elements):
+                lat_param += concentrations[i]*get_lat_param_element(lat_vecs,n_basis_atoms,elem)
                 if concentrations[i] > 0:
-                    title += " {} ".format(elements[i])
+                    title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
-            title = "{0} {1}\n".format(default_title.strip(),title)
+            title = "{0} {1}\n".format(title,default_title.strip())
     return lat_param, title
 
 def _cartesian2direct(sLV,aBas, eps):
@@ -763,7 +789,9 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
 
     # Get the lattice parameter for the atomic species provided by the
     # user.
-    lattice_parameter, title = _get_lattice_parameter(args["species"],concs,def_title)
+    lattice_parameter, title = _get_lattice_parameter(args["species"],concs,
+                                                      system_data["plattice"],system_data["nD"],
+                                                      def_title)
 
     # Find out the directions for each arrow.
     for arrow in arrows:

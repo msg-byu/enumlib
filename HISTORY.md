@@ -1,5 +1,11 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.10
+
+-Fixed the calculation of the lattice parameter in aux_src/makeStr.py so that the lattice
+ parameter for each atom will be determined by it's atomic volume with
+ respect to the volume per atom of the parent cell.
+
 ## Revision 1.0.9
 
 - Fixed the bug reported in [issue
