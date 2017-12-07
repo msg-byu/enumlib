@@ -1,10 +1,24 @@
 # Revision History for `enumlib`
 
-## Revision 1.0.10
+## Revision 1.0.12 (WSM)
 
 -Fixed the calculation of the lattice parameter in aux_src/makeStr.py so that the lattice
  parameter for each atom will be determined by it's atomic volume with
  respect to the volume per atom of the parent cell.
+
+## Revision 1.0.11 (CMN)
+
+- Changed makeStr.py -- For quippy reads a VASP file only if the species name is written first in the title. Changed the way title is written.
+
+## Revision 1.0.10 (GLWH)
+
+- Added a new write-up of the interior points document for reciprocal space. Fixed typos in the original.
+(Tim Mueller taught us that we do not need the interior points formula to get the interior
+points. Just making combinations of the vectors, with integers less than the diagonals on the HNF,
+generates a unique (but not interior) set.
+
+- Forgot to make changes in this document for those
+changes, so committing/pushing again.
 
 ## Revision 1.0.9
 

@@ -1,31 +1,42 @@
 \documentclass[11pt]{article}
-\setlength{\topmargin}{-3cm}
+\setlength{\topmargin}{-2cm}
 \setlength{\oddsidemargin}{-1cm}
 \setlength{\evensidemargin}{-1cm}
 \setlength{\textwidth}{7.5in}
+\setlength{\textheight}{10in}
 \usepackage{amsmath,amssymb}
 \pagestyle{empty}
 \begin{document}
-\textbf{Finding the interior points}\\
-$\mathbb{A}$ is a matrix where the columns are the vectors of the
-parent lattice, $L_A$. $\mathbb{S}$ is an (integer) Hermite Normal
-Form matrix. Then, the superlattice
-is $L_B$, given by $\mathbb{B=AS}$.
+\noindent \textbf{Finding the $k$-grid points inside the reciprocal
+  cell}\\
 
-We want to know which points of $L_A$ are within one tile of
-$L_B$. Let a point within the tile be denoted $\vec x$. The components
+\vspace{0.1cm}
+Let $L_K$ be the $k$-grid lattice. Let $\mathbb{K}$ be a matrix where the columns are the vectors of the
+generating grid. The matrix $\mathbb{S}$ that transforms the $k$-grid
+vectors into the reciprocal vectors must have all integer
+elements. Its determinant is equal to the number of reducible
+$k$-points.  Then, the recriprocal lattice, $L_R$, is given by
+$\mathbb{R=KS}$ (where the columns of $\mathbb{R}$ are the reciprocal
+lattice vectors).
+ With no loss of generality, we may choose $\mathbb{S}$ as Hermite Normal
+ Form matrix.
+
+ 
+We want to know which points of $L_K$ are within the first unit cell of
+$L_R$. Let a point within the cell be denoted $\vec x$. The (lattice) components
 of $\vec x$ must be $0\leq x_i<1$. Since we are interested in points
-in the tile that are also points of $L_A$, we have
-$\mathbb{B}\vec x = \mathbb{A}\vec z$ where the components of $z$
-are integers.
+in the cell that are also points of $L_K$, we have
+$\mathbb{R}\vec x = \mathbb{K}\vec z$ where the components of $z$
+are integers. (If so, then $\vec x$ is obviously a lattice point of the
+$k$-grid [that is, $\vec x \in L_k$].)
 
-But since $\mathbb{B=AS}$,\\
+But since $\mathbb{R=KS}$,\\
 \parbox{2cm}{\ }
 \parbox{5cm}{
 \begin{eqnarray*}
-\mathbb{B}\vec x& = & \mathbb{A}\vec z\\
-\mathbb{AS}\vec x& = &\mathbb{A}\vec z\\
-\mathbb{A}^{-1}\mathbb{AS}\vec x& = &\mathbb{A}^{-1}\mathbb{A}\vec z\\
+\mathbb{R}\vec x& = & \mathbb{K}\vec z\\
+\mathbb{KS}\vec x& = &\mathbb{K}\vec z\\
+\mathbb{K}^{-1}\mathbb{KS}\vec x& = &\mathbb{K}^{-1}\mathbb{K}\vec z\\
 \mathbb{S}\vec x& = &\vec z\\
 \end{eqnarray*}
 }$\Rightarrow$
