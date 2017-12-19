@@ -4,16 +4,18 @@ from termcolor import cprint
 import warnings
 
 # The dictionary of all the elements on the periodic table
-all_elements ={"H": 3.75,"He": 3.57,"Li": 3.49,"Be": 2.29,"B": 8.73,"C": 3.57,"N": 4.039,
-               "O": 6.83,"Ne": 4.43,"Na": 4.23,"Mg": 3.21,"Al": 4.05,"Si": 5.43,"P": 7.17,
-               "S": 10.47,"Cl": 6.24,"Ar": 5.26,"K": 5.23,"Ca": 5.58,"Sc": 3.31,"Ti": 2.95,
-               "V": 3.02,"Cr": 2.88,"Mn": 8.89,"Fe": 2.87,"Co": 2.51,"Ni": 3.52,"Cu": 3.61,
-               "Zn": 2.66,"Ga": 4.51,"Ge": 5.66,"As": 4.13,"Se": 4.36,"Br": 6.67,"Kr": 5.72,
-               "Rb": 5.59,"Sr": 6.08,"Y": 3.65,"Zr": 3.23,"Nb": 3.3,"Mo": 3.15,"Tc": 2.74,
-               "Ru": 2.7,"Rh": 3.8,"Pd": 3.89,"Ag": 4.09,"Cd": 2.98,"In": 4.59,"Sn": 5.82,
-               "Sb": 4.51,"Te": 4.45,"I": 7.27,"Xe": 6.2,"Cs": 6.05,"Ba": 5.02,"Hf": 3.2,
-               "Ta": 3.31,"W": 3.16,"Re": 2.76,"Os": 2.64,"Ir": 3.84,"Pt": 3.92,"Au": 4.08,
-               "Hg": 2.99,"Tl": 3.46,"Pb": 4.95,"Bi": 4.75}
+element_volume ={"H":37.2958,"He":32.1789,"Li":21.2543,"Be":8.49323,"B":7.24205,"C":5.68741,
+                 "N":46.6002,"O":22.2802,"F":17.0258,"Ne":21.7346,"Na":23.2596,"Mg":23.3928,
+                 "Al":16.6075,"Si":7.8511,"P":9.1459,"S":17.1672,"Cl":35.2074,"Ar":36.3829,
+                 "K":71.5278,"Ca":43.4353,"Sc":25.6478,"Ti":18.1565,"V":13.7718,"Cr":11.9439,
+                 "Mn":19.3207,"Fe":11.82,"Co":11.1838,"Ni":10.9036,"Cu":11.7615,"Zn":13.311,
+                 "Ga":18.4496,"Ge":19.3638,"As":20.4270,"Se":58.6173,"Br":33.3170,"Kr":46.7873,
+                 "Rb":87.3384,"Sr":56.1889,"Y":33.0792,"Zr":23.8327,"Nb":17.9685,"Mo":15.6279,
+                 "Tc":14.5458,"Ru":13.9206,"Rh":13.718,"Pd":14.716,"Ag":17.1045,"Cd":18.7161,
+                 "In":26.6861,"Sn":29.3238,"Sb":27.1733,"Te":62.3227,"I":24.3807,"Xe":59.582,
+                 "Cs":110.723,"Ba":63.253,"Hf":23.1748,"Ta":18.1323,"W":15.7772,"Re":14.8694,
+                 "Os":14.5485,"Ir":14.1558,"Pt":15.0591,"Au":16.9793,"Hg":27.6914,"Tl":29.2949,
+                 "Pd":30.3218,"Bi":31.2849}
 
 verbosity = None
 """The verbosity level of messages being printed by the module."""
@@ -78,7 +80,6 @@ def deprecated(func):
 def exhandler(function, parser):
     """If -examples was specified in 'args', the specified function
     is called and the application exits.
-
     :arg function: the function that prints the examples.
     :arg parser: the initialized instance of the parser that has the
       additional, script-specific parameters.
@@ -102,7 +103,6 @@ def set_testmode(testing):
 
 def RepresentsInt(s):
     """Determines if a string could be an int.
-
     :arg s: The string to be tested.
     """    
     try: 
@@ -113,7 +113,6 @@ def RepresentsInt(s):
     
 def RepresentsFloat(s):
     """Determines if a string could be an float.
-
     :arg s: The string to be tested.
     """    
     try: 
@@ -183,7 +182,6 @@ def arb(text, cols, split):
 
 def set_verbosity(level):
     """Sets the modules message verbosity level for *all* messages printed.
-
     :arg level: a positive integer (>0); higher levels including more detail.
     """
     global verbosity
@@ -259,7 +257,6 @@ def _gaussian_reduce_two_vectors(U,V,eps):
     0302-974, ANTS - VI: algorithmic number theory, 2004, vol. 3076,
     pp. 338-357 ISBN 3-540-22156-5. Fixes made Apr 2012 GLWH (not sure
     if they made a practical difference though)
-
     :arg U: a vector
     :arg V: a vector
     :arg eps: finite precision tolerance
@@ -297,7 +294,6 @@ def _gaussian_reduce_two_vectors(U,V,eps):
 def _minkowski_conditions_check(basis,eps):
     """This function checks the minkowski conditions for a 3D lattice
     basis.
-
     :arg basis: The atomic basis vectors
     :arg eps: finitie precision tolerance
     """
@@ -366,7 +362,6 @@ def _reduce_C_in_ABC(A,B,C,eps):
     vector. See Lecture notes in computer science, ISSN 0302-974, ANTS
     - VI : algorithmic number theory, 2004, vol. 3076, pp. 338-357
     ISBN 3-540-22156-5
-
     :arg A: a vector
     :arg B: a vector
     :arg C: a vector
@@ -441,43 +436,63 @@ def _reduce_C_in_ABC(A,B,C,eps):
 
     return A, B, C
 
-def _get_lattice_parameter(elements, concentrations, default_title):
-    """Finds the lattice parameters for the provided atomic species using Vagars law.
-
-    :arg elements: A dictionary of elements in the system and their concentrations.
-    :arg title: The default system title.
-    :arg concentrations: The concentrations of each element.
+def _get_lat_param_element(lat_vecs,n_basis_atoms,element):
+    """Finds the lattice parameter of an element for the given set of lattice.
+    Args:
+        lat_vecs (list): The lattice vectors for the system.
+        n_basis_atoms (int): The number of atoms in the atomic basis.
+        element (str): The symbol for the element.
+    
+    Returns:
+        lat_param (float): The lattice parameter.
     """
 
-    if elements == None:
+    lat_vol = abs(np.linalg.det(lat_vecs)/n_basis_atoms)
+    atom_vol = element_volume[element]/lat_vol
+
+    return atom_vol**(1./3.)   
+
+def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title):
+    """Finds the lattice parameters for the provided atomic species using Vagars law.
+    Args:
+        elements (list of str): A list of the elements in the system.
+        default_title (str): The default system title.
+        concentrations (list of int): The concentrations of each element.
+        lat_vecs (list): The lattice vectors for the system.
+        n_basis_atoms (int): The number of atoms in the atomic basis.
+    Returns:
+        lat_param (float): The lattice parameter of the system.
+    Raises:
+        ValueError: if the number of elements doesn't match the len of the concentration array.
+    """
+
+    if elements is None:
         lat_param = 1.0
         title = default_title
     else:
         if len(elements) != len(concentrations):
-            raise ValueError("You have provided {} element names when {} elements are present "
+            raise ValueError("You have provided {0} element names when {1} elements are present "
                 "in the system. Please provide the correct number of elements."
                 .format(len(elements),len(concentrations)))
 
         else:
             title = ""
             lat_param = 0
-            for i in range(len(elements)):
-                lat_param += concentrations[i]*all_elements[elements[i]]
+            for i, elem in enumerate(elements):
+                lat_param += concentrations[i]*get_lat_param_element(lat_vecs,n_basis_atoms,elem)
                 if concentrations[i] > 0:
-                    title += " {} ".format(elements[i])
+                    title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
-            title = "{0} {1}\n".format(title,default_title.strip()) # Change made by mouli swapped title and default title. Useful for quippy.
+            title = "{0} {1}\n".format(title,default_title.strip())
     return lat_param, title
 
 def _cartesian2direct(sLV,aBas, eps):
     """This routine takes three lattice vectors and a list of atomic basis
     vector in Cartesian coordinates and converts them to direct
     ("lattice") coordinates.
-
     :arg sLV: Superlattice vectors (Cartesian coordinates)
     :arg aBas: Atomic positions (cartesian coordinates first, then direct)
     :arg eps: Finite precision tolerance.
-
     """
     from numpy import linalg, matmul, array
     
@@ -499,11 +514,9 @@ def _cartesian2direct(sLV,aBas, eps):
 def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
     """Maps an enumerated structure back to real space. Returns a
     dictionary containing the real space data.
-
     :arg system_data: a dictionary containing all the information about the sysytem.
     :arg sturture_data: a dictionary containing the information for this structure.
     :arg minkowskiReduce: logical indicating if basis should be reduced.
-
     """
     from numpy import matmul, allclose, matrix, array
     
@@ -641,7 +654,6 @@ def _minkowski_reduce_basis(IN,eps):
 def _read_enum_out(args):
     """Reads the struct_enum.out file and builds a dictionary with the needed
     information to construct a POSCAR.
-
     :arg args: The makeStr.py input arguments
     """
 
@@ -722,7 +734,6 @@ def _read_enum_out(args):
 def _write_POSCAR(system_data,space_data,structure_data,args):
     """Writes a vasp POSCAR style file for the input structure and system
     data.
-
     :arg system_data: a dictionary of the system_data
     :arg space_data: a dictionary containing the spacial data
     :arg structure_data: a dictionary of the data for this structure
@@ -763,9 +774,10 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
 
     # Get the lattice parameter for the atomic species provided by the
     # user.
-    lattice_parameter, title = _get_lattice_parameter(args["species"],concs,def_title)
+    lattice_parameter, title = _get_lattice_parameter(args["species"],concs,
+                                                      system_data["plattice"],system_data["nD"],
+                                                      def_title)
 
-    
     # Find out the directions for each arrow.
     for arrow in arrows:
         directions.append(array(arrow_directions[int(arrow)]))
