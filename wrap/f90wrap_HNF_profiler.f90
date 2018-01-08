@@ -5,7 +5,7 @@ subroutine f90wrap_get_hnfs(a, hnfs, r_mins, n_, eps_)
     implicit none
     
     real(8), intent(in), dimension(3,3) :: a
-    integer, dimension(3,3,100), intent(inout) :: hnfs
+    integer, dimension(100,3,3), intent(inout) :: hnfs
     real(8), dimension(100), intent(inout) :: r_mins
     integer, intent(in), optional :: n_
     real(8), intent(in), optional :: eps_

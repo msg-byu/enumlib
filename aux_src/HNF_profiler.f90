@@ -22,7 +22,7 @@ CONTAINS
   !!HNFs.</parameter>
   subroutine get_HNFs(A,hnfs,r_mins,n_,eps_)
     real(dp), intent(in) :: A(3,3)
-    integer, intent(out) :: hnfs(3,3,100)
+    integer, intent(out) :: hnfs(100,3,3)
     real(dp), intent(out) :: r_mins(100)
     integer, intent(in), optional :: n_
     real(dp), intent(in), optional :: eps_
@@ -35,7 +35,7 @@ CONTAINS
     type(opList), pointer :: fixop(:)
     real(dp), pointer :: latts(:,:,:), d(:,:)
     real(dp) :: reduced_latt(3,3), norms(3), inv_lat(3,3)
-    integer :: temp_hnfs(3,3,100)
+    integer :: temp_hnfs(100,3,3)
 
     LatDim = 3
     n_min = 2
@@ -73,21 +73,21 @@ CONTAINS
           if (count_i ==0) then
              count_i = count_i + 1
              max_rmin = this_rmin
-             temp_hnfs(:,:,count_i) = matmul(inv_lat,reduced_latt)
+             temp_hnfs(count_i,:,:) = matmul(inv_lat,reduced_latt)
           else if (abs(this_rmin-max_rmin)<eps) then
              count_i = count_i + 1
-             temp_hnfs(:,:,count_i) = matmul(inv_lat,reduced_latt)
+             temp_hnfs(count_i,:,:) = matmul(inv_lat,reduced_latt)
           else if (this_rmin > max_rmin) then
              count_i = 1
              temp_hnfs = 0
              max_rmin = this_rmin
-             temp_hnfs(:,:,count_i) = matmul(inv_lat,reduced_latt)
+             temp_hnfs(count_i,:,:) = matmul(inv_lat,reduced_latt)
           end if
        end do
 
        do j=1,count_i
           n_hnfs = n_hnfs + 1
-          hnfs(:,:,n_hnfs) = temp_hnfs(:,:,j)
+          hnfs(n_hnfs,:,:) = temp_hnfs(j,:,:)
           r_mins(n_hnfs) = max_rmin
           if (n_hnfs==100) exit 
        end do
