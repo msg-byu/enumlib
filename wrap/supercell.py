@@ -1,8 +1,32 @@
 import _supercell
 import f90wrap.runtime
 import logging
+import numpy as np
+
+def get_supers(atoms,n_=None,eps_=None):
+    """Generates the hnfs for the given atoms object from n=2 multiples to
+    n_ (default 100) multiples of the parent cell.
+
+    Args:
+        atoms (quipy.atoms.Atoms): an atoms object that the supercell 
+            matrices will be found for.
+        n_ (int): optional maximum number of multiples to find.
+        eps_ (float): optional floating point tolerance.
+    
+    Returns:
+        (hnfs,rmin) the integer matrices that create unique supercells of the parent,
+            and the rmin_values that match.
+    """
+
+    hnfs = np.zeros((100,3,3), dtype=np.int32, order='F')
+    rmin = np.zeros(100, dtype=float, order='F')
+    Hnf_Profiler.get_hnfs(np.transpose(atoms.cell),hnfs,rmin,n_=n_,eps_=eps_)
+    keep = np.where(rmin != 0)[0]
+
+    return (hnfs[keep],rmin[keep])
 
 class Hnf_Profiler(f90wrap.runtime.FortranModule):
+
     """
     Module hnf_profiler
     
