@@ -11,7 +11,7 @@ class Hnf_Profiler(f90wrap.runtime.FortranModule):
     
     """
     @staticmethod
-    def get_hnfs(a, basis, hnfs, r_mins, n_=None, eps_=None):
+    def get_hnfs(a, hnfs, r_mins, n_=None, eps_=None):
         """
         get_hnfs(a, basis, hnfs, r_mins[, n_, eps_])
         
@@ -28,7 +28,7 @@ class Hnf_Profiler(f90wrap.runtime.FortranModule):
         eps_ : float
         
         """
-        _supercell.f90wrap_get_hnfs(a=a, basis=basis, hnfs=hnfs, r_mins=r_mins, n_=n_, \
+        _supercell.f90wrap_get_hnfs(a=a, hnfs=hnfs, r_mins=r_mins, n_=n_, \
             eps_=eps_)
     
     _dt_array_initialisers = []

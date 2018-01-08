@@ -2,7 +2,7 @@ Module HNF_profiler
 use num_types
 use derivative_structure_generator, only: get_all_HNFs, remove_duplicate_lattices, &
      & get_dvector_permutations
-use vector_matrix_utilities, only: minkowski_reduce_basis, norm
+use vector_matrix_utilities, only: minkowski_reduce_basis, norm, matrix_inverse
 use enumeration_types
 implicit none
 public get_HNFs
@@ -52,7 +52,7 @@ CONTAINS
     end if
 
     allocate(d(3,1))
-    d = (/0.0_dp,0.0_dp,0.0_dp/)
+    d = 0.0_dp
     hnfs = 0
     n_hnfs = 0
     r_mins = 0
