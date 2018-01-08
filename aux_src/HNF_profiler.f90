@@ -73,15 +73,15 @@ CONTAINS
           if (count_i ==0) then
              count_i = count_i + 1
              max_rmin = this_rmin
-             temp_hnfs(:,:,count_i) = matmul(inv_lat,latts(:,:,j))
+             temp_hnfs(:,:,count_i) = matmul(inv_lat,reduced_latt)
           else if (abs(this_rmin-max_rmin)<eps) then
              count_i = count_i + 1
-             temp_hnfs(:,:,count_i) = matmul(inv_lat,latts(:,:,j))
+             temp_hnfs(:,:,count_i) = matmul(inv_lat,reduced_latt)
           else if (this_rmin > max_rmin) then
              count_i = 1
              temp_hnfs = 0
              max_rmin = this_rmin
-             temp_hnfs(:,:,count_i) = matmul(inv_lat,latts(:,:,j))
+             temp_hnfs(:,:,count_i) = matmul(inv_lat,reduced_latt)
           end if
        end do
 
