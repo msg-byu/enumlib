@@ -26,8 +26,8 @@ all: $(OBJSF90)
 
 $(OBJSF90): %.o: %.f90
 	echo "Compiling: $^"
-	-$(F90) -I${LBD1} -I${LBD2} $^ -o $@ ${LIBS}>> $(LOG) 2>> $(LOG)
-	-$(F90) -c -I${LBD1} -I${LBD2} $^
+	-$(F90) -fPIC -I${LBD1} -I${LBD2} $^ -o $@ ${LIBS}>> $(LOG) 2>> $(LOG)
+	-$(F90) -fPIC -c -I${LBD1} -I${LBD2} $^
 	echo "done."
 
 clean:
