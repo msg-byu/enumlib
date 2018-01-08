@@ -12,7 +12,6 @@ CONTAINS
   !!<summary>Lists the HNFs for the given symmetry group.</summary>
   !!<parameter name="A" regular="true">The parent lattice for the
   !!system.</parameter>
-  !!<parameter name="basis" regular="true">The atomic basis.</parameter>
   !!<parameter name="n_" regular="true">The determinant of the desired
   !!HNF.</parameter>
   !!<parameter name="eps_" regular="true">The floating point
@@ -21,8 +20,8 @@ CONTAINS
   !!HNFs.</parameter>
   !!<parameter name="r_mins" regular="true">The r_min values for the
   !!HNFs.</parameter>
-  subroutine get_HNFs(A,basis,hnfs,r_mins,n_,eps_)
-    real(dp), intent(in) :: A(3,3), basis(:,:)
+  subroutine get_HNFs(A,hnfs,r_mins,n_,eps_)
+    real(dp), intent(in) :: A(3,3)
     integer, intent(out) :: hnfs(3,3,100)
     real(dp), intent(out) :: r_mins(100)
     integer, intent(in), optional :: n_
@@ -35,15 +34,15 @@ CONTAINS
     integer, pointer :: all_hnfs(:,:,:), unq_hnfs(:,:,:), degeneracy_list(:)
     type(opList), pointer :: fixop(:)
     real(dp), pointer :: latts(:,:,:), d(:,:)
-    real(dp) :: reduced_latt(3,3), norms(3)
+    real(dp) :: reduced_latt(3,3), norms(3), inv_lat(3,3)
     integer :: temp_hnfs(3,3,100)
 
     LatDim = 3
     n_min = 2
     if (.not. present(n_)) then
-       n_max = 100/size(basis,2)
+       n_max = 100
     else
-       n_max = n_/size(basis,2)
+       n_max = n_
     end if
 
     if (.not. present(eps_)) then
@@ -52,13 +51,14 @@ CONTAINS
        eps = eps_
     end if
 
-    allocate(d(size(basis,1),size(basis,2)))
-    d = basis
+    allocate(d(3,1))
+    d = (/0.0_dp,0.0_dp,0.0_dp/)
     hnfs = 0
     n_hnfs = 0
     r_mins = 0
 
     call get_dvector_permutations(A,d,dRPList,LatDim,eps)
+    call matrix_inverse(A,inv_lat)
 
     do i=n_min,n_max
        call get_all_HNFs(i,all_hnfs)
@@ -73,15 +73,15 @@ CONTAINS
           if (count_i ==0) then
              count_i = count_i + 1
              max_rmin = this_rmin
-             temp_hnfs(:,:,count_i) = unq_hnfs(:,:,j)
+             temp_hnfs(:,:,count_i) = matmul(inv_lat,latts(:,:,j))
           else if (abs(this_rmin-max_rmin)<eps) then
              count_i = count_i + 1
-             temp_hnfs(:,:,count_i) = unq_hnfs(:,:,j)             
+             temp_hnfs(:,:,count_i) = matmul(inv_lat,latts(:,:,j))
           else if (this_rmin > max_rmin) then
              count_i = 1
              temp_hnfs = 0
              max_rmin = this_rmin
-             temp_hnfs(:,:,count_i) = unq_hnfs(:,:,j)             
+             temp_hnfs(:,:,count_i) = matmul(inv_lat,latts(:,:,j))
           end if
        end do
 
