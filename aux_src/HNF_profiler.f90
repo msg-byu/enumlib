@@ -76,7 +76,7 @@ CONTAINS
              temp_hnfs(count_i,:,:) = matmul(inv_lat,reduced_latt)
           else if (abs(this_rmin-max_rmin)<eps) then
              count_i = count_i + 1
-             temp_hnfs(count_i,:,:) = matmul(inv_lat,reduced_latt)
+             temp_hnfs(count_i,:,:) = NINT(matmul(inv_lat,reduced_latt))
           else if (this_rmin > max_rmin) then
              count_i = 1
              temp_hnfs = 0
