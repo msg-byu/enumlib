@@ -7,7 +7,7 @@
 ## Revision 1.0.12 (WSM)
 
 -Fixed the calculation of the lattice parameter in aux_src/makeStr.py so that the lattice
- parameter for each atom will be determined by it's atomic volume with
+ parameter for each atom will be determined by its atomic volume with
  respect to the volume per atom of the parent cell.
 
 ## Revision 1.0.11 (CMN)

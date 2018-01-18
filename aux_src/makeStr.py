@@ -2,6 +2,7 @@
 from __future__ import print_function
 from termcolor import cprint
 import warnings
+import numpy as np
 
 # The dictionary of all the elements on the periodic table
 element_volume ={"H":37.2958,"He":32.1789,"Li":21.2543,"Be":8.49323,"B":7.24205,"C":5.68741,
@@ -479,7 +480,7 @@ def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, de
             title = ""
             lat_param = 0
             for i, elem in enumerate(elements):
-                lat_param += concentrations[i]*get_lat_param_element(lat_vecs,n_basis_atoms,elem)
+                lat_param += concentrations[i]*_get_lat_param_element(lat_vecs,n_basis_atoms,elem)
                 if concentrations[i] > 0:
                     title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
