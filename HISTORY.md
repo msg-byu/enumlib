@@ -1,5 +1,11 @@
 # Revision History for `enumlib`
 
+## Revision 1.0.13 (WSM)
+
+-Fixed the bug reported in
+ [#54](https://github.com/msg-byu/enumlib/issues/54). Also added unit
+ tests files for this new issue.
+
 ## Revision 1.0.12 (WSM)
 
 -Fixed the calculation of the lattice parameter in aux_src/makeStr.py so that the lattice

@@ -703,7 +703,7 @@ def _read_enum_out(args):
                     adjust = system["nD"] + system["k"] + 1
                 else:
                     adjust = system["nD"]
-            if line_count - (14 + adjust) in structures:
+            if line_count - (14 + adjust) in structures and adjust!=0:
                 data = temp.split()
                 this_struct = {}
                 this_struct["strN"] = int(data[0])
