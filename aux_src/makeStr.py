@@ -1,8 +1,12 @@
 """This scripts produces the VASP style POSCAR."""
 from __future__ import print_function
-from termcolor import cprint
 import warnings
 import numpy as np
+
+try:
+    from termcolor import cprint
+except ImportError:
+    cprint = print
 
 # The dictionary of all the elements on the periodic table
 element_volume ={"H":37.2958,"He":32.1789,"Li":21.2543,"Be":8.49323,"B":7.24205,"C":5.68741,
