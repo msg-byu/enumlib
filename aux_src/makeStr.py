@@ -801,13 +801,12 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
         
         poscar.write("  ")
 
-        # Write the concentrations to the output file. If no species
-        # were passed in by the user then we want to write all the
-        # elements concentrations to the file including the
-        # zeros. Otherwise we can exclude the zero concentration
-        # elements from the list so that the file is ready to use out
-        # of VASP.
-        if args["species"] == None:
+        # Write the concentrations to the output file. If the species
+        # strings were passed in by the user and the user requests
+        # there be no zeros in the concentration string then we should
+        # remove them from the file. Otherwise we default to leaving
+        # them in.
+        if not (args["remove_zeros"] and args["species"] is not None):
             for ic in concs:
                 poscar.write("{}   ".format(str(ic)))
         else:
@@ -913,7 +912,9 @@ script_options = {
                               "for the structures.")),
     "-rattle": dict(default=0.0, type=float,
                         help=("Randomizes the positions of the atoms in the POSCAR by no "
-                              "more than the fraction of the displacement provided."))
+                              "more than the fraction of the displacement provided.")),
+    "-remove_zeros" : dict(default="f",choices=["t","f"],
+                   help=("Remove the zeros from the concentrations string in the 'POSCAR'."))    
 }
 """dict: default command-line arguments and their
     :meth:`argparse.ArgumentParser.add_argument` keyword arguments.
@@ -959,6 +960,11 @@ def run(args):
                          "indicate the first and last structure to be used in the input "
                          "file, or all. The values {} don't match this "
                          "format.".format(args["structures"]))
+
+    if args["remove_zeros"] == "t":
+        args["remove_zeros"] = True
+    else:
+        args["remove_zeors"] = False
 
     _make_structures(args)
         
