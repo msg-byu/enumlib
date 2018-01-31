@@ -457,7 +457,7 @@ def _get_lat_param_element(lat_vecs,n_basis_atoms,element):
 
     return atom_vol**(1./3.)   
 
-def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title):
+def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title,remove_zeros=False):
     """Finds the lattice parameters for the provided atomic species using Vagars law.
     Args:
         elements (list of str): A list of the elements in the system.
@@ -485,7 +485,10 @@ def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, de
             lat_param = 0
             for i, elem in enumerate(elements):
                 lat_param += concentrations[i]*_get_lat_param_element(lat_vecs,n_basis_atoms,elem)
-                title += " {0} ".format(elem)
+                if concentrations[i] > 0:
+                    title += " {0} ".format(elem)
+                elif not remove_zeros:
+                    title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
             title = "{0} {1}\n".format(title,default_title.strip())
     return lat_param, title
@@ -783,7 +786,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
     
     lattice_parameter, title = _get_lattice_parameter(species,concs,
                                                      system_data["plattice"],system_data["nD"],
-                                                     def_title)
+                                                      def_title,remove_zeros=True)
 
     # Find out the directions for each arrow.
     for arrow in arrows:
@@ -870,7 +873,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
     # user.
     lattice_parameter, title = _get_lattice_parameter(args["species"],concs,
                                                       system_data["plattice"],system_data["nD"],
-                                                      def_title)
+                                                      def_title,remove_zeros=args["remove_zeros"])
 
     # Find out the directions for each arrow.
     for arrow in arrows:
