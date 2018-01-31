@@ -485,8 +485,7 @@ def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, de
             lat_param = 0
             for i, elem in enumerate(elements):
                 lat_param += concentrations[i]*_get_lat_param_element(lat_vecs,n_basis_atoms,elem)
-                if concentrations[i] > 0:
-                    title += " {0} ".format(elem)
+                title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
             title = "{0} {1}\n".format(title,default_title.strip())
     return lat_param, title
@@ -736,6 +735,96 @@ def _read_enum_out(args):
     
     return (system, structure_data)
 
+def _write_config(system_data,space_data,structure_data,args,mapping=None):
+    """Writes a MTP config style file for the input structure and system
+    data.
+    :arg system_data: a dictionary of the system_data
+    :arg space_data: a dictionary containing the spacial data
+    :arg structure_data: a dictionary of the data for this structure
+    :arg args: Dictionary of user supplied input.
+    :arg mapping: A dictionary of the species mappings if to be used.
+    """
+
+    from numpy import array, dot, transpose
+    from random import uniform
+    from numpy.random import randint
+    
+    filename = args["outfile"]
+
+    # Get the labeling, group index, structure number and arrow labels
+    # from the input data structure.
+    labeling = structure_data["labeling"]            
+    gIndx = space_data["gIndx"]
+    arrows = structure_data["directions"]
+    struct_n = structure_data["strN"]
+
+    # The arrow basis.
+    arrow_directions = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]
+    directions = []
+
+    # Construct the concentrations of the atoms from the labeling by
+    # counting the number of each type of atom present in the
+    # labeling.
+    concs = []
+    for i in range(system_data["k"]):
+        this_conc = 0
+        for atom in range(structure_data["n"]*system_data["nD"]):
+            if labeling[gIndx[atom]] == str(i):
+                this_conc += 1
+        concs.append(this_conc)
+    def_title = "{}{}\n".format(str(system_data["title"]),str(structure_data["strN"]))
+
+    # Get the lattice parameter for the atomic species provided by the
+    # user.
+    if mapping is not None and len(args["species"]) != len(mapping):
+        species = [args["species"][i] for i in mapping.values()]
+    else:
+        species = args["species"]
+    
+    lattice_parameter, title = _get_lattice_parameter(species,concs,
+                                                     system_data["plattice"],system_data["nD"],
+                                                     def_title)
+
+    # Find out the directions for each arrow.
+    for arrow in arrows:
+        directions.append(array(arrow_directions[int(arrow)]))
+
+    sLV = list(lattice_parameter*array(space_data["sLV"]))
+
+    # Start writing the data to the file.
+    with open(filename,"a+") as poscar:
+        # First write the title and the lattice parameter.
+        poscar.write("BEGIN_CFG\n Size\n")
+        poscar.write("    {}\n".format(structure_data["n"]*system_data["nD"]))
+        poscar.write(" SuperCell\n")
+        # Then write out the lattice vectors.
+        for i in range(3):
+            poscar.write("   {}\n".format("      ".join(
+                ["{0: .6f}".format(j) for j in sLV[i]])))
+        
+        poscar.write("  ")
+
+        poscar.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z\n")
+        for iAt in range(structure_data["n"]*system_data["nD"]):
+            for ilab in range(system_data["k"]):
+                rattle = uniform(-args["rattle"],args["rattle"])
+                displace = directions[iAt]*args["displace"]*lattice_parameter
+                # If the displacement is non zero and we're `rattling`
+                # the system then we need to modify the displacement
+                # by the amount being rattled.
+                displace += displace*rattle
+                if labeling[gIndx[iAt]] == str(ilab):
+                    # The final atomic position is the position from
+                    # the basis plus the total displacement.
+                    out_array = list(array(dot(transpose(sLV),space_data["aBas"][iAt])) + displace)
+                    if mapping is None:
+                        out_lab = ilab
+                    else:
+                        out_lab = mapping[ilab]
+                    poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .8f}".format(i) for i in out_array])))
+        poscar.write(" Feature   conf_id  {}\n".format(title.split()[0]))
+        poscar.write("END_CFG\n\n")
+
 def _write_POSCAR(system_data,space_data,structure_data,args):
     """Writes a vasp POSCAR style file for the input structure and system
     data.
@@ -806,14 +895,14 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
         # there be no zeros in the concentration string then we should
         # remove them from the file. Otherwise we default to leaving
         # them in.
-        if not (args["remove_zeros"] and args["species"] is not None):
-            for ic in concs:
-                poscar.write("{}   ".format(str(ic)))
-        else:
+        if (args["remove_zeros"] and args["species"] is not None):
             for ic in concs:
                 if ic != 0:
-                    poscar.write("{}   ".format(str(ic)))                    
-
+                    poscar.write("{}   ".format(str(ic)))
+        else:
+            for ic in concs:
+                poscar.write("{}   ".format(str(ic)))                    
+        
         poscar.write("\n")
         poscar.write("D\n")
         # Now write out the atomic positions to the file.
@@ -846,7 +935,10 @@ def _make_structures(args):
         space_data["aBas"] = _cartesian2direct(space_data["sLV"],
                                               space_data["aBas"],system["eps"])
 
-        _write_POSCAR(system,space_data,structure,args)
+        if args["config"]=="f":
+            _write_POSCAR(system,space_data,structure,args)
+        elif args["config"]=="t":
+            _write_config(system,space_data,structure,args,args["mapping"])
         
 def examples():
     """Print some examples on how to use this python version of the code."""
@@ -907,12 +999,19 @@ script_options = {
                               " Default is True.")),
     "-species": dict(default=None, nargs="+",type=str,
                         help=("Specify the atomic species present in the system.")),
+    "-species_mapping": dict(default=None, nargs="+",type=int,
+                        help=("Specify the atomic species numbers for the system. This option "
+                              "is only used for making MTP config files.")),
     "-outfile": dict(default="vasp.{}",type=str,
                         help=("Override the default output file names: 'vasp.{structure#}'" 
                               "for the structures.")),
     "-rattle": dict(default=0.0, type=float,
                         help=("Randomizes the positions of the atoms in the POSCAR by no "
                               "more than the fraction of the displacement provided.")),
+    "-config" : dict(default="f",choices=["t","f"],
+                   help=("make an MTP config file instead of a VASP POSCAR. If the "
+                         "MTP config file already exists it will be appended to, not "
+                         "overwritten.")),
     "-remove_zeros" : dict(default="f",choices=["t","f"],
                    help=("Remove the zeros from the concentrations string in the 'POSCAR'."))    
 }
@@ -960,11 +1059,18 @@ def run(args):
                          "indicate the first and last structure to be used in the input "
                          "file, or all. The values {} don't match this "
                          "format.".format(args["structures"]))
-
+    
+    if args["species_mapping"] is not None:
+        args["mapping"] = {}
+        for i in range(len(args["species_mapping"])):
+            args["mapping"][i] = args["species_mapping"][i]
+    else:
+        args["mapping"] = None
+        
     if args["remove_zeros"] == "t":
         args["remove_zeros"] = True
     else:
-        args["remove_zeors"] = False
+        args["remove_zeros"] = False
 
     _make_structures(args)
         
