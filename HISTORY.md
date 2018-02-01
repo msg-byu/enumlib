@@ -1,5 +1,10 @@
 # Revision History for `enumlib`
 
+## Revision 1.1.0 (WSM)
+
+- Added the ability for `makesStr.py` to write out config files
+  instead just VASP POSCARs. Implemented tests of new functionality.
+
 ## Revision 1.0.13 (WSM)
 
 -Fixed the bug reported in
