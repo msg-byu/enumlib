@@ -184,7 +184,7 @@ do istrN=strNi,strNf
    !GH write(foutput_unit,'("scale factor")')
    write(foutput_unit,'("1.00")')
    do i = 1,3
-      write(foutput_unit,'(3f12.8)') sLV(:,i)
+      write(foutput_unit,'(3(f12.8,1x))') sLV(:,i)
    enddo
    call matrix_inverse(sLV,sLVinv)
    write(13,'("New inverse after reduction",/,3(3(f7.3,1x),/))') (sLVinv(i,:),i=1,3) 
