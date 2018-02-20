@@ -1,5 +1,9 @@
 # Revision History for `enumlib`
 
+## Revision 1.1.1 (GLWH)
+- Alexandr Fonari made a change to make sure the makstr.f90 included a space 
+between components of the lattice vectors of output POSCAR files.
+
 ## Revision 1.1.0 (WSM)
 
 - Added the ability for `makesStr.py` to write out config files
