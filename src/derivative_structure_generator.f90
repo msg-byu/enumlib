@@ -1224,8 +1224,10 @@ CONTAINS
   !!  for range limitations.</dimension> </parameter>
   !!<parameter name="polya" regular="true">Logical flag for if the
   !!code is running the polya mode.</parameter>
+  !!<parameter name="oldAlgorithm" regular="true">Logical flag for if the
+  !!code is to use old algorithm no matter what.</parameter>
  SUBROUTINE gen_multilattice_derivatives(title, parLV, nDFull, dFull, k, nMin, nMax, pLatTyp, eps, full,&
-       & labelFull,digitFull,equivalencies, conc_check,cRange, polya)
+       & labelFull,digitFull,equivalencies, conc_check,cRange, polya, oldAlgorithm)
     integer, intent(in) :: k, nMin, nMax, nDFull
     integer             :: nD
     !Had to change character to 80 from 10 to match the definition in io_utils.read_input
@@ -1241,6 +1243,7 @@ CONTAINS
     logical, intent(in) :: conc_check
     integer, optional,intent(in)   :: cRange(:,:)
     logical, optional, intent(in) :: polya
+    logical, optional, intent(in) :: oldAlgorithm
     
     integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC, j
     integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
@@ -1483,7 +1486,9 @@ CONTAINS
                    ! efficient. Unless there are arrows present in the
                    ! enumeration or the multinomial of possible
                    ! arrangements is to large for enum3 to handle.
-                   if (any(site_res == 0) .and. (multinomial(iRange(iC,:)) < max_binomial) .and. (arrows .eqv. .false.)) then
+                   if (oldAlgorithm .or. (any(site_res == 0)&
+                         .and. (multinomial(iRange(iC,:)) < max_binomial)&
+                         .and. (arrows .eqv. .false.))) then
                       call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
                            lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
                       call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&
