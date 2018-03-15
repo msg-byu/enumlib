@@ -4,6 +4,7 @@ use derivative_structure_generator, only: get_all_HNFs, remove_duplicate_lattice
      & get_dvector_permutations
 use vector_matrix_utilities, only: minkowski_reduce_basis, norm, matrix_inverse, determinant
 use symmetry, only: make_primitive, get_lattice_pointGroup
+use rational_mathematics, only: HermiteNormalForm
 use enumeration_types
 implicit none
 public get_HNFs
@@ -40,7 +41,7 @@ CONTAINS
     integer, intent(in), optional :: n_
     real(dp), intent(in), optional :: eps_
 
-    integer :: n_min, n_max, LatDim, n_hnfs, i, j, count_i, count_j
+    integer :: n_min, n_max, LatDim, n_hnfs, i, j, count_i, count_j, k
     real(dp) :: eps, max_rmin, this_rmin, this_rmax
     type(RotPermList) :: dRPList
     type(RotPermList), pointer :: RPlist(:)
@@ -48,11 +49,13 @@ CONTAINS
     type(opList), pointer :: fixop(:)
     real(dp), pointer :: latts(:,:,:), d(:,:), pg_Ops(:,:,:), atomPos(:,:)
     real(dp) :: reduced_latt(3,3), norms(3), inv_lat(3,3), prim_lat(3,3)
-    integer :: temp_hnfs(100,3,3), det_fix, js(100)
+    integer :: temp_hnfs(100,3,3), det_fix, js(100), HNF(3,3),temp_mat(3,3)
     integer, pointer :: atomTypes(:)
     real(dp), allocatable, target :: temp_pos(:,:)
     integer, allocatable, target :: temp_types(:)
 
+    ! It only makes sense to use this code for bulk crystals and not
+    ! surfaces so we hardcode the LatDim to be 3.
     LatDim = 3
     n_min = 2
     if (.not. present(n_)) then
@@ -72,6 +75,9 @@ CONTAINS
     hnfs = 0
     n_hnfs = 0
     r_mins = 0
+
+    ! This is so we can fix the determinants of the HNFs for left
+    ! handed systems to be positive.
     if (determinant(A) < 0) then
        det_fix = -1
     else
@@ -80,6 +86,13 @@ CONTAINS
 
     prim_lat = A
 
+    ! Here we allocate temp variables for the atom types and positions
+    ! and then associate them with pointers that will be passed into
+    ! make_primitive. This is necessary because F90wrap cannot have
+    ! pointers declared in the subroutine call derictley and so we
+    ! have to define the pointers internally. The pointers also can't
+    ! be set equal to the input variables becaus it causes segfaults
+    ! when the code is run, hence the temporary variables.
     allocate(temp_pos(size(atom_pos,1),size(atom_pos,2)),temp_types(size(atom_types,1)))
     temp_pos = atom_pos
     temp_types = atom_types 
@@ -91,12 +104,16 @@ CONTAINS
     call matrix_inverse(prim_lat, inv_lat)
 
     do i=n_min,n_max
+       ! Find all the HFNs then remove those that are equivalent.
        call get_all_HNFs(i, all_hnfs)
        call remove_duplicate_lattices(all_hnfs, LatDim, prim_lat, d, dRPList, unq_hnfs, &
             fixop, RPList, latts, degeneracy_list,eps)
        count_i = 0
        max_rmin = 0
        temp_hnfs = 0
+       ! We need to search the HNFs for the one that has the maximum
+       ! r_min. For now we keep all ties but we'll need to change this
+       ! latter.
        do j=1,size(latts,3)
           call minkowski_reduce_basis(latts(:,:,j), reduced_latt, eps)
           norms = norm(reduced_latt)
@@ -105,7 +122,7 @@ CONTAINS
           if (count_i ==0) then
              count_i = count_i + 1
              max_rmin = this_rmin
-             temp_hnfs(count_i,:,:) = matmul(inv_lat, reduced_latt)
+             temp_hnfs(count_i,:,:) = NINT(matmul(inv_lat, reduced_latt))
              js(count_i) = j
           else if (abs(this_rmin-max_rmin) < eps) then
              count_i = count_i + 1
@@ -116,12 +133,18 @@ CONTAINS
              count_i = 1
              temp_hnfs = 0
              max_rmin = this_rmin
-             temp_hnfs(count_i,:,:) = matmul(inv_lat, reduced_latt)
+             temp_hnfs(count_i,:,:) = NINT(matmul(inv_lat, reduced_latt))
              js(count_i) = j
           end if
        end do
-
+       
        do j=1,count_i
+          ! We repeat the minkowski reduction here to get the rmax
+          ! value and retrieve the point group for the lattice. Later
+          ! this will be moved into the hnf selection above. We may
+          ! also switch to finding the spaceGroup instead of the point
+          ! group at later down the road, for now the lattice point
+          ! group gives us a good heuristic.
           call minkowski_reduce_basis(latts(:,:,js(j)), reduced_latt, eps)
           call get_lattice_pointGroup(reduced_latt, pg_Ops)
           norms = norm(reduced_latt)

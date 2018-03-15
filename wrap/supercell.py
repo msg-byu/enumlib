@@ -18,6 +18,8 @@ def get_supers(atoms,n_=None,eps_=None):
             and the rmin_values that match.
     """
 
+    # For now we want to keep track of all these outputs, later we may
+    # trim down the list.
     hnfs = np.zeros((100,3,3), dtype=np.int32, order='F')
     rmin = np.zeros(100, dtype=float, order='F')
     rmax = np.zeros(100, dtype=float, order='F')
@@ -32,8 +34,10 @@ def get_supers(atoms,n_=None,eps_=None):
     
     Hnf_Profiler.get_hnfs(np.transpose(atoms.cell), np.transpose(atoms.positions),
                           atom_types, hnfs, rmin, rmax, pgs, dets, n_=n_, eps_=eps_)
+    # We have more entries than needed. We only want to keep the non-zero ones.
     keep = np.where(rmin != 0)[0]
 
+    # We apply a round to trim down the outputs for rmin and rmax.
     return (hnfs[keep],np.round(rmin[keep],3),np.round(rmax[keep],3),pgs[keep],dets[keep])
 
 class Hnf_Profiler(f90wrap.runtime.FortranModule):
