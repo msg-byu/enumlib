@@ -4,7 +4,6 @@ use derivative_structure_generator, only: get_all_HNFs, remove_duplicate_lattice
      & get_dvector_permutations
 use vector_matrix_utilities, only: minkowski_reduce_basis, norm, matrix_inverse, determinant
 use symmetry, only: make_primitive, get_lattice_pointGroup
-use rational_mathematics, only: HermiteNormalForm
 use enumeration_types
 implicit none
 public get_HNFs
@@ -41,7 +40,7 @@ CONTAINS
     integer, intent(in), optional :: n_
     real(dp), intent(in), optional :: eps_
 
-    integer :: n_min, n_max, LatDim, n_hnfs, i, j, count_i, count_j, k
+    integer :: n_min, n_max, LatDim, n_hnfs, i, j, count_i
     real(dp) :: eps, max_rmin, this_rmin, this_rmax
     type(RotPermList) :: dRPList
     type(RotPermList), pointer :: RPlist(:)
