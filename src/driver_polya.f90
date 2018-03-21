@@ -13,12 +13,18 @@ character(1) :: latTyp
 real(dp)  eps
 real(dp) :: parLV(3,3)
 
-character(80) title, fname
+character(80) title, fname, arg2
 logical fullLab,concCheck
+logical :: origCrossOutAlgorithm = .false.
 integer, pointer :: cRange(:,:)
 integer, pointer :: label(:,:)
 integer, pointer :: digit(:)
 integer, pointer :: equivalencies(:)
+
+if (iargc()>=2) then
+    call getarg(2,arg2)
+    read(arg2, '(L1)') origCrossOutAlgorithm
+endif
 
 if (iargc()>=1) then
    call getarg(1,fname)
@@ -29,6 +35,7 @@ call read_input(title,LatDim,parLV,nD,d,k,equivalencies,nMin,nMax,eps&
      &,fullLab,label,digit,fname,cRange,concCheck) ! Read in parent lattice vectors, etc.
 if (LatDim==3) then; latTyp='b';else;latTyp='s';endif
 call gen_multilattice_derivatives(title, parLV,nD,d,k,nMin,nMax,latTyp,eps,fullLab,&
-         label,digit,equivalencies,concCheck,cRange, polya=.true.)
+         label,digit,equivalencies,concCheck,cRange, polya=.true.,&
+         origCrossOutAlgorithm=origCrossOutAlgorithm)
 
 END PROGRAM driver
