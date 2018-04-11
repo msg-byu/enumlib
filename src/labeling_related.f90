@@ -412,6 +412,12 @@ CONTAINS
        if(is_valid_multiplicity(a,iConc)) then ! We have a valid
        ! labeling on the tree, mark it in the
           call generate_index_from_labeling(a,iConc,idxOrig) ! hash
+          
+          if(idxOrig < 0) then
+             ! Out of the integer range, exit
+             stop "Index is too large (integer cannot fit it)"
+          end if
+
           ! table and then mark the symmetry brothers
           if(lab(idxOrig)=='') then ! This labeling hasn't been
                                     ! generated yet (directly or by
