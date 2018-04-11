@@ -1,0 +1,16 @@
+language: python
+dist: trusty
+python:
+    - "2.7"
+addons:
+  apt:
+    packages:
+      - gfortran
+install:
+     - cd symlib/src && make all F90=gfortran && cd ../../
+     # Don't make 2Dplot.x, splot.f fails due to missing sind, etc. functions in gfortran
+     - cd src && make libenum.a enum.x find_structure_in_list.x makestr.x compare_enum_files.x polya.x F90=gfortran && cd ../
+script:
+     - echo 0
+git:
+  depth: 3
