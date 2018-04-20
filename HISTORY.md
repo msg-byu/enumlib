@@ -1,5 +1,9 @@
 # Revision History for `enumlib`
 
+## Revision 1.1.2 (GLWH)
+- Had a discussion with Wiley about how to solve issue #43, speeding
+up enumlib when there are "inactive" sites.
+
 ## Revision 1.1.1 (GLWH)
 - Alexandr Fonari made a change to make sure the makstr.f90 included a space 
 between components of the lattice vectors of output POSCAR files.

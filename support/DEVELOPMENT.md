@@ -59,7 +59,13 @@ branches of the tree search, skipping duplicates of earlier
 configurations in the tree. 
 
 ## Ideas for a refactor
-* It's impractical in many problems to store (even just the hashes of) all surviving configurations at the end of the enumerations. Better to print them out in batches as the enumeration proceeds. 
+* It's impractical in many problems to store
+(even just the hashes of) all surviving configurations at the end of
+the enumerations. Better to print them out in batches as the
+enumeration proceeds. So we need data structures that allow this.
+* It seems that if we have disjoint sets of types, we can enumerate the different sites separately, for each set, then do a kind of "outer product" to generate the full list of configurations. In general, doing several smaller problems, separately and then combining should be much, much, more effecient because of the combinatorial explosion that happens with additional colors.
+* It would be nice to do a 2D problem first, maybe a few toy problems, to build intuition. Nice undergraduate problem.
+* There might be some good ideas in this paper DOI 10.1186/s13321-016-0129-3, Supercell program: a combinatorial structure-generation approach for the local-level modeling of atomic substitutions and partial occupancies in crystals Kirill Okhotnikov, Thibault Charpentier, and Sylvian Cadars
 * 
 
 
