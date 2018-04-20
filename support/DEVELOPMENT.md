@@ -5,32 +5,32 @@ April 19 2019
 ## Missing use cases
 Some users have attempted to use enumlib to do
 enumerations that were not part of the use cases orginally
-anticipated. The resulted in the third and fourth enumeration-related
+anticipated. This resulted in the third and fourth enumeration-related
 papers, but users continue to come up with scientifically sound,
 reasonable use cases that are difficult or impractical for the current
 enumeration code in the `enumlib` repo.
 
 One class of missing use cases includes problems where one group of
 sites in the unit cell have no configurational degree of freedom, that
-is, there is only once kind of atom allowed on those
+is, where there is only one kind of atom allowed on those
 sites. Combinatorically speaking this is trival (like multiplying by
-one) but with the current data structures and hash tables this leads
+one), but with the current data structures and hash tables, this leads
 to significant overhead, even making some problems completely
-impractical that should be possible.
+impractical that should otherwise be possible.
 
 A closely related use case consists of more than one group of sites
-that are mutually exclusive. For example, imagine decorating a
+that are mutually exclusive. For example, imagine a
 two-lattice that can take atoms of type A,B on the first site and
 types C,D on the second site. This case doesn't have the full
-complexity of a quaternary case---it's more like to "coupled" binary
+complexity of a quaternary case---it's more like two "coupled" binary
 cases---but the current algorithms are drastically slowed down by the
 "quarternary-ness" of the problem.
 
 In the preceding example, the combinatorial possibilities of site 1
 have no bearing on the possibilities of site 2, so the two problems
-could be done separately and then the final answer would by a kind of
+could be done separately and then the final answer would be a kind of
 "outer product" of the two results. Instead of a 4^k type problem, we
-have two 2^(k/2) type problems. 
+have two 2^(k/2) type problems (much easier for k more than 8 or so). 
 
 ## Review of the development up to this point
 
@@ -39,7 +39,7 @@ problem of enumerating colorings of a lattice where the full
 concentration range of colors was allowed and every color was allowed
 on every site. This was not efficient for cases where the
 concentrations were fixed (or limited to a small range) or where some
-colors were to allowed on some sites. In principle, one could do the
+colors were not allowed on some sites. In principle, one could do the
 "full" enumeration problem and discard those configurations that
 violated site restrictions or that were outside the desired
 concentrations. But with a little thinking it's clear that this is
@@ -56,16 +56,16 @@ to see if it violated site restrictions. If it did, that configuration
 Enumeration paper IV (CMS, 2017) essentially used the same concept as III for skipping configurations that violated site restrictions---it built the configurations one color at a time (instead of building the entire configuration) skipping "partial" colorings that were
 equivalent to those aleady seen. That allowed "early exits" from
 branches of the tree search, skipping duplicates of earlier
-configurations in the tree. 
+configurations in the tree. It also eliminated a need for a complete hash table. Instead only hash tables for the partial colorings were required. Much larger problems can be handled this way.
 
 ## Ideas for a refactor
 * It's impractical in many problems to store
-(even just the hashes of) all surviving configurations at the end of
-the enumerations. Better to print them out in batches as the
+(even just the hashes of) all surviving configurations until the end of
+the enumerations. It's only practical to print them out in batches as the
 enumeration proceeds. So we need data structures that allow this.
 * It seems that if we have disjoint sets of types, we can enumerate the different sites separately, for each set, then do a kind of "outer product" to generate the full list of configurations. In general, doing several smaller problems, separately and then combining should be much, much, more effecient because of the combinatorial explosion that happens with additional colors.
 * It would be nice to do a 2D problem first, maybe a few toy problems, to build intuition. Nice undergraduate problem.
 * There might be some good ideas in this paper DOI 10.1186/s13321-016-0129-3, Supercell program: a combinatorial structure-generation approach for the local-level modeling of atomic substitutions and partial occupancies in crystals Kirill Okhotnikov, Thibault Charpentier, and Sylvian Cadars
-* 
+
 
 
