@@ -2,7 +2,7 @@
 
 April 19 2019
 
-##Missing use cases
+## Missing use cases
 Some users have attempted to use enumlib to do
 enumerations that were not part of the use cases orginally
 anticipated. The resulted in the third and fourth enumeration-related
@@ -29,10 +29,10 @@ cases---but the current algorithms are drastically slowed down by the
 In the preceding example, the combinatorial possibilities of site 1
 have no bearing on the possibilities of site 2, so the two problems
 could be done separately and then the final answer would by a kind of
-"outer product" of the two results. Instead of a 4**k type problem, we
-have two 2**(k/2) type problems.
+"outer product" of the two results. Instead of a 4^k type problem, we
+have two 2^(k/2) type problems. 
 
-# Review of the development up to this point
+## Review of the development up to this point
 
 The original enumeration algorithm (papers I and II) addressed the
 problem of enumerating colorings of a lattice where the full
@@ -47,5 +47,19 @@ woefully inefficient in many cases.
 
 In enumeration paper III (CMS, 2012), a new hashing algorithm was
 developed that allowed the enumeration to be limited to a single
-concentration but utilize the same concepts as in the original
-algorithm. 	
+concentration, but it utilized the same concepts as in the original
+algorithm. At this stage site restrictions were also introduced, but
+in a simple way---as each configuration was generated, it was checked
+to see if it violated site restrictions. If it did, that configuration
+(and all those below it in the "tree") was skipped.
+
+Enumeration paper IV (CMS, 2017) essentially used the same concept as III for skipping configurations that violated site restrictions---it built the configurations one color at a time (instead of building the entire configuration) skipping "partial" colorings that were
+equivalent to those aleady seen. That allowed "early exits" from
+branches of the tree search, skipping duplicates of earlier
+configurations in the tree. 
+
+## Ideas for a refactor
+* It's impractical in many problems to store (even just the hashes of) all surviving configurations at the end of the enumerations. Better to print them out in batches as the enumeration proceeds. 
+* 
+
+
