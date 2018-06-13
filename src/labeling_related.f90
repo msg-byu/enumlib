@@ -412,6 +412,21 @@ CONTAINS
        if(is_valid_multiplicity(a,iConc)) then ! We have a valid
        ! labeling on the tree, mark it in the
           call generate_index_from_labeling(a,iConc,idxOrig) ! hash
+         
+          if(idxOrig < 0) then
+             ! the integer variable idxOrig overflowed and came back negative
+             write(*,*) "ERROR: The index of a particular labeling came out negative."
+             write(*,*) "Usually this happens when the combinatorics of your particular &
+                        & enumeration problem exceeds the largest number that can fit in&
+                        & a 'long integer'. If you have N sites in your supercells, and &
+                        & n_1, n_2,...,n_k atoms of each of the _k_ colors, then the &
+                        & number of configurations that must be tested for duplicates is &
+                        & N!/(n_1! n_2! ... n_k!). This number should not exceed the &
+                        & maximum value that can be stored in a long integer. You should &
+                        & reduce the maximum supercell size."
+             stop
+          end if
+
           ! table and then mark the symmetry brothers
           if(lab(idxOrig)=='') then ! This labeling hasn't been
                                     ! generated yet (directly or by
