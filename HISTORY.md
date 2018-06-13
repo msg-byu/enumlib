@@ -1,5 +1,10 @@
 # Revision History for `enumlib`
 
+
+## Revision 1.1.3 (GLWH)
+- Responds to Issue "Exit gracefully when index is out of range #69"
+Added a graceful exit and useful error message when the integer overflows.
+
 ## Revision 1.1.2 (GLWH)
 - Had a discussion with Wiley about how to solve issue #43, speeding
 up enumlib when there are "inactive" sites.
