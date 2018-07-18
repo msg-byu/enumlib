@@ -68,4 +68,8 @@ enumeration proceeds. So we need data structures that allow this.
 * There might be some good ideas in this paper DOI 10.1186/s13321-016-0129-3, Supercell program: a combinatorial structure-generation approach for the local-level modeling of atomic substitutions and partial occupancies in crystals Kirill Okhotnikov, Thibault Charpentier, and Sylvian Cadars
 
 
+====
 
+July 19 2019
+
+The `equivalencies` variable in the main routine functions (in the case of surfaces) to remove atoms that are equivalent by reflections through the slab. Effectively, these duplicate sites are removed before the enumeration and than added back in after the enumeration. I'm (GLWH) attempting to do something very similar with the inactive sites
