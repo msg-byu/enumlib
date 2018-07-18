@@ -1,8 +1,10 @@
 # Revision History for `enumlib`
 
+## Revision 1.1.4 (GLWH)
 
 ## Revision 1.1.3 (GLWH)
-- Responds to Issue "Exit gracefully when index is out of range #69"
+- Response to Issue "Exit gracefully when index is out of range #69"
+[#69](https://github.com/msg-byu/enumlib/pull/69)
 Added a graceful exit and useful error message when the integer overflows.
 
 ## Revision 1.1.2 (GLWH)
