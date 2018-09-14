@@ -1,5 +1,8 @@
 # Revision History for `enumlib`
 
+## Revision 1.1.4 (WSM)
+- Fixed the bug reported in issue #73 by setting the number of Arrows
+  to zero when the "arrows.in" file isn't present.
 
 ## Revision 1.1.3 (GLWH)
 - Responds to Issue "Exit gracefully when index is out of range #69"
