@@ -575,7 +575,7 @@
       </test>
       <test identifier="conc_check_enum" description="Original enumerations tests of basic
       					       structures. Used to test enum3 against enum4."
-      	    cases="cc_sc[1-5],cc_fcc[1-5],cc_bcc[1-5],cc_hcp[1-5]" timed="true">
+      	    cases="cc_sc[1-5],cc_fcc[1-6],cc_bcc[1-5],cc_hcp[1-5]" timed="true">
       	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
       	       rename="struct_enum.in" />
       	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
@@ -629,6 +629,7 @@
 	</conditionals>
 	<value identifier="bulkconstant" constant="'b'" />
 	<value identifier="surfconstant" constant="'s'" />
+	<value identifier="origCrossOutAlgorithm" constant=".False."/>
       </assignment>
     </group>
   </decorates>
