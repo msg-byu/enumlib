@@ -42,7 +42,7 @@ CONTAINS
     !logical, intent(out):: conc_check
     
     logical :: full, err
-    integer :: iD, i, status
+    integer :: iD, i
     character(100) :: line
     
     open(99,file="readcheck_enum.out")
@@ -95,13 +95,17 @@ CONTAINS
        write(99,'(3(f8.4,1x))',advance="no") d(:,iD)
        ! Now read in the labels for this d-vector
        line = trim(line(index(line,":")+1:))//"/"
+       print*,"line",line
+       stop "here"
        do i = 1, k ! Loop over the number of (possible) labels, exit when there are no more /'s
           if (index(line,"/")==0) &
                stop "The labels for each d-vectors should be formated as #/#/#... where 0<=#<k"
           read(line,*) label(i,iD)
           ! Sanity check on the input for the label (perhaps not
           ! sufficient but catches some errors)
-          if (label(i,iD) > k-1 .or. label(i,iD) < 0) then
+          if ((label(i,iD) > k-1 .and. i > 1) .or. label(i,iD) < 0) then
+             !GH 2018 It's OK for label(i,iD) > k-1 IF it's the first (and only) label value outside the range 0..k-1
+             ! In other words, it's ok if it's an "inactive" site
              write(*,'("Incorrect number for a label, ''",i2,"'', on d-vector #",i2)') label(i,iD), iD
              stop
           endif
@@ -199,8 +203,6 @@ CONTAINS
     !logical, intent(out):: conc_check
     
     logical :: full, err
-    integer :: iD, i, status
-    character(100) :: line
     
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
@@ -443,8 +445,12 @@ CONTAINS
           read(line,*) label(i,iD)
           ! Sanity check on the input for the label (perhaps not
           ! sufficient but catches some errors)
-          if (label(i,iD) > k-1 .or. label(i,iD) < 0) then
+          print*,"line: ",line
+          if ((label(i,iD) > k-1 .and. i > 1) .or. label(i,iD) < 0) then
+             !GH 2018 It's OK for label(i,iD) > k-1 IF it's the first (and only) label value outside the range 0..k-1
+             ! In other words, it's ok if it's an "inactive" site
              write(*,'("Incorrect number for a label, ''",i2,"'', on d-vector #",i2)') label(i,iD), iD
+             write(*,'("This message also occurs if there is a trailing ''/'' at the end of the d-vector labels in the input file.")')
              stop
           endif
           write(99,'(i1,"/")',advance="no") label(i,iD)

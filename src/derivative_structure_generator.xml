@@ -155,7 +155,7 @@
       </assignment>
     </group>
   </decorates>
-
+<!--
   <decorates name="derivative_structure_generator.get_rotation_perms_lists">
     <group name="stuct_enum_tests7" purpose="testing" staging="../unittests/">
       <test identifier="RPList"
@@ -200,7 +200,7 @@
       <global name="surf" ignore="true" />
     </group>
   </decorates>
-
+-->
   <decorates name="derivative_structure_generator.find_permutation_of_group">
     <group name="stuct_enum_tests8" purpose="testing_need_perm.in" staging="../unittests/">
       <test identifier="find_permutation_of_group"

@@ -115,9 +115,9 @@ CONTAINS
 
     ! Define a table that stores the possible labels for each wheel
     allocate(label(size(volTable,1),maxval(digit)))
-    label = -1 ! Ends of the rows in this ragged list Paint the labels
-    ! on the wheels (leave -1 for wheels that have more positions than
-    ! valid labels for that site)
+    label = -1 ! Ends of the rows in this ragged list
+    ! Paint the labels on the wheels (leave -1 for wheels that have
+    ! more positions than valid labels for that site)
     do j = 1, k 
        label(j,:) = (/(i,i=volTable(j,1),volTable(j,2))/)
        minv(j) = real(minval((/concTable(j,1),concTable(j,2)/)),dp)/concTable(j,3)
@@ -376,26 +376,33 @@ CONTAINS
   !!case?</parameter>
   !!<parameter name="eps" regular="true">Finite precision
   !!tolerance.</parameter>
-  SUBROUTINE get_dvector_permutations(pLV,pd,dRPList,LatDim,eps)
-    real(dp) :: pLV(3,3) 
-    real(dp), pointer :: pd(:,:) 
+  SUBROUTINE get_dvector_permutations(pLV,dFull,inactives,dRPList,LatDim,eps)
+    real(dp)             :: pLV(3,3) 
+    real(dp), pointer    :: dFull(:,:) ! Need the "full" list just to get the symmetry right
+    integer, intent(in)  :: inactives  ! Table of sites that are inactive
     type(RotPermList), intent(out) :: dRPList 
     integer, intent(in) :: LatDim 
     real(dp), intent(in) :: eps 
 
-    integer nD, iD, nOp, iOp, status
+    integer nD, iD, nOp, iOp, status, nDfull
     integer, pointer :: aTyp(:), tList(:,:)
     real(dp) :: rd(size(pd,1),size(pd,2)), tRD(size(pd,1),size(pd,2))
     real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
     real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
     logical err
     character(80) name
-    nD = size(pd,2)
-    allocate(aTyp(nD),STAT=status)
+    nDfull = size(dFull,2); nD = nDfull - size(inactives,1)
+    allocate(aTyp(nDfull),STAT=status)
     if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
-    
+
+    print*,"update the calling interface description when modifications are done..."
+    ! GLWH 2018 Inactive site extenstion...
+    ! Need a way of labeling the active and inactive sites differently...so that there aren't fractional shifts that take one to another...
+    ! Pass in the 'inactives' table and tag them with that?...
     aTyp = 1
-    call get_spaceGroup(pLV,aTyp,pd,rot,shift,.false.,eps)
+    aTyp(inactives(:,1)) = 2
+    write(*,'(20(i2,","))') aTyp
+    call get_spaceGroup(pLV,aTyp,dFull,rot,shift,.false.,eps)
     
     !call write_lattice_symmetry_ops(rot,shift)
     if(latDim==2) call rm_3D_operations(pLV,rot,shift,eps)
@@ -597,7 +604,7 @@ CONTAINS
                 enddo ! jm
              enddo ! im
 
-             ! do the some operations for the arrows
+             ! do the same operations for the arrows
              skipa = .false.
              do im = 1, size(arrow_basis,2)
                 do jm = 1, size(arrow_basis,2)
@@ -956,13 +963,13 @@ CONTAINS
     
     
     aTyp = 1
-    ! Let the code apply all the symmetries and then eliminate invalid
+    !  Let the code apply all the symmetries and then eliminate invalid
     !  labelings (the counter won't generate any but they may appear
     !  after the symmetry has been applied to a legal one). In other
     !  words, don't try and restrict the set of symmetries (at this
     !  point) but the set of labels that can be applied to any
-    !  particular site.  call
-    !  get_spaceGroup_atomTypes(label,digit,aTyp)
+    !  particular site.
+    ! call get_spaceGroup_atomTypes(label,digit,aTyp)
     call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
     nRot = size(sgrots,3)
     Nhnf = size(hnf,3)
@@ -1074,6 +1081,7 @@ CONTAINS
           ic = ic + 1
           tmpOp%rot(:,:,ic) = thisRot
           tmpOp%shift(:,ic) = shift(:,iRot)
+!GLWH 2018 inactive site changes...It seems that tv and dPerm have different sizes in the second dimension
           tv(:,:,ic) = dPerm%v(:,:,iRot)
           tIndex(ic) = iRot
           ! Added by LN from here
@@ -1236,7 +1244,7 @@ CONTAINS
     real(dp), pointer :: dFull(:,:), d(:,:)
     character(1), intent(in) :: pLatTyp
     logical, intent(in) :: full 
-    integer, intent(inout) :: labelFull(:,:) !
+    integer, intent(inout) :: labelFull(:,:) ! A column for each site, a row for each color (label) 
     integer, intent(inout) :: digitFull(:)   !
     integer, allocatable    :: label(:,:), digit(:)
     integer, intent(in) :: equivalencies(:)
@@ -1260,12 +1268,9 @@ CONTAINS
     integer, pointer ::  RPLindx(:) => null() ! Index showing which list of rotation
     !permutations corresponds to which HNF
     real(dp), pointer :: uqlatts(:,:,:) => null()
-    character, pointer :: lm(:) ! labeling markers (use to generate the labelings
-    !when writing results)
-    character(80) filename ! String to pass filenames into output writing routines
+    character, pointer :: lm(:) ! labeling markers (use to generate the labelings when writing results)
     character(200) formatstring
-    logical fixed_cells ! This is set to true if we are giving a list of cells from a file
-    !instead of generating them all
+    logical fixed_cells ! This is set to true if we are giving a list of cells from a file instead of generating them all
     integer, pointer :: iRange(:,:) ! Rows: List of the number of atoms of each type
     !("color vector"). Cols: sweep over concentration range.
     logical err
@@ -1279,25 +1284,57 @@ CONTAINS
     logical :: arrows
     type(RotPermList), pointer :: aperms(:), rdaperms(:)
     real(dp) :: max_binomial
-
+    !!<local name="inactives"> A list of the sites that are _inactive_, that have no configurational degrees of freedom.</local>
+    integer, allocatable :: inactives(:,:) ! Each row (2 columns) contains the index of an inactive site and the corresponding label
+    integer              :: nInactive, jInactive
     max_binomial = 1E10
 
     ! Divide the dset into members that are enumerated and those that are not
-    nD = count( (/(i,i=1,nDFull)/)==equivalencies)
-    allocate(d(3,nD), label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
     
-    nD = 0
+    ! GLWH 2018 (Some sites have no configurational degrees of freedom, either because we want them
+    ! to be identical to other sites [like opposite sides of a symmetric slab] or because they only
+    ! have 1 label ["inactive sites"]). By removing these from the enumeration itself (adding them
+    ! back in afterwards) reduces unnecessary combinatoric explosion.
+  
+    nD = count( (/(i,i=1,nDFull)/)==equivalencies)
+
+    ! Compute the number of sites with only one label allowed (all
+    ! -1's in the 'labelFull' table except one). These sites have no
+    ! freedom and so we'll remove them from the enumeration. 
+    nInactive = count((/(k-1==count(labelFull(:,i)==-1),i=1,nDFull)/))
+    print*,"nInactive: ",nInactive
+    nD = nD - nInactive
+    print*,"nD: ",nD
+    
+    
+    ! Set up arrays for the subset of sites that have some
+    ! configurational freedom.
+    allocate(d(3,nD),label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
+    allocate(inactives(nInactive,2))
+    print*,"Size of inactives",size(inactives)
+    nD = 0; jInactive = 0
     do iD=1,nDFull
-       if (iD==equivalencies(iD)) then ! this dset member is a unique point
+       if (iD==equivalencies(iD) .and. labelFull(2,iD)/=-1) then !
+          !this dset member is a unique point and has more than one
+          !label allowed (if it only had one allowed label, position
+          !2 of the label table 'labelFull' would be -1).
           nD=nD+1
           d(:,nD)     = dFull(:,iD)
           label(:,nD) = labelFull(:,iD)
           digit(nD)   = digitFull(iD)
-       else ! this dset member is equivalent (concerning the
+       elseif (iD/=equivalencies(iD)) then
+            ! this dset member is equivalent (concerning the
             ! enumeration!) to a different point.  => Force the label
             ! and digit arrays to be equal for equivalent sites
           labelFull(:,iD) = labelFull(:,equivalencies(iD))
           digitFull(iD)   = digitFull(equivalencies(iD))
+       else
+          print*,"Found inactive site"
+       ! Sites with only one label will be left out of the table but
+       ! we need to keep a list of these sites so we can add them
+       ! back in later when we print out the list.
+          jInactive = jInactive + 1
+          inactives(jInactive,:) = (/iD,labelFull(1,iD)/)
        endif
     enddo
     
@@ -1407,7 +1444,13 @@ CONTAINS
           write(*,'("Remapped:",3(f7.3,1x))') d(:,iD)
        endif
     enddo
-    call get_dvector_permutations(parLV,d,ParRPList,LatDim,eps)
+
+    !GH 2018 Changed 'd' in the call below to 'dFull'. This seems to
+    !be the right thing to do for inactive sites (don't want to
+    !ignore them when finding symmetry) but I worry that it might
+    !break surface cases. Stefan's group needs to help with that...
+    ! II: It broke some of the unit tests. Out of bonds on line 1077, tv and dperms don't match in second dimension...allocated to size 'nD' for tv. Perhaps the better thing is to pass in *both*. Use dFull for the symmetry stuff but just 'd' for generating the ParRPList...
+    call get_dvector_permutations(parLV,dFull,inactives,ParRPList,LatDim,eps)
     
     ! This part generates all the derivative structures. Results are
     ! written to unit 14.
@@ -1432,17 +1475,20 @@ CONTAINS
           endif
        endif
        
-       !call cpu_time(HNFtime) Many of the superlattices will be
+       !call cpu_time(HNFtime)
+       ! Many of the superlattices will be
        ! symmetrically equivalent so we use the symmetry of the parent
        ! multilattice to reduce the list to those that are
        ! symmetrically distinct.
        call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
-       !call cpu_time(Removetime) Superlattices with the same SNF will
+       !call cpu_time(Removetime)
+       ! Superlattices with the same SNF will
        ! have the same list of translation permutations of the
        ! labelings. So they can all be done at once if we find the
        ! SNF. rdHNF is the reduced list.
        call get_SNF(rdHNF,L,SNF,R,RPList,uqSNF,SNF_labels,fixOp)
-       ! call cpu_time(SNFtime) Each HNF will have a certain number of
+       !call cpu_time(SNFtime)
+       ! Each HNF will have a certain number of
        ! rotations that leave the superlattice fixed, called
        ! fixOp. These operations will effect a permutation on the
        ! (d,g) table. Since many of the HNFs will have an identical
@@ -1457,8 +1503,6 @@ CONTAINS
        call get_rotation_perms_lists(parLV,rdHNF,L,SNF,fixOp,RPList,ParRPList,eps,aperms,use_arrows=arrows,surf=(Latdim==2))
        call organize_rotperm_lists(RPList,rdRPList,RPLindx,aperms,rdaperms)
        
-       ! This next if statement makes the run-time horrible (N^3
-       ! scaling) if enabled. (only used for checking once.)
        Scnt = 0 ! Keep track of the number of structures at this size   
        do iBlock = 1, maxval(RPLindx)
           !call cpu_time(blockstart)
@@ -1492,7 +1536,7 @@ CONTAINS
                       call generate_permutation_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
                            lm,iRange(iC,:),labelFull,digitFull,lab_degen,fixed_cells)
                       call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,&
-                           Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen,iRange(iC,:))
+                           Scnt,HNFcnt,RPLindx,lm,equivalencies,inactives,hnf_degen,lab_degen,iRange(iC,:))
                       
                    else
                       call recursively_stabilized_enum(rdRPList(iBlock)%perm,iRange(iC,:),ivol,k,SNF,L,rdHNF,HNFcnt,&
@@ -1508,7 +1552,8 @@ CONTAINS
              call generate_unique_labelings(k,ivol,nD,rdRPList(iBlock)%perm,&
                   full,lm,label,digit,lab_degen,fixed_cells)
              ! Now that we have the labeling marker, we can write the output.
-             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,equivalencies,hnf_degen,lab_degen)
+             call write_labelings(k,ivol,nD,label,digit,iBlock,rdHNF,SNF,L,fixOp,Tcnt,Scnt,HNFcnt,RPLindx,lm,&
+                                  equivalencies,inactives,hnf_degen,lab_degen)
              !call cpu_time(endwrite)
           endif
        enddo! iBlock

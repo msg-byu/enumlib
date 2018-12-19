@@ -1,6 +1,7 @@
 # Revision History for `enumlib`
 
 ## Revision 1.1.4 (GLWH)
+- Made some "precision strikes" to improve the handling of "inactive" sites. Sites which are
 
 ## Revision 1.1.3 (GLWH)
 - Response to Issue "Exit gracefully when index is out of range #69"

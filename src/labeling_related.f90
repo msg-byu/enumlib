@@ -583,8 +583,8 @@ CONTAINS
   !!<parameter name="hnf_degen" regular="true"></parameter>
   !!<parameter name="lab_degen" regular="true"></parameter>
   !!<parameter name="concVect" regular="true"></parameter>
-  SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp, &
-                           Tcnt,Scnt,Hcnt,permIndx,lm,equivalencies,hnf_degen,lab_degen,concVect)
+  SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp,Tcnt,Scnt,Hcnt,&
+                             permIndx,lm,equivalencies,inactives,hnf_degen,lab_degen,concVect)
     integer, intent(in) :: k 
     integer, intent(in) :: n, nD 
     integer, intent(in) :: parLabel(:,:) 
@@ -616,12 +616,15 @@ CONTAINS
     character(100) :: struct_enum_out_formatstring 
 
     ! Labeling Postprocessing data
-    integer, intent(in)  :: equivalencies(:) 
-    integer              :: nAllD            ! size of full dset
+    integer, intent(in)  :: equivalencies(:)
+    integer, intent(in)  :: inactives(:,:)   ! A list of indices and labels for inactive sites, number of inactive sites
+    integer              :: nAllD, idx(1)    ! size of full dset, index of leftmost unused element in 'expLabeling'
     integer, allocatable :: allD(:)          ! help array: (/ 1, 2, 3, ..., nAllD /)
     integer, allocatable :: pplabeling(:)    ! postprocessed labeling
+    integer, allocatable :: expLabeling(:)   ! Expanded labeling that includes inactive sites, if present
     logical :: postprocessLabeling           ! do we need to postprocess labeling
     integer, allocatable :: allD2LabelD(:)   ! { full-dset member }:
+    integer              :: nInact, iUC       ! number of inactive sites, counter over unit cells
     ! respective d-vector ID in the labeling dset
 
     ! Postprocessing labelings: setup
@@ -629,7 +632,7 @@ CONTAINS
     allocate(allD(nAllD)); allD = (/ (i,i=1,nAllD) /)
     allocate(allD2LabelD(nAllD));
     ! 1) Check whether we have to postprocess the labeling before writing
-    !    it out Postprocessing is needed if we do not want to enumerate
+    !    it out. Postprocessing is needed if we do not want to enumerate
     !    all dset members of a primitive unit cell due to some
     !    equivalencies.  For example, in a 1x1 symmetric surface slab (
     !    (*) denotes an atom ):
@@ -677,9 +680,13 @@ CONTAINS
        ! 2, 3 -> 2, 4 -> 2, 5 -> 3 first, the pack operation take only
        ! those in the dset <= equivalent point, then, the number of
        ! truly enumerated points is counted (truly enumerated points
-       ! are points for which dset=equivalencies
+       ! are points for which dset==equivalencies
     endif
-    
+
+    ! This should work even if there are no inactive sites
+    nInact = size(inactives,1)
+    allocate(expLabeling(n*nAllD))
+
     conc_check = .false.
     if (present(concVect)) conc_check = .true.
     
@@ -708,17 +715,38 @@ CONTAINS
           labIndx = vsL(il)-1
           do ilab=1,n*nD
              quot = labIndx/multiplier(ilab) ! How many times does k(i) divide the number
-             labeling(ilab) = label(quot+1,ilab) ! The number of
-             ! times, indicates the label number
+             labeling(ilab) = label(quot+1,ilab) ! The number of times, indicates the label number
              labIndx = labIndx - quot*multiplier(ilab) ! Take the remainder for the next step
           enddo
        endif
+
        if (postprocessLabeling) then
           ! see the comments at the beginning of the current routine
           call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
        else
           pplabeling = labeling ! nothing changes
        endif
+       
+       !GLWH 2018
+       if (nInact/=0) then ! there are inactive sites to add back in
+          expLabeling = -1
+          do iUC = 1, n    ! loop over the unit cells
+             do i = 1, nInact ! Would it be better to do this with some sort of clever vector subscript?
+                expLabeling(inactives(i,1)*iUC) = inactives(i,2)
+             enddo
+             do i = 1, nAllD - nInact
+                idx = minloc(expLabeling) ! findloc would be better here (look for -1, but it hasn't yet been implement in gfortran...)
+                write(*,'("i, iUC", 2(i3,1x))') i, iUC
+                expLabeling(idx) = pplabeling(i*iUC)
+             enddo
+          enddo
+          write(*,'("labeling: ",32(i1))') expLabeling
+          print*,"here"
+          if (any(expLabeling==-1)) stop "Failsafe triggered: inactive sites expansion in 'labeling_related.f90'"
+       else
+          expLabeling = pplabeling
+       endif
+       !/GLWH 2018
        
        do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
           jHNF = vsH(iHNF) ! Index of matching HNFs
@@ -727,14 +755,14 @@ CONTAINS
           Tcnt = Tcnt + 1; Scnt = Scnt + 1
           
           write(14,struct_enum_out_formatstring) &
-               Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen(il),lab_degen(il)*hnf_degen(jHNF),Scnt,n,size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
+               Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen(il),lab_degen(il)*hnf_degen(jHNF),Scnt,n,&
+               size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
                HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
-               HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),pplabeling!,lab_degen(il), hnf_degen*lab_degen(il)   
+               HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),explabeling!,lab_degen(il), hnf_degen*lab_degen(il)   
           !GH endif
        enddo ! loop over HNFs
     enddo ! loop over labelings
     Hcnt = Hcnt + nHNF 
-    
   contains
 
     !!<summary>Purpose: take an enumeration labeling (for selected,
@@ -742,17 +770,12 @@ CONTAINS
     !!labeling for all dvectors. It makes sure that two dvectors in
     !!the same primitive unit cell of the parent lattice get the SAME
     !!labeling always. See also comments at the beginning of
-    !!write_labelings.</summary>
-    !!<parameter name="nUC" regular="true">number of unit
-    !!cells.</parameter>
-    !!<parameter name="nAllD" regular="true">number of d-vectors in
-    !!the new labeling.</parameter>
-    !!<parameter name="oldlabeling" regular="true">the old
-    !!labeling</parameter>
-    !!<parameter name="newlabeling" regular="true">the wanna-be new
-    !!labeling.</parameter>
-    !!<parameter name="newD2oldD" regular="true">{ new D# }: a map
-    !!newD -> oldD</parameter>
+    !!write_labelings. </summary>
+    !! <parameter name="nUC" regular="true">number of unit cells.</parameter>
+    !! <parameter name="nAllD" regular="true">number of d-vectors in the new labeling.</parameter>
+    !! <parameter name="oldlabeling" regular="true">the old labeling</parameter>
+    !! <parameter name="newlabeling" regular="true">the wanna-be new labeling.</parameter>
+    !! <parameter name="newD2oldD" regular="true">{ new D# }: a map newD -> oldD</parameter>
     subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,newD2oldD)
       integer, intent(in) :: nUC, nAllD          
       integer, intent(in) :: oldlabeling(:)      
@@ -765,8 +788,7 @@ CONTAINS
       do iD=1,nAllD
          do iUC=1,nUC
             newlab_pos = (iD-1)*nUC + iUC               ! position in the new labeling
-            oldlab_pos = (newD2oldD(iD)-1)*nUC + iUC    ! corresponding
-            ! position in the old labeling
+            oldlab_pos = (newD2oldD(iD)-1)*nUC + iUC    ! corresponding position in the old labeling
             newlabeling(newlab_pos) = oldlabeling(oldlab_pos)
          enddo
       enddo
@@ -1226,7 +1248,6 @@ CONTAINS
     lab => null()
     
     nl = n*nD
-
     !< Set up the number of expected labelings
     nexp = product(parDigit)**int(n,li)  ! should be the same as k**nl
     ! when all labels are on all sites
