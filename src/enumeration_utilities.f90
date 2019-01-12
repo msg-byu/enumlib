@@ -297,7 +297,6 @@ CONTAINS
     real(dp), intent(inout)   :: aBas(:,:)
     integer, intent(in)       :: aTyp(:)
     real(dp), intent(in)      :: pLV(:,:)
-    real(dp), pointer         :: dset(:,:)      ! (intent(in))
     real(dp), allocatable         :: dset(:,:)      ! (intent(in))
     real(dp), pointer         :: dsetStruc(:,:) ! d-set of structure
     ! (is determined from the structure, should in the end be
@@ -313,7 +312,8 @@ CONTAINS
 
     integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i, iE, iP
     integer, pointer :: aTypTemp(:)
-    real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:)
+    real(dp), allocatable :: aBasTemp(:,:)
+    real(dp), allocatable :: sgrot(:,:,:), sgshift(:,:)
     real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest, sLVinv
     integer,dimension(3,3) :: S, R, tempH, newH
     logical err, unique, mapped
@@ -590,14 +590,15 @@ CONTAINS
     real(dp), intent(inout):: aBas(:,:)
     integer, intent(in) :: aTyp(:)
     real(dp), intent(out):: pLV(:,:)
-    real(dp), pointer :: dset(:,:) ! (out)
+    real(dp), allocatable :: dset(:,:) ! (out)
     real(dp), intent(in):: eps
     integer, pointer :: HNF(:,:,:) ! (out)
     integer, intent(out) :: SNF(3,3), L(3,3)
 
     integer nAt, iAt, nOp, iOp, row(6), iuq, nuq, i, nEnumBas, iE, iP, ioerr
     integer, pointer :: aTypTemp(:)
-    real(dp), pointer :: aBasTemp(:,:), sgrot(:,:,:), sgshift(:,:), EnumBas(:,:)
+    real(dp), allocatable :: aBasTemp(:,:)
+    real(dp), allocatable :: sgrot(:,:,:), sgshift(:,:), EnumBas(:,:)
     real(dp), dimension(3,3) :: pLVinv, pLVtemp, parLattTest, sLVinv
     integer,dimension(3,3) :: S, R, tempH, newH
     logical err, unique, mapped
@@ -990,7 +991,7 @@ CONTAINS
   !!<parameter name="eps" regular="true">Finite precision tolerance.</parameter>
   SUBROUTINE get_gspace_representation(pLV,dset,sLV,aBas,aTyp,HNF,LatDim,pLabel,eps)
     real(dp), intent(in) :: pLV(3,3)
-    real(dp), pointer ::  dset(:,:)  ! (in)
+    real(dp), allocatable ::  dset(:,:)  ! (in)
     real(dp), intent(in) :: sLV(3,3)
     real(dp), pointer :: aBas(:,:)
     integer, intent(in) :: aTyp(:)
@@ -1003,7 +1004,8 @@ CONTAINS
     !logical err
 
     integer, pointer :: aTypTemp(:), SNFlabel(:)
-    real(dp), pointer :: aBasTemp(:,:), sLVlist(:,:,:)
+    real(dp), allocatable :: aBasTemp(:,:)
+    real(dp), pointer  :: sLVlist(:,:,:)
     real(dp), dimension(3,3) :: pLVtemp, sLVtemp, parLattTest, T
     integer nAt, nuq, nP, SNF(3,3), iAt, ip, j, iop, iuq
     integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
@@ -1070,7 +1072,7 @@ CONTAINS
     ! the write statement for the dRotList%RotIndx(:). Line 1071
     ! 3 Jan 2019 GLWH. We haven't generalized this code to handle "inactive"
     ! sites so we'll just load a *fake* one so that we can handle the change in ! the calling interface.
-    call get_dvector_permutations(pLV,dset,inactives,dRotList,LatDim,eps)
+    !call get_dvector_permutations(pLV,dset,inactives,dRotList,LatDim,eps)
     write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
     ! This call returns a list of operations that fix the
     ! superlattice. The routine expects a *list* of HNF matrices, but
@@ -1078,7 +1080,10 @@ CONTAINS
     ! rotationally-equivalent. So the input and output lists are only
     ! one element long (in the last index). E.g., HNFin is a 3x3x1 array
     ! of integers (original lattice HNF)
-    call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
+
+    stop "this code needs to be updated. See notes here"
+    !The routine below now requires the space group to be calculated before the call (and then passed in). This change to the code was necessitated by the update to enumlib for "inactive" sites. This code could be fixed to run again, just need the spacegroup and then pass it in.
+    !GLWH 2019 call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
     write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
     write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
          ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))

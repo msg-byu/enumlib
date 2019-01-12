@@ -1,5 +1,5 @@
 !!<summary>Generate all derivative structures of a parent structure
-!!Gus L. W. Hart BYU July 2007</summary>
+!!Gus L. W. Hart BYU July 2007 </summary>
 MODULE derivative_structure_generator
 use utilities
 use io_utils
@@ -15,6 +15,7 @@ use vector_matrix_utilities, only: determinant, matrix_inverse
 use sorting
 use classes, only: polya
 use arrow_related, only: arrow_concs
+use enumeration_routines
 
 implicit none
 private
@@ -368,45 +369,35 @@ CONTAINS
   !!permutations to eliminate those duplicate labelings.</summary>
   !!<parameter name="pLV" regular="true">Lattice vectors of the
   !!primary lattice (parent lattice).</parameter>
-  !!<parameter name="dFull">d-vectors defining the multilattice (primary
-  !!lattice only). Includes even "inactive" d-members (sites)</parameter>
-  !!<parameter name="inactives" regular = "true"> A list of sites that have no configurational degree of freedom in the enumeration.</parameter>
-  !!<parameter name="dRPList" regular="true">Output. A list
+  !!<parameter name="d" regular="true">d-vectors defining the
+  !!multilattice (primary
+  !!lattice only). Does not include "inactive" d-members (sites)</parameter>
+  !!<parameter name="nD" regular="true">Number of "active" sites.</parameter>
+  !!<parameter name="rot" regular="true">rotations of the spacegroup.</parameter>
+  !!<parameter name="shift" regular="true">fractional shifts of the spacegroup.</parameter>
+  !!<parameter name="drplist" regular="true">Output. A list of
   !!permutations effected by the Ops.</parameter>
   !!<parameter name="Latdim" regular="true">2 or 3 dimensional
   !!case?</parameter>
   !!<parameter name="eps" regular="true">Finite precision
   !!tolerance.</parameter>
-  SUBROUTINE get_dvector_permutations(pLV,dFull,inactives,dRPList,LatDim,eps)
+  SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     real(dp)             :: pLV(3,3)
-    real(dp), pointer    :: dFull(:,:) ! Need the "full" list just to get the symmetry right
-    integer, intent(in)  :: inactives(:,:)  ! Table of sites that are inactive
+    real(dp), allocatable    :: d(:,:)
+    integer, intent(in)      :: nD
+    real(dp), allocatable:: rot(:,:,:), shift(:,:)
     type(RotPermList), intent(out) :: dRPList
     integer, intent(in) :: LatDim
     real(dp), intent(in) :: eps
 
-    integer nD, iD, nOp, iOp, status, nDfull
+    integer iD, nOp, iOp, status, nDfull, iC
     integer, pointer :: aTyp(:), tList(:,:)
-    real(dp) :: rd(size(dFull,1),size(dFull,2)),tRD(size(dFull,1),size(dFull,2))
+    real(dp) :: rd(size(d,1),size(d,2)),tRD(size(d,1),size(d,2))
     real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
-    real(dp), pointer:: rot(:,:,:), shift(:,:), tv(:,:,:)
+    real(dp), pointer:: tv(:,:,:)
     logical err
     character(80) name
-    nDfull = size(dFull,2); nD = nDfull - size(inactives,1)
-    allocate(aTyp(nDfull),STAT=status)
-    if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
 
-    print*,"update the calling interface description when modifications are done..."
-    ! GLWH 2018 Inactive site extenstion...
-    ! Need a way of labeling the active and inactive sites differently...so that there aren't fractional shifts that take one to another...
-    ! Pass in the 'inactives' table and tag them with that?...
-    aTyp = 1
-    aTyp(inactives(:,1)) = 2
-    write(*,'(20(i2,","))') aTyp
-    call get_spaceGroup(pLV,aTyp,dFull,rot,shift,.false.,eps)
-
-    !call write_lattice_symmetry_ops(rot,shift)
-    if(latDim==2) call rm_3D_operations(pLV,rot,shift,eps)
     !call write_lattice_symmetry_ops(rot,shift,"2D")
     nOp = size(rot,3)
     allocate(tList(nOp,nD),tv(3,nD,nOp),STAT=status)
@@ -423,7 +414,7 @@ CONTAINS
 
     do iOp = 1, nOp ! Try each operation in turn and see how the
                     ! d-vectors are permuted for each
-       rd = matmul(rot(:,:,iOp),dFull)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
+       rd = matmul(rot(:,:,iOp),d)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
        tRD = rd
        do iD = 1, nD
           call bring_into_cell(rd(:,iD),inv_pLV,pLV,eps)
@@ -432,7 +423,7 @@ CONTAINS
        ! The v vector is the vector that must be added (it's a lattice
        ! vector) to move a rotated d-vector back into the parent cell.
        dRPList%v(:,:,iOp) = rd(:,:) - tRD(:,:)
-       call map_dvector_permutation(rd,dFull,dRPList%perm(iOp,:),eps)
+       call map_dvector_permutation(rd,d,dRPList%perm(iOp,:),eps)
     enddo
 
     name = "debug_dvec_rots.out"
@@ -937,56 +928,42 @@ CONTAINS
   !!<parameter name="latts"></parameter>
   !!<parameter name="degeneracy_list" regular="true"></parameter>
   !!<parameter name="eps" regular="true">Finite precision tolerance.</parameter>
-  SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,d,dperms,uq_hnf,fixing_op,RPList,latts,degeneracy_list,eps)
+  SUBROUTINE remove_duplicate_lattices(hnf,LatDim,parent_lattice,rot,shift,d,dperms,uq_hnf,fixing_op,RPList,latts,degeneracy_list,eps)
     integer, pointer :: hnf(:,:,:) ! (input)
     integer :: LatDim
     real(dp), intent(in) :: parent_lattice(3,3) ! parent lattice (input)
+    real(dp), allocatable :: rot(:,:,:), shift(:,:)
     integer, pointer     :: degeneracy_list(:)
     integer, pointer :: uq_hnf(:,:,:) ! (output)
     type(opList), pointer :: fixing_op(:)
     real(dp),intent(in):: eps ! finite precision (input)
-    real(dp), pointer :: d(:,:)
+    real(dp), allocatable :: d(:,:)
     type(RotPermList), intent(in) :: dperms
     type(RotPermList), pointer :: RPList(:)
     real(dp), pointer :: latts(:,:,:)
-    !integer, intent(in)  :: label(:,:), digit(:)
 
-    real(dp), pointer:: sgrots(:,:,:), sgshift(:,:)
+    integer nD
+    real(dp), allocatable:: sgrots(:,:,:), sgshift(:,:)
     real(dp), dimension(3,3) :: test_latticei, test_latticej
-    integer i, Nhnf, iuq, irot, j, nRot, Nq, status, nD
+    integer i, Nhnf, iuq, irot, j, nRot, Nq, status
     integer, allocatable :: temp_hnf(:,:,:)
     logical duplicate
-    integer, pointer :: aTyp(:)
 
     nD = size(d,2)
-    allocate(aTyp(nD),STAT=status)
-    if(status/=0)stop "Allocation failed in remove_duplicate_lattices: aTyp"
-
-
-    aTyp = 1
-    !  Let the code apply all the symmetries and then eliminate invalid
-    !  labelings (the counter won't generate any but they may appear
-    !  after the symmetry has been applied to a legal one). In other
-    !  words, don't try and restrict the set of symmetries (at this
-    !  point) but the set of labels that can be applied to any
-    !  particular site.
-    ! call get_spaceGroup_atomTypes(label,digit,aTyp)
-    call get_spaceGroup(parent_lattice,aTyp,d,sgrots,sgshift,.false.,eps)
-    nRot = size(sgrots,3)
+    nRot = size(rot,3)
     Nhnf = size(hnf,3)
     allocate(temp_hnf(3,3,Nhnf),STAT=status)
 
 
     if(status/=0) stop "Failed to allocate memory in remove_duplicate_lattices: temp_hnf"
     temp_hnf = hnf
-    call write_lattice_symmetry_ops(sgrots,sgshift)
+    call write_lattice_symmetry_ops(rot,shift)
 
     ! for the 2D case, eliminate the "3D" operations.
-
     if (LatDim==2) then
-       call rm_3d_operations(parent_lattice,sgrots,sgshift,eps)
-       nRot = size(sgrots,3)
-       call write_lattice_symmetry_ops(sgrots,sgshift,"2D")
+       call rm_3d_operations(parent_lattice,rot,shift,eps)
+       nRot = size(rot,3)
+       call write_lattice_symmetry_ops(rot,shift,"2D")
     endif
     ! For each HNF in the list, see if it is a derivative lattice of a
     ! preceding HNF in the list. If so, don't include it in the list
@@ -997,7 +974,7 @@ CONTAINS
        do j = 1,iuq! Loop over the known unique matrices (in the updated list)
           do irot = 1, nRot! The duplicates will always be rotated from
              ! the original (otherwise necessarily unique)
-             test_latticei = matmul(sgrots(:,:,irot),matmul(parent_lattice,hnf(:,:,i)))
+             test_latticei = matmul(rot(:,:,irot),matmul(parent_lattice,hnf(:,:,i)))
              test_latticej = matmul(parent_lattice,temp_hnf(:,:,j))
 
              if (is_equiv_lattice(test_latticei,test_latticej,eps)) then
@@ -1030,7 +1007,7 @@ CONTAINS
        ! operations in the sym ops of the parent lattice leave the
        ! superlattice fixed. These operations may permute the labeling
        ! so we need them when finding duplicate labelings
-       call get_sLV_fixing_operations(uq_hnf(:,:,iuq),parent_lattice,nD,sgrots,sgshift,&
+       call get_sLV_fixing_operations(uq_hnf(:,:,iuq),parent_lattice,nD,rot,shift,&
         dperms,fixing_op(iuq),RPList(iuq),degeneracy_list(iuq),eps)
     enddo
     degeneracy_list = degeneracy_list + 1
@@ -1064,6 +1041,7 @@ CONTAINS
     integer, allocatable       :: tIndex(:)
     logical :: inList
 
+
     nRot = size(rot,3)
     allocate(tv(3,nD,nRot),tIndex(nRot),STAT=status); if(status/=0) stop "tv didn't allocate"
     allocate(tmpOp%rot(3,3,nRot),tmpOp%shift(3,nRot))
@@ -1077,12 +1055,14 @@ CONTAINS
        thisRot = rot(:,:,iRot) ! Store the rotation
        origLat = matmul(pLV,HNF)  ! Compute the superlattice
        rotLat = matmul(thisRot,origLat)          ! Compute the rotated superlattice
-       if (is_equiv_lattice(rotLat,origLat,eps)) then ! this operation
-       ! fixes the lattice and should be recorded
+       if (is_equiv_lattice(rotLat,origLat,eps)) then ! this operation fixes the lattice and should be recorded
           ic = ic + 1
           tmpOp%rot(:,:,ic) = thisRot
           tmpOp%shift(:,ic) = shift(:,iRot)
-!GLWH 2018 inactive site changes...It seems that tv and dPerm have different sizes in the second dimension
+          !print*,"nd",nD
+          !print*,"iRot,nRot",irot,nrot
+!GLWH 2018 inactive site changes...It seems that tv and dPerm have different sizes in the second dimension!GLWH 2019. This is fixed (I think) with changes up above (dFull vs dAct)
+!The problem now is that the tv and dPerm%v have a different number of
           tv(:,:,ic) = dPerm%v(:,:,iRot)
           tIndex(ic) = iRot
           ! Added by LN from here
@@ -1104,6 +1084,7 @@ CONTAINS
     enddo ! Now we know which rotations fix the lattice and how many
           ! there are so store them
     degeneracy = cDegen
+
     do i=1,ic; allocate(fixOp%rot(3,3,ic),fixOp%shift(3,ic),STAT=status)
        if(status/=0) stop "Allocation of fixing_op(iuq) failed, module deriv..."; enddo
     ! Allocate the storage for them
@@ -1242,11 +1223,11 @@ CONTAINS
     !Had to change character to 80 from 10 to match the definition in io_utils.read_input
     character(80), intent(in) :: title
     real(dp), intent(in) :: parLV(3,3), eps
-    real(dp), pointer :: dFull(:,:), d(:,:)
+    real(dp), allocatable :: dFull(:,:), d(:,:)
     character(1), intent(in) :: pLatTyp
     logical, intent(in) :: full
     integer, intent(inout) :: labelFull(:,:) ! A column for each site, a row for each color (label)
-    integer, intent(inout) :: digitFull(:)   !
+    integer, allocatable :: digitFull(:)   !
     integer, allocatable    :: label(:,:), digit(:)
     integer, intent(in) :: equivalencies(:)
     logical, intent(in) :: conc_check
@@ -1287,57 +1268,22 @@ CONTAINS
     real(dp) :: max_binomial
     !!<local name="inactives"> A list of the sites that are _inactive_, that have no configurational degrees of freedom.</local>
     integer, allocatable :: inactives(:,:) ! Each row (2 columns) contains the index of an inactive site and the corresponding label
+    real(dp), allocatable :: SGrot(:,:,:), SGt(:,:) ! Last index is iOp
     integer              :: nInactive, jInactive
     max_binomial = 1E10
 
+    ! Beginning of main routine for enumeration
+
+    ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
+
+
     ! Divide the dset into members that are enumerated and those that are not
 
-    ! GLWH 2018 (Some sites have no configurational degrees of freedom, either because we want them
+    ! GLWH 2018 (Some sites have no configurational degree of freedom, either because we want them
     ! to be identical to other sites [like opposite sides of a symmetric slab] or because they only
-    ! have 1 label ["inactive sites"]). By removing these from the enumeration itself (adding them
-    ! back in afterwards) reduces unnecessary combinatoric explosion.
-
-    nD = count( (/(i,i=1,nDFull)/)==equivalencies)
-
-    ! Compute the number of sites with only one label allowed (all
-    ! -1's in the 'labelFull' table except one). These sites have no
-    ! freedom and so we'll remove them from the enumeration.
-    nInactive = count((/(k-1==count(labelFull(:,i)==-1),i=1,nDFull)/))
-    print*,"nInactive: ",nInactive
-    nD = nD - nInactive
-    print*,"nD: ",nD
-
-
-    ! Set up arrays for the subset of sites that have some
-    ! configurational freedom.
-    allocate(d(3,nD),label(size(labelFull,1),nD), digit(nD),tempD(3,nD))
-    allocate(inactives(nInactive,2))
-    print*,"Size of inactives",size(inactives)
-    nD = 0; jInactive = 0
-    do iD=1,nDFull
-       if (iD==equivalencies(iD) .and. labelFull(2,iD)/=-1) then !
-          !this dset member is a unique point and has more than one
-          !label allowed (if it only had one allowed label, position
-          !2 of the label table 'labelFull' would be -1).
-          nD=nD+1
-          d(:,nD)     = dFull(:,iD)
-          label(:,nD) = labelFull(:,iD)
-          digit(nD)   = digitFull(iD)
-       elseif (iD/=equivalencies(iD)) then
-            ! this dset member is equivalent (concerning the
-            ! enumeration!) to a different point.  => Force the label
-            ! and digit arrays to be equal for equivalent sites
-          labelFull(:,iD) = labelFull(:,equivalencies(iD))
-          digitFull(iD)   = digitFull(equivalencies(iD))
-       else
-          print*,"Found inactive site"
-       ! Sites with only one label will be left out of the table but
-       ! we need to keep a list of these sites so we can add them
-       ! back in later when we print out the list.
-          jInactive = jInactive + 1
-          inactives(jInactive,:) = (/iD,labelFull(1,iD)/)
-       endif
-    enddo
+    ! have 1 label ["inactive sites" or "spectator sites"]). By removing these from the enumeration
+    ! itself (adding them back in afterwards) reduces unnecessary combinatoric explosion.
+    call make_inactive_table(k,nD, equivalencies,nDFull,labelFull,dFull,d,label,digit,digitFull,inactives)
 
     ! Are we going to use a set of fixed cells? Or loop over all possible cells?
     fixed_cells = .false.
@@ -1434,6 +1380,7 @@ CONTAINS
     ! The permutations of the interior points (d-vectors)
     ! under symmetry operations of the parent multilattice
     ! are used later on. Generate them here
+    allocate(tempD(3,size(d, dim=2)))
     tempD = d ! Make a temporary copy of the d-set members
     call matrix_inverse(parLV,inv_parLV,err); if(err) stop "Inverse failed for d-mapping"
 
@@ -1451,8 +1398,10 @@ CONTAINS
     !ignore them when finding symmetry) but I worry that it might
     !break surface cases. Stefan's group needs to help with that...
     ! II: It broke some of the unit tests. Out of bonds on line 1077, tv and dperms don't match in second dimension...allocated to size 'nD' for tv. Perhaps the better thing is to pass in *both*. Use dFull for the symmetry stuff but just 'd' for generating the ParRPList...
-    call get_dvector_permutations(parLV,dFull,inactives,ParRPList,LatDim,eps)
-
+    ! III: Decided to move the SGroup finding into its own routine
+    call getSpaceGroup_activeSitesOnly(parLV,nD,nDFull,dFull,inactives,LatDim,SGrot,SGt,eps)
+! The d passed out in the previous line now contains only the *active* dvectors
+    call get_dvector_permutations(parLV,d,nD,SGrot,SGt,ParRPList,LatDim,eps)
     ! This part generates all the derivative structures. Results are
     ! written to unit 14.
     Tcnt = 0 ! Keep track of the total number of structures generated
@@ -1481,7 +1430,7 @@ CONTAINS
        ! symmetrically equivalent so we use the symmetry of the parent
        ! multilattice to reduce the list to those that are
        ! symmetrically distinct.
-       call remove_duplicate_lattices(HNF,LatDim,parLV,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
+       call remove_duplicate_lattices(HNF,LatDim,parLV,SGrot,SGt,d,ParRPList,rdHNF,fixOp,RPList,uqlatts,hnf_degen,eps)
        !call cpu_time(Removetime)
        ! Superlattices with the same SNF will
        ! have the same list of translation permutations of the
