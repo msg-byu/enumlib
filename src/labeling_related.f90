@@ -65,7 +65,7 @@ CONTAINS
     integer, intent(in) :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
     integer, intent(in) :: allowed(:,:)
     logical, intent(in) :: fixedcell
-    
+
     !!<local name="this_tree">A tree structure for use in the
     !!enumeration.</local>
     !!<local name="labeling">The labeling that is currently being

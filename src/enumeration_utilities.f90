@@ -298,6 +298,7 @@ CONTAINS
     integer, intent(in)       :: aTyp(:)
     real(dp), intent(in)      :: pLV(:,:)
     real(dp), pointer         :: dset(:,:)      ! (intent(in))
+    real(dp), allocatable         :: dset(:,:)      ! (intent(in))
     real(dp), pointer         :: dsetStruc(:,:) ! d-set of structure
     ! (is determined from the structure, should in the end be
     ! equivalent to dset)

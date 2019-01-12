@@ -40,11 +40,11 @@ CONTAINS
     integer, pointer :: label(:,:), digit(:)
     integer, pointer :: eq(:), cRange(:,:)
     !logical, intent(out):: conc_check
-    
+
     logical :: full, err
     integer :: iD, i
     character(100) :: line
-    
+
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
        open(10,file='struct_enum.out',status='old')
@@ -73,7 +73,7 @@ CONTAINS
     do iD = 1, nD ! skip over all the d-vectors
        read (10,*) line
     enddo
-    ! Read the number of components in the enumeration 
+    ! Read the number of components in the enumeration
     read(10,'(i2)') k
     write(99,'("Number of labels: ",i2)') k
     ! Now backup and read in the d-vectors
@@ -81,15 +81,15 @@ CONTAINS
        backspace(10)
     enddo
     allocate(d(3,nD),label(k,nD),digit(nD),eq(nD))
-    
-    ! This next part is a bit messy but it makes the input file easy to set up 
+
+    ! This next part is a bit messy but it makes the input file easy to set up
     ! (no need for formatted reads from the file)
     do iD = 1, nD ! loop over all the d-vectors
        call co_ca(10,err)
        read(10,'(a100)') line
        line = adjustl(line) ! Remove preceding blanks
        do i = 1,3 ! Loop over x,y,z coordinates of d-vector
-          read(line,*) d(i,iD) ! Get a coordinate of the d-vector 
+          read(line,*) d(i,iD) ! Get a coordinate of the d-vector
           line = adjustl(line(index(line," "):)) ! Throw away the number we just read in
        enddo
        write(99,'(3(f8.4,1x))',advance="no") d(:,iD)
@@ -139,28 +139,28 @@ CONTAINS
     write(99,'("Min and Max cell sizes: ",2(i2,1x))') Nmin, Nmax
     call co_ca(10,err)
     read(10,*) eps
-    write(99,'("Epsilon: ",g12.4)') eps 
+    write(99,'("Epsilon: ",g12.4)') eps
     ! Skip two lines (concentration check)
     read(10,*) line
     read(10,*) line
-    
+
     call co_ca(10,err)
     read(10,*) fullpart
     fullpart = adjustl(fullpart)
     call ucase(fullpart)
     write(99,'("full/part mode: ",a4)') fullpart
-    
+
     call co_ca(10,err)
     read(10,*) line
     read(10,*) line
-    
+
     if (pLatTyp(1:4).eq.'SURF') then; LatDim = 2
        if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
             stop 'For "surf" setting, first component of second and third &
             & must be zero'
     else if(pLatTyp(1:4).eq.'BULK') then; LatDim = 3
     else; stop 'Specify "surf" or "bulk" in input file';endif
-       
+
     if (fullpart(1:4).eq.'FULL') then; full = .true.
     else if(fullpart(1:4).eq.'PART') then; full = .false.
     else; stop 'Specify "full" or "part" in the input file';endif
@@ -201,9 +201,9 @@ CONTAINS
     integer, pointer :: label(:,:), digit(:)
     integer, pointer :: eq(:), cRange(:,:)
     !logical, intent(out):: conc_check
-    
+
     logical :: full, err
-    
+
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
        open(10,file='struct_enum.in',status='old')
@@ -232,23 +232,23 @@ CONTAINS
     !do iD = 1, nD ! skip over all the d-vectors
     !   read (10,*) line
     !enddo
-    ! Read the number of components in the enumeration 
+    ! Read the number of components in the enumeration
     read(10,'(i2)') k
     allocate(label(k,1)) ! Assumes only 1 d-vector (OK for old files?)
     call co_ca(10,err)
-    ! Read in the starting and stopping cell sizes 
+    ! Read in the starting and stopping cell sizes
     read(10,*) Nmin, Nmax
     write(99,'("Min and Max cell sizes: ",2(i2,1x))') Nmin, Nmax
     call co_ca(10,err)
     !read(10,*) eps
-    !write(99,'("Epsilon: ",g12.4)') eps 
-    
+    !write(99,'("Epsilon: ",g12.4)') eps
+
     call co_ca(10,err)
     read(10,*) fullpart
     fullpart = adjustl(fullpart)
     call ucase(fullpart)
     write(99,'("full/part mode: ",a4)') fullpart
-    
+
     if (pLatTyp(1:4).eq.'SURF') then; LatDim = 2
        if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
             stop 'For "surf" setting, first component of second and third &
@@ -263,9 +263,9 @@ CONTAINS
     allocate(d(3,1))
     d = 0._dp ! The code will expect the lattice to have at least one
     ! lattice point in the unit cell.
-    
+
   end subroutine read_struct_enum_out_oldstyle
-  
+
   !!<summary>If the user specifies one or more fixed cells in which to
   !!do the enumeration, then read them in using this routine.</summary>
   !!<parameter name="n" regular="true">Current index of superlattices.</parameter>
@@ -273,7 +273,7 @@ CONTAINS
   !!<parameter name="pLat" regular="true"></parameter>
   !!<parameter name="eps" regular="true"></parameter>
   subroutine read_in_cells_from_file(n,HNFList,pLat,eps)
-    integer, intent(in) :: n 
+    integer, intent(in) :: n
     integer, pointer    :: HNFList(:,:,:) ! Output
     real(dp), intent(in):: pLat(3,3), eps
 
@@ -283,15 +283,15 @@ CONTAINS
     real(dp), dimension(3,3)::  H, pLatInv
     integer,  dimension(3,3)::  Hout, Hin, T, L, R, S
     real(dp), allocatable :: inStrs(:,:,:)
-    
+
     ns = 0
     open(43,file="fixed_cells.in")
     open(44,file="debug_read_in_cells_from_file.out")
-    status=0 
+    status=0
     ! Count the number of structures in the input file
     do while (status==0)
        call co_ca(43,err)
-       !   if(err) stop "Trouble reading in structures in read_in_cells_from_file"
+       !   if(err) stop "Trouble reading in structures in p_cells_from_file"
        read(43,*,iostat=status) line
        if(index(line,"<str>")>0) ns = ns + 1
     enddo
@@ -302,7 +302,7 @@ CONTAINS
     do i = 1,3
        write(44,'(3(f12.6,1x))') pLatInv(i,:)
     enddo
-    
+
     ! Now read in the unit cells of the structures
     allocate(HNFList(3,3,ns),inStrs(3,3,ns))
     cStr = 0 ! Number of structures of the correct volume factor
@@ -323,11 +323,11 @@ CONTAINS
        do i = 1,3
           write(44,'(3(f12.6,1x))') inStrs(i,:,is)
        enddo
-       
+
        ! Now that we have the lattice vectors, let's check to see that
        ! the read-in structure is a derivative of the parent lattice
        H = matmul(pLatInv,inStrs(:,:,is))
-       if(.not. equal(H,nint(H),eps)) then 
+       if(.not. equal(H,nint(H),eps)) then
           write(*,'("The ",i2,"-th structure in the fixed_cells.in file is &
                & not a derivative structure")') is
           stop
@@ -343,7 +343,7 @@ CONTAINS
        do i = 1,3
           write(44,'(3(i2,1x))') Hout(i,:)
        enddo
-       
+
        call SmithNormalForm(Hout,L,S,R)
        write(44,'("Smith Normal Form of the HNF:")')
        do i = 1,3
@@ -358,7 +358,7 @@ CONTAINS
     HNFList => ralloc(HNFList,cStr)
     close(43); close(44)
   endsubroutine read_in_cells_from_file
-  
+
   !!<summary>This routine reads from the struct_enum.in file (or
   !!differently-named file with same format) and gets the parameters
   !!needed to do an enumeration.</summary>
@@ -384,15 +384,16 @@ CONTAINS
     character(80), optional :: fname
     integer,intent(out):: Nmin, Nmax, k, LatDim, nD
     real(dp),intent(out) :: pLV(3,3), eps
-    real(dp), pointer :: d(:,:)
-    integer, pointer :: label(:,:), digit(:)
-    integer, pointer :: eq(:), cRange(:,:)
+    real(dp), allocatable :: d(:,:)
+    integer, allocatable :: label(:,:), digit(:)
+    integer, allocatable :: eq(:)
+    integer, pointer :: cRange(:,:)
     logical, intent(out):: conc_check
-    
+
     logical :: full, err
     integer :: iD, i, status
     character(100) :: line
-    
+
     open(99,file="readcheck_enum.out")
     if(.not. present(fname)) then
        open(10,file='struct_enum.in',status='old')
@@ -428,7 +429,7 @@ CONTAINS
        read(10,'(a100)') line
        line = adjustl(line) ! Remove preceding blanks
        do i = 1,3 ! Loop over x,y,z coordinates of d-vector
-          read(line,*) d(i,iD) ! Get a coordinate of the d-vector 
+          read(line,*) d(i,iD) ! Get a coordinate of the d-vector
           line = adjustl(line(index(line," "):)) ! Throw away the number we just read in
        enddo
        write(99,'(3(f8.4,1x))',advance="no") d(:,iD)
@@ -492,24 +493,24 @@ CONTAINS
     write(99,'("Min and Max cell sizes: ",2(i2,1x))') Nmin, Nmax
     call co_ca(10,err)
     read(10,*) eps
-    write(99,'("Epsilon: ",g12.4)') eps 
+    write(99,'("Epsilon: ",g12.4)') eps
     call co_ca(10,err)
     read(10,*) fullpart
     fullpart = adjustl(fullpart)
     call ucase(fullpart)
     write(99,'("full/part mode: ",a4)') fullpart
-    
+
     if (pLatTyp(1:4).eq.'SURF') then; LatDim = 2
        if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
             stop 'For "surf" setting, first component of second and third &
             & must be zero'
     else if(pLatTyp(1:4).eq.'BULK') then; LatDim = 3
     else; stop 'Specify "surf" or "bulk" in input file';endif
-       
+
     if (fullpart(1:4).eq.'FULL') then; full = .true.
     else if(fullpart(1:4).eq.'PART') then; full = .false.
     else; stop 'Specify "full" or "part" in the input file';endif
-       
+
     ! Read in the concentration ranges
     allocate(cRange(k,3))
     cRange = 0
@@ -519,7 +520,7 @@ CONTAINS
        conc_check = .true.
        if (status/=0) then ! concentration is not specificed
           write(*,'("Concentration ranges are not specified")')
-          cRange = 0 
+          cRange = 0
           conc_check = .false.
           if (i>1) then
              write(*,'(//,"--<< WARNING: Concentration ranges are partially specified   >>--")')
@@ -534,8 +535,8 @@ CONTAINS
     close(98,status="delete")
     open(98,file="debug_label_table.out")
     close(98,status="delete")
-    
-    
+
+
     ! Write to the debug file
     if (conc_check) then
        write(99,'("Concentration ranges are specified. Will run with using &
@@ -548,7 +549,7 @@ CONTAINS
             & the full-conc-range algorithm (original enum algorithm).")')
     endif
     close(10)
-    
+
     if (any(cRange<0)) stop "ERROR: negative input on concentrations in read_input"
     do i = 1, k
        if (maxval(cRange(i,1:2))>cRange(i,3)) then
@@ -557,22 +558,22 @@ CONTAINS
           stop
        endif
     enddo
-    
+
     write(99,'(/,"--<< Successfully read the struct_enum.in file >>--",/)')
     close(99)
   end subroutine read_input
-  
+
   !!<summary>subroutine was taken from the code of Ralf Drautz. co_ca
   !!cares about comments and blanks and avoids reading them, comment
   !!lines start with a #</summary>
   !!<parameter name="unit" regular="true">unit specifies the unit to read from.</parameter>
   !!<parameter name="error" regular="true"></parameter>
   subroutine co_ca(unit,error)
-    
+
     implicit none
     character(50) :: phrase !letter: contains the first letter of every line
     logical   :: com !true if comment line is found
-    integer  :: unit, i, ios 
+    integer  :: unit, i, ios
     logical :: error
 
     com = .true.; error = .false.
@@ -598,7 +599,7 @@ CONTAINS
     backspace unit
     if (ios/=0) error = .true.
   end subroutine co_ca
-  
+
   !!<summary>This routine writes the symmetry operations of the
   !!multilattice (defined in lat.in to a file. This isn't used
   !!anywhere but might be nice for debugging and other
@@ -609,12 +610,12 @@ CONTAINS
   SUBROUTINE write_lattice_symmetry_ops(rot,shift,key)
     real(dp), intent(in) :: rot(:,:,:), shift(:,:)
     character(2), optional :: key
-    
+
     character(2) twoDkey
     integer iOp, nOp,i
     twoDkey = "3D"
     if (present(key)) then; if(key=="2D") twoDkey = "2D"; endif
-       
+
     if(twoDkey=="2D") then; open(11,file="symops_enum_2D_parent_lattice.out",status="unknown"); else
        open(11,file="symops_enum_parent_lattice.out",status="unknown");endif
     nOp = size(rot,3)
@@ -640,7 +641,7 @@ CONTAINS
     write(11,'("The integer vectors in the final columns of each",/,&
          &"permutation listing describe how a list 1, 2, ...",/,&
          &"gets permuted. So ""2 1"" implies that element 2 is",/,&
-         &"mapped to position 1, and the first one ends up in ",/,& 
+         &"mapped to position 1, and the first one ends up in ",/,&
          &"second position.")')
     write(11,'("Number of permutations: ",i4)') nP
     do iP = 1, nP
@@ -674,5 +675,5 @@ CONTAINS
 
     close(10)
   end SUBROUTINE read_arrows
-  
+
 END MODULE io_utils
