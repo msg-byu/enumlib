@@ -307,17 +307,17 @@ CONTAINS
   !!<parameter name="fixed_cells" regular="true">Enumeration for
   !!user-specified cells instead of generated cells.</parameter>
   SUBROUTINE generate_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit,degeneracy_list,fixed_cells)
-    integer, intent(in) :: k 
-    integer, intent(in) :: n 
-    integer, intent(in) :: nD 
-    integer, intent(in) :: perm(:,:) 
-    character, pointer :: lab(:) 
-    integer, intent(in) :: iConc(:) 
-    integer, intent(in) :: parLabel(:,:) 
-    integer, intent(in) :: parDigit(:) 
+    integer, intent(in) :: k
+    integer, intent(in) :: n
+    integer, intent(in) :: nD
+    integer, intent(in) :: perm(:,:)
+    character, pointer :: lab(:)
+    integer, intent(in) :: iConc(:)
+    integer, intent(in) :: parLabel(:,:)
+    integer, intent(in) :: parDigit(:)
     integer, pointer :: degeneracy_list(:)
-    logical, intent(in) :: fixed_cells 
-    
+    logical, intent(in) :: fixed_cells
+
     integer, allocatable :: temp(:)
     integer index, nUniq,i
     integer, allocatable:: E(:,:) ! A matrix of 1's and 0's,
@@ -331,7 +331,7 @@ CONTAINS
     integer ik, iD ! Loop counters for colors and sites in the supercell
     integer sitePointer ! Marks the location of the current digit that is advancing
     logical flag ! Use this to exit the loops once we have traversed the entire tree
-    
+
     lab => null()
 
     nL = multinomial(iConc) ! The hash table is "full size" even if
@@ -345,8 +345,8 @@ CONTAINS
     endif
     lab = ""
     nPerm = size(perm,1)
-    
-    ! Initialize the mask (E) used to prune the tree to meet site restrictions 
+
+    ! Initialize the mask (E) used to prune the tree to meet site restrictions
     allocate(E(n*nD,k))
     E = 0
     do ik = 1, k; do iD = 1, n*nD ! loop over all "colors" and all "sites"
@@ -356,11 +356,11 @@ CONTAINS
     end do; end do
     ! Write a file containing the mask for site restrictions
     open(22,file="debug_site_restrictions.out",position="append")
-    write(22,'("site #   parent site #        Mask")') 
+    write(22,'("site #   parent site #        Mask")')
     do iD = 1, n*nD
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
     end do; write(22,*); close(22)
-    
+
     allocate(degeneracy_list(nL),STAT=status)
     if(status/=0) then
        write(*,*) "Allocation of 'degeneracy list' failed in generate_permutation_labelings"
@@ -388,9 +388,9 @@ CONTAINS
              flag = .false.; exit
           endif
           a(sitePointer) = a(sitePointer) + 1 ! Advance the current digit
-          if (a(sitePointer) > k-1) then      ! Reset the label to zero  
+          if (a(sitePointer) > k-1) then      ! Reset the label to zero
              a(sitePointer) = -1             ! and back up one digit
-             sitePointer = sitePointer - 1  
+             sitePointer = sitePointer - 1
              cycle
           endif
           if(E(sitePointer,a(sitePointer)+1)==1) exit ! Found a valid
@@ -412,7 +412,7 @@ CONTAINS
        if(is_valid_multiplicity(a,iConc)) then ! We have a valid
        ! labeling on the tree, mark it in the
           call generate_index_from_labeling(a,iConc,idxOrig) ! hash
-         
+
           if(idxOrig < 0) then
              ! the integer variable idxOrig overflowed and came back negative
              write(*,*) "ERROR: The index of a particular labeling came out negative."
@@ -447,8 +447,8 @@ CONTAINS
                    ! permutation and not a rotation permutation
                    ! (they're ordered in the list...and there are
                    ! n. The first is the identity so skip that one.)
-                      degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1   
-                      lab(idx)='N'                                          
+                      degeneracy_list(nUniq) = degeneracy_list(nUniq) - 1
+                      lab(idx)='N'
                    end if
                 end if
                 ! This is a failsafe and should never trigger if the
@@ -468,7 +468,7 @@ CONTAINS
           end if
        end if
     enddo
-    
+
     nUniq = count(degeneracy_list > 0.0001)
     allocate(temp(nUniq) )
     index = 1
@@ -482,15 +482,15 @@ CONTAINS
     allocate(degeneracy_list(nUniq) )
     degeneracy_list = temp
     deallocate(temp)
-    
+
     ! If there are no site restrictions, then the hash table is
     ! "minimal" and every entry should hove been visited. Double check
     ! if this is the case. Just another failsafe.
-    if(all(E==1) .and. any(lab=='')) then 
+    if(all(E==1) .and. any(lab=='')) then
        print*,"There are no site restrictions and yet not every labeling was marked in generate_permutation_labelings"
        stop "There is a bug in generate_permutations_labeling in labeling_related.f90"
     endif
-    
+
   CONTAINS
     !!<summary></summary>
     !!<parameter name="labeling" regular="true"></parameter>
@@ -500,20 +500,20 @@ CONTAINS
       integer, intent(in) :: labeling(:)
       integer, intent(in) :: concList(:)
       integer i
-      
+
       is_valid_multiplicity = .true.
       if (sum(concList)/=n*nD) stop "Something is strange in is_valid_multiplicity"
-      do i = 0, size(concList,1)-1 
+      do i = 0, size(concList,1)-1
          if(count(labeling==i)/=concList(i+1)) is_valid_multiplicity = .false.
       enddo
-      
+
     END FUNCTION is_valid_multiplicity
   END SUBROUTINE generate_permutation_labelings
 
   !!<summary>This routine takes in a list of labels of the parent cell
   !!and the number of different labels allowed on each site. It
   !!returns a "multiplier", and *expanded* versions of parLabel and
-  !!parDigit.</summary>
+  ! parDigit.</summary>
   !!<parameter name="n" regular="true">The index (volume factor) of
   !!the supercell.</parameter>
   !!<parameter name="k" regular="true">k-nary case</parameter>
@@ -523,20 +523,20 @@ CONTAINS
   !!<parameter name="digit"></parameter>
   !!<parameter name="multiplier"></parameter>
   SUBROUTINE setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
-    integer, intent(in) :: n,k 
+    integer, intent(in) :: n,k
     integer, intent(in) :: parLabel(:,:), parDigit(:)
     integer, pointer:: label(:,:), digit(:) ! n*longer than parLab/parDigit (INTENT(OUT))
     integer, pointer:: multiplier(:)
     integer i,j, nD, istat, ic
 
     nD = size(parDigit) ! Size of the d-set n*nD is the total length of a labeling
-    
+
     if (associated(label)) deallocate(label)
     if (associated(digit)) deallocate(digit)
     if (associated(multiplier)) deallocate(multiplier)
     allocate(label(k,n*nD),digit(n*nD),multiplier(n*nD),STAT=istat)
     if (istat/=0) stop "Allocation failed in setup_mixed_radix_multiplier"
-    
+
     digit = (/((parDigit(j),i=1,n),j=1,nD)/) ! Repeat the digit
     ! ordinals across all places in the labeling
     forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall ! Ditto for labels
@@ -585,20 +585,20 @@ CONTAINS
   !!<parameter name="concVect" regular="true"></parameter>
   SUBROUTINE write_labelings(k,n,nD,parLabel,parDigit,HNFi,HNFlist,SNFlist,L,fixOp,Tcnt,Scnt,Hcnt,&
                              permIndx,lm,equivalencies,inactives,hnf_degen,lab_degen,concVect)
-    integer, intent(in) :: k 
-    integer, intent(in) :: n, nD 
-    integer, intent(in) :: parLabel(:,:) 
-    integer, intent(in) :: parDigit(:) 
-    
+    integer, intent(in) :: k
+    integer, intent(in) :: n, nD
+    integer, intent(in) :: parLabel(:,:)
+    integer, intent(in) :: parDigit(:)
+
     integer, intent(in) :: hnf_degen(:), lab_degen(:)
-    integer, intent(in) :: HNFi 
+    integer, intent(in) :: HNFi
     integer, intent(in), dimension(:,:,:) :: HNFlist, SNFlist, L ! Need this just for the output
     type(opList), intent(in) :: fixOp(:)
-    integer, intent(inout) :: Tcnt, Scnt, Hcnt 
+    integer, intent(inout) :: Tcnt, Scnt, Hcnt
     integer, intent(in) :: permIndx(:)
     character, intent(in) :: lm(:)
     integer, optional, intent(in):: concVect(:)
-    
+
     integer nHNF ! Number of HNFs in the list that match the current block index, HNFi
     integer, allocatable :: vsH(:), vsL(:) ! Vector subscript for
     ! matching the HNF index to the HNF list
@@ -613,7 +613,7 @@ CONTAINS
     ! Need to convert base-10 back to labeling
     logical conc_check
     character(3) :: dummy
-    character(100) :: struct_enum_out_formatstring 
+    character(100) :: struct_enum_out_formatstring
 
     ! Labeling Postprocessing data
     integer, intent(in)  :: equivalencies(:)
@@ -625,6 +625,7 @@ CONTAINS
     logical :: postprocessLabeling           ! do we need to postprocess labeling
     integer, allocatable :: allD2LabelD(:)   ! { full-dset member }:
     integer              :: nInact, iUC       ! number of inactive sites, counter over unit cells
+    integer              :: iD ! Counter over d-set members
     ! respective d-vector ID in the labeling dset
 
     ! Postprocessing labelings: setup
@@ -649,7 +650,7 @@ CONTAINS
     !    therefore specify the following equivalency list:
     !
     !         equivalency of dvector# | 1 2 3 4
-    !         ---------------------------------   
+    !         ---------------------------------
     !         equivalency list        | 1 2 2 1
     !
     !    which means that dvector# 1 and dvector# 4 have to have the same
@@ -661,7 +662,7 @@ CONTAINS
     !    dvector# 3 and dvector# 4 are then constructed in a
     !    postprocessing step.  The postprocessing step takes the
     !    enumerated form (i.e. dvectors# 1 and 2, e.g. a labeling 0101 for
-    !    two unit cells) and tranforms it into a form that is valid for
+    !    two unit cells) and transforms it into a form that is valid for
     !    ALL dvectors, e.g. labeling 01010101 for two unit cells).
     !
     postprocessLabeling = .not. (all(  abs( equivalencies-allD ) ==0))
@@ -685,18 +686,19 @@ CONTAINS
 
     ! This should work even if there are no inactive sites
     nInact = size(inactives,1)
+    !GLWH 2019. I'm not sure that nAllD is big enough. Does it include a count of inactive sites as well?
     allocate(expLabeling(n*nAllD))
 
     conc_check = .false.
     if (present(concVect)) conc_check = .true.
-    
+
 
     !if (any(lm=='')) stop "Labeling index has unmarked entries"
     nl = count(lm=='U'); nHNF = count(permIndx==HNFi)
     allocate(vsH(nHNF),vsL(nl),STAT=status); if (status/=0) stop "Allocation failed in write_labelings: vsH, vsL"
 
     ! Packing...
-    vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); 
+    vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx);
     ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; enddo
 
     ! set up the multiplier, labels, digits, etc
@@ -722,47 +724,71 @@ CONTAINS
 
        if (postprocessLabeling) then
           ! see the comments at the beginning of the current routine
-          call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
+          call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD)
        else
           pplabeling = labeling ! nothing changes
        endif
-       
-       !GLWH 2018
+
+       !GLWH 2018/2019 Jan
        if (nInact/=0) then ! there are inactive sites to add back in
           expLabeling = -1
-          do iUC = 1, n    ! loop over the unit cells
-             do i = 1, nInact ! Would it be better to do this with some sort of clever vector subscript?
-                expLabeling(inactives(i,1)*iUC) = inactives(i,2)
-             enddo
-             do i = 1, nAllD - nInact
-                idx = minloc(expLabeling) ! findloc would be better here (look for -1, but it hasn't yet been implement in gfortran...)
-                write(*,'("i, iUC", 2(i3,1x))') i, iUC
-                expLabeling(idx) = pplabeling(i*iUC)
-             enddo
+          ! First, load up the inactive sites in the appropriate slots
+          do i = 1, nInact
+            iD = inactives(i,1)
+            expLabeling((iD-1)*n+1:iD*n) = inactives(i,2)
+            write(*,'(30(i2,1x))') (/(i,i=iD,iD*n,nAllD)/)
           enddo
-          write(*,'("labeling: ",32(i1))') expLabeling
-          print*,"here"
-          if (any(expLabeling==-1)) stop "Failsafe triggered: inactive sites expansion in 'labeling_related.f90'"
+          ! Second, the remaining slots are those sites enumerated over
+          do i = 1, nD*n
+            idx = minloc(expLabeling)
+            expLabeling(idx) = labeling(i)
+          enddo
+!           do iUC = 1, n    ! loop over the unit cells
+!              do i = 1, nInact ! Would it be better to do this with some sort of clever vector subscript?
+!                          write(*,'("exp1: ",30i2)') expLabeling
+!                ! Labeling vector is divided into block by d-vector number. Inside each block the index is over unit cells
+!                print*,"inactive sites: ",inactives(:,1)
+!                print*,"iUC: ",iUC
+!                print*,"n: ",n
+!                 expLabeling((inactives(i,1)-1)*n+iUC) = inactives(i,2)
+!              enddo
+!              do i = 1, nAllD - nInact
+!                 idx = minloc(expLabeling) ! findloc would be better here (look for -1, but it hasn't yet been implemented in gfortran...)
+! !                write(*,'("i, iUC", 2(i3,1x))') i, iUC
+!                 expLabeling(idx) = pplabeling(i*iUC)
+!                 write(*,'("exp: ",30i2)') expLabeling
+!              enddo
+!           enddo
+! !          write(*,'("labeling: ",32(i1))') expLabeling
+!           if (any(expLabeling==-1)) stop "Failsafe triggered: inactive sites expansion in 'labeling_related.f90'"
        else
           expLabeling = pplabeling
        endif
        !/GLWH 2018
-       
+       print*,"nDAll",nAllD
+       print*,"nD",nD
+       print*,"n of supercell",n
+       write(*,'("inactives",2(i2,1x))') (inactives(i,:),i=1,nD)
+       print*,"length pplabel",size(pplabeling)
+       write(*,'("pplabel:  ",30i2)') pplabeling
+       print*,"length expLabel",size(expLabeling)
+       write(*,'("explabel: ",30i2)') explabeling
+
        do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
           jHNF = vsH(iHNF) ! Index of matching HNFs
           ! check if concentrations of this labeling match the user specification:
           !GH if (check_labeling_numbers(pplabeling,number_ElementN,number_Range)) then
           Tcnt = Tcnt + 1; Scnt = Scnt + 1
-          
+
           write(14,struct_enum_out_formatstring) &
                Tcnt, Hcnt+iHNF,hnf_degen(jHNF),lab_degen(il),lab_degen(il)*hnf_degen(jHNF),Scnt,n,&
                size(fixOp(jHNF)%rot,3),SNFlist(1,1,jHNF),SNFlist(2,2,jHNF),SNFlist(3,3,jHNF),&
                HNFlist(1,1,jHNF),HNFlist(2,1,jHNF),HNFlist(2,2,jHNF),HNFlist(3,1,jHNF),HNFlist(3,2,jHNF),&
-               HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),explabeling!,lab_degen(il), hnf_degen*lab_degen(il)   
+               HNFlist(3,3,jHNF),transpose(L(:,:,jHNF)),explabeling!,lab_degen(il), hnf_degen*lab_degen(il)
           !GH endif
        enddo ! loop over HNFs
     enddo ! loop over labelings
-    Hcnt = Hcnt + nHNF 
+    Hcnt = Hcnt + nHNF
   contains
 
     !!<summary>Purpose: take an enumeration labeling (for selected,
@@ -777,14 +803,14 @@ CONTAINS
     !! <parameter name="newlabeling" regular="true">the wanna-be new labeling.</parameter>
     !! <parameter name="newD2oldD" regular="true">{ new D# }: a map newD -> oldD</parameter>
     subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,newD2oldD)
-      integer, intent(in) :: nUC, nAllD          
-      integer, intent(in) :: oldlabeling(:)      
-      integer, intent(out):: newlabeling(:)      
-      integer, intent(in) :: newD2oldD(:)        
-      
+      integer, intent(in) :: nUC, nAllD
+      integer, intent(in) :: oldlabeling(:)
+      integer, intent(out):: newlabeling(:)
+      integer, intent(in) :: newD2oldD(:)
+
       integer :: newlab_pos, oldlab_pos
       integer :: iD,iUC
-      
+
       do iD=1,nAllD
          do iUC=1,nUC
             newlab_pos = (iD-1)*nUC + iUC               ! position in the new labeling
@@ -817,7 +843,7 @@ CONTAINS
     ! for masking elements to be updated
     integer, allocatable :: bitString(:)
 
-    indx = INindx - 1 ! The algorithm uses a 0..N-1 indexing so shift by one 
+    indx = INindx - 1 ! The algorithm uses a 0..N-1 indexing so shift by one
     k = size(conc)
     n = sum(conc)
     slotsRem = n
@@ -830,7 +856,7 @@ CONTAINS
        allocate(bitString(m(iK)))
        call generate_BitStringEqv(x(iK),m(iK),j(iK),bitString)
        allocate(vsBits(j(iK)),vsLabels(slotsRem))
-       
+
        vsLabels = pack((/(ij,ij=1,n)/),l==-1)
        vsBits   = pack((/(ij,ij=1,m(iK))/),bitString==1)
        l(vsLabels(vsBits)) = iK - 1 ! Offset to start labels at zero
@@ -852,7 +878,7 @@ CONTAINS
     integer C(size(conc)), X(size(conc))
     integer iK, n
     integer(li) p
-    
+
     n = size(conc)
 
     call get_Cs(conc,C)
@@ -863,7 +889,7 @@ CONTAINS
        p = p + X(iK)
     enddo
     idx = p + 1
-    
+
   END SUBROUTINE generate_index_from_labeling
 
   !!<summary>This routine take a list of concentrations and returns
@@ -877,10 +903,10 @@ CONTAINS
     integer n, nLeft, iK
 
     nLeft = sum(conc)
-    
+
     n = size(conc)
     do iK = 1, n
-       C(iK) = binomial(nLeft,conc(iK)) 
+       C(iK) = binomial(nLeft,conc(iK))
        nLeft = nLeft - conc(iK)
     enddo
   END SUBROUTINE get_Cs
@@ -893,7 +919,7 @@ CONTAINS
     integer, intent(in) :: conc(:)
     integer, intent(in) :: l(:) ! the current labeling
     integer, intent(out):: X(:)
-    
+
     integer n, iK, xTemp, iM, nLeft
     integer, allocatable :: mask(:)
 
@@ -910,7 +936,7 @@ CONTAINS
        xTemp = 0
        do iM = 1, nLeft
           if (mask(iM)==0) then!&
-             xTemp = xTemp + binomial(nLeft - iM, count(mask(iM:)==1)-1) 
+             xTemp = xTemp + binomial(nLeft - iM, count(mask(iM:)==1)-1)
           endif
        enddo
        X(iK) = xTemp
@@ -931,7 +957,7 @@ CONTAINS
     integer(li),intent(in):: idx
     integer, intent(in)   :: m, j
     integer, intent(out)  :: mask(m)
-    
+
     integer i,t,x,bnml
     mask = -1
     x = idx
@@ -970,10 +996,10 @@ CONTAINS
     integer, intent(in)     :: conc(:)
     integer(li), intent(out):: x(:)
     integer,     intent(out):: m(:), j(:)
-    
+
     integer k, n, iL
     integer(li) :: quot, c
-    
+
     quot = idx
     j = conc
     k = size(conc)
@@ -985,7 +1011,7 @@ CONTAINS
        x(iL) = mod(quot,c)
        quot = quot/c
     enddo
-    
+
   END SUBROUTINE get_Xmj_for_labeling
 
   !!<summary>This routine takes in a list of HNFs and a list of
@@ -1009,14 +1035,14 @@ CONTAINS
   !!<parameter name="lrIndx">Index for permutations list associated
   !!with each HNF.</parameter>
   SUBROUTINE make_label_rotation_table(HNF,L,A,R,G,d, eps, lrTab,lrIndx)
-    integer, intent(in) :: HNF(:,:,:), L(:,:,:) 
+    integer, intent(in) :: HNF(:,:,:), L(:,:,:)
     type(opList), intent(in) :: R(:)
-    real(dp), intent(in) :: A(3,3) 
-    integer, intent(in) :: G(:,:) 
-    integer, intent(out) :: lrTab(:,:,:) 
-    integer, intent(out) :: lrIndx(:) 
-    integer, intent(in) :: d(3) 
-    
+    real(dp), intent(in) :: A(3,3)
+    integer, intent(in) :: G(:,:)
+    integer, intent(out) :: lrTab(:,:,:)
+    integer, intent(out) :: lrIndx(:)
+    integer, intent(in) :: d(3)
+
     integer iH, iR, iq, i, j, k, ilq, iM, iHindx, il ! Loop counters
     integer nH, nR, n, nlq, nq, status, b, nM(1)
     logical unique, err ! flag for identifying new permutation lists, error flag
@@ -1026,7 +1052,7 @@ CONTAINS
     integer, allocatable :: trivPerm(:), tM(:,:,:)
     real(dp) :: eps
     integer, dimension(3,3) :: M
-    
+
     nH = size(HNF,3) ! Number of HNFs
     ! Find the maximum number of symmetries for the list of HNFs
     nR = 48 ! debug
@@ -1083,7 +1109,7 @@ CONTAINS
        enddo sort ! <<< End sorting
        ! Fail safe on sorting
        do j = 2, count(tlr(iH,:)/=0); if (tlr(iH,j)<tlr(iH,j-1)) stop "Sorting failed";enddo
-             
+
        ! Now check to see if we have a unique list of M's
        unique = .true.
        do iM = 1, iH
@@ -1129,12 +1155,12 @@ CONTAINS
   !!<parameter name="list1" regular="true"></parameter>
   !!<parameter name="list2" regularg="true"></parameter>
   FUNCTION lists_match(list1, list2)
-    integer, intent(in) :: list1(:,:), list2(:,:) 
+    integer, intent(in) :: list1(:,:), list2(:,:)
     logical lists_match, rowmatch
     integer nL ! length of each list
     integer i,j
     lists_match = .false.; rowmatch = .false.
-    nL = size(list1,2) 
+    nL = size(list1,2)
     do i = 1, nL
        if (all(list1==list2)) then; rowmatch = .true.; exit; endif
        rowmatch = .false.
@@ -1145,7 +1171,7 @@ CONTAINS
     enddo
     if (rowmatch) lists_match = .true.
   ENDFUNCTION lists_match
-        
+
   !!<summary>This function compares a proposed labeling to the list of
   !!allowed labels on each site. If any label is present "illegally"
   !!on one site, then the function is false. This routine is needed
@@ -1162,7 +1188,7 @@ CONTAINS
     logical             :: labeling_is_legal
     integer, intent(in) :: labeling(:), siteLabels(:,:), digitN(:)
     integer iL, nL
-    
+
     nL = size(labeling)
     labeling_is_legal = .true.
     do iL = 1, nL ! Loop over all labels that are possible
@@ -1172,7 +1198,7 @@ CONTAINS
           exit ! if there isn't a match in just one digit, illegal labeling
        endif
     enddo
-    
+
   ENDFUNCTION labeling_is_legal
 
   !!<summary>This routine takes in the permutations effected by both
@@ -1209,17 +1235,17 @@ CONTAINS
   !!<parameter name="fixed_cells" regular="true">Enumeration for
   !!user-specified cells.</parameter>
   SUBROUTINE generate_unique_labelings(k,n,nD,perm,full,lab,parLabel,parDigit,degeneracy_list,fixed_cells)
-    integer, intent(in) :: k 
-    integer, intent(in) :: n 
-    integer, intent(in) :: nD 
-    integer, intent(in) :: perm(:,:) 
+    integer, intent(in) :: k
+    integer, intent(in) :: n
+    integer, intent(in) :: nD
+    integer, intent(in) :: perm(:,:)
     character, pointer :: lab(:)
-    logical, intent(in) :: full 
-    integer, intent(in) :: parLabel(:,:) 
-    integer, intent(in) :: parDigit(:) 
+    logical, intent(in) :: full
+    integer, intent(in) :: parLabel(:,:)
+    integer, intent(in) :: parDigit(:)
     integer, pointer :: degeneracy_list(:)
-    logical, intent(in) :: fixed_cells 
-    
+    logical, intent(in) :: fixed_cells
+
     integer :: j ! Index variable (place index) for the k-nary counter
     integer(li) ::ic
     integer :: i, q ! loop counters, index variables
@@ -1235,7 +1261,7 @@ CONTAINS
     integer(li) :: multiplier(n*nD) ! place values for each
     ! digit. k^(i-1) for the i-th digit for "normal" base-k
     ! numbers. More complicated for mixed radix case.
-    integer c(0:k-1) ! running sum (count) of the number of each label type 
+    integer c(0:k-1) ! running sum (count) of the number of each label type
     integer id, iq ! Counter for labels that are duplicates, for those unique
     integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
     integer :: nsp ! Number of superperiodic labelings
@@ -1246,7 +1272,7 @@ CONTAINS
     integer nUniq
 
     lab => null()
-    
+
     nl = n*nD
     !< Set up the number of expected labelings
     nexp = product(parDigit)**int(n,li)  ! should be the same as k**nl
@@ -1274,24 +1300,24 @@ CONTAINS
 
     ! Stores the number of each label in the current labeling. Initialized here.
     forall(j=0:k-1); c(j) = count(label(1,:)==j); endforall
-    
+
 
     a = label(1,:)
     multiplier = k**(/(i,i=nl-1,0,-1)/) ! The counter; multiplier to convert to base 10
-    
+
     !< Set up a new multiplier
     multiplier = 0; multiplier(nl)=1
     do i = nl-1,1,-1
        multiplier(i) = digit(i+1)*multiplier(i+1)
     enddo
-    
+
     lab = ''; iq = 0  ! Index for labelings; number of unique labelings
     if (k>12) stop "Too many labels in 'generate_unique_labelings'"
     nPerm = size(perm,1)
-    
+
     np = factorial(k) ! Number of permutations of labels (not labelings)
 
-    call get_permutations((/(i,i=0,k-1)/),labPerms) 
+    call get_permutations((/(i,i=0,k-1)/),labPerms)
     !call count_full_colorings(k,d,cnt,full) ! Use the Polya polynomial to count the labelings
     !call make_translation_group(d,trgrp) ! Find equivalent
     ! translations (permutations of labelings)
@@ -1310,7 +1336,7 @@ CONTAINS
     allocate(degeneracy_list(nexp) )
     degeneracy_list = 0
     if (sum(c)/=nl) stop "ERROR: initialization of the 'c' counter failed in generate_unique_labelings"
-    
+
     ic = 0
     nUniq = 0
     do; ic = ic + 1
@@ -1359,7 +1385,7 @@ CONTAINS
                 write(*,'("Multiplier: ",20(i3,1x))') multiplier
                 stop
              endif
-             
+
              if (lab(idx)=='') then
                 degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
                 lab(idx) = 'D'  ! Mark as a duplicate
@@ -1389,7 +1415,7 @@ CONTAINS
              enddo
           endif ! end block to remove label exchange duplicates
        endif
-   
+
 
        ! "c" counts the number of labels of each kind across the
        ! entire labeling. Need this for "partial" lists that have
@@ -1413,7 +1439,7 @@ CONTAINS
        enddo
        if (j < 1) exit ! We're done counting (hit all possible numbers), exit
        digCnt(j) = digCnt(j) + 1
-       a(j) = label(digCnt(j),j)   
+       a(j) = label(digCnt(j),j)
        c(a(j)) = c(a(j)) + 1     ! Add 1 to the number of digits of the j+1-th kind
        c(label(digCnt(j)-1,j)) = c(label(digCnt(j)-1,j)) - 1 ! subtract
        ! 1 from the number of digits of the j-th kind
@@ -1436,10 +1462,10 @@ CONTAINS
        stop 'Bug: Found the wrong number of labels!'
     endif
     if (any(lab=="")) stop "Not every labeling was marked in generate_unique_labelings"
-    nsp = count(lab=="N") 
+    nsp = count(lab=="N")
   END SUBROUTINE generate_unique_labelings
 
- 
+
   !!<summary>Takes the length of three cyclic group and constructs the
   !!member list so that the permutations can be determined. Each
   !!member has three components, corresponding to the entries for each
@@ -1452,8 +1478,8 @@ CONTAINS
     ! INPUT
     integer, intent(in)  :: n(3)
     ! OUTPUT
-    integer, pointer :: p(:,:)  
-    
+    integer, pointer :: p(:,:)
+
     integer im, status  ! loop over members, allocate status flag
     !if (associated(p)) deallocate(p)
     allocate(p(3,product(n)),STAT=status)
@@ -1470,7 +1496,7 @@ CONTAINS
        endif
     enddo
   ENDSUBROUTINE make_member_list
-  
+
   !!<summary>This routine finds all the permutations of the group
   !!members that leave the decoration unchanged. Essentially we are
   !!finding a list of mappings: add to the group one of the members of
@@ -1482,20 +1508,20 @@ CONTAINS
   !!<parameter name="trans">Translations that leave the superstructure
   !!unchanged.</parameter>
   SUBROUTINE make_translation_group(d,trans)
-    integer, intent(in) :: d(3) 
-    integer, pointer :: trans(:,:) 
+    integer, intent(in) :: d(3)
+    integer, pointer :: trans(:,:)
 
     integer n, im,i, j, status
     integer tg(3,d(1)*d(2)*d(3)) ! Temporary storage for the translations
     integer, pointer :: m(:,:) => null() ! List of group members
-    
+
     ! Get a list of group members; essentially a mixed-radix, 3 digit counter
     call make_member_list(d,m)
     n = product(d) ! Number of elements in each permutation group
     if (associated(trans)) deallocate(trans)
     allocate(trans(n,n),STAT=status)
     if(status/=0) stop "Allocation of 'trans' failed in make_translation_group"
-    
+
     do im = 1, n
        ! add the im-th element of the group to every element in the group, mod d
        forall(i=1:size(tg,2)); tg(:,i) = mod(m(:,im) + m(:,i),d);end forall
@@ -1524,9 +1550,9 @@ CONTAINS
   !!<parameter name="full" regular="true">Use a full list? (including
   !!incomplete labelings)</parameter>
   SUBROUTINE count_full_colorings(k,d,count,full)
-    integer, intent(in) :: k, d(3)  
-    integer, intent(out) :: count   
-    logical, intent(in) :: full 
+    integer, intent(in) :: k, d(3)
+    integer, intent(out) :: count
+    logical, intent(in) :: full
     integer x1,x2,x3 ! Counters over d1,d2,d3, in the triple sum
     integer p        ! Counter over number of terms in the exclusion/inclusion counting
     integer m, tc    ! Color index (counter), intermediate (temporary) counter
@@ -1578,18 +1604,18 @@ CONTAINS
   !!<parameter name="parDigit" regular="true">The *number* of labels
   !!allowed on each site of the parent cell.</parameter>
   SUBROUTINE generate_disjoint_permutation_labelings(k,n,nD,perm,lab,iConc,parLabel,parDigit)
-    integer, intent(in) :: k 
-    integer, intent(in) :: n 
-    integer, intent(in) :: nD 
-    integer, intent(in) :: perm(:,:) 
+    integer, intent(in) :: k
+    integer, intent(in) :: n
+    integer, intent(in) :: nD
+    integer, intent(in) :: perm(:,:)
     character, pointer :: lab(:)
     !integer, intent(in) :: iConc(:) !> concentration; the numerator of
     !each rational number that is the concentration for each label
     !(denominator is n*nD), length is k
-    
-    integer :: iConc(:) 
-    integer, intent(in) :: parLabel(:,:) 
-    integer, intent(in) :: parDigit(:) 
+
+    integer :: iConc(:)
+    integer, intent(in) :: parLabel(:,:)
+    integer, intent(in) :: parDigit(:)
 
     integer, allocatable:: E(:,:) ! A matrix of 1's and 0's, indicating site-restrictions
     ! One row for each site in the supercell, one column for each color (label)
@@ -1600,7 +1626,7 @@ CONTAINS
     integer ik, iD ! Loop counters for colors and sites in the supercell
     integer sitePointer ! Marks the location of the current digit that is advancing
     logical flag ! Use this to exit the loops once we have traversed the entire tree
-    
+
     integer digCnt(n*nD)  !> Ordinal counter for each place in the
                           !labeling (a mixed-radix number)
     integer digit(n*nD)   !> Each entry is the number of labels in each place
@@ -1624,8 +1650,8 @@ CONTAINS
     if(status/=0) stop "Allocation of 'lab' failed in generate_disjoint_permutation_labelings"
     lab = ""
     nPerm = size(perm,1)
-    
-    ! Initialize the mask (E) used to prune the tree to meet site restrictions 
+
+    ! Initialize the mask (E) used to prune the tree to meet site restrictions
     !o> Still need this to have k columns, and not nSets columns
     allocate(E(n*nD,k))
     E = 0
@@ -1636,14 +1662,14 @@ CONTAINS
     end do; end do
     ! Write a file containing the mask for site restrictions
     open(22,file="debug_site_restrictions.out",position="append")
-    write(22,'("site #   parent site #        Mask")') 
+    write(22,'("site #   parent site #        Mask")')
     do iD = 1, n*nD
        write(22,'(i4,8x,i3,10x,10(i2,1x))') iD,(iD-1)/n+1,E(iD,:)
     end do; write(22,*); close(22)
-    
+
     !o> Set up some tables to keep track of the labels on each site
     !o> "digit" keeps track of how many labels are allowed on each site in the supercell.
-    digit = (/((parDigit(j),i=1,n),j=1,nD)/) 
+    digit = (/((parDigit(j),i=1,n),j=1,nD)/)
     !o> "digCnt" keeps track of where each "place" in the labeling
     !is. Thinking of it as a type of odometer, "digCnt" keeps track of
     !where each "wheel" is
@@ -1666,18 +1692,18 @@ CONTAINS
     forall(j=1:k);label(j,:) = (/((parLabel(j,i),ic=1,n),i=1,nD)/); endforall
     ! Write a file containing the table of allowed labels/site
     open(22,file="debug_label_table.out",position="append")
-    write(22,'("label #     Label table (k.n*nD)")') 
+    write(22,'("label #     Label table (k.n*nD)")')
     do ik = 1, k
        write(22,'(i4,8x,30(i2,1x))') ik,label(ik,:)
     end do; write(22,*); close(22)
-    
+
 
     a = -1; flag = .true.
     sitePointer = 1
-    
+
     do while (flag) ! Loop over digits (place holders, wheels) in the labeling
        do while (flag) ! Loop over possible values for each digit (labels on the wheel)
-          write(*,'("DEBUG: digCnt=",100i2)') digCnt 
+          write(*,'("DEBUG: digCnt=",100i2)') digCnt
           !      write(*,'("DEBUG: a=",100i2)') a(label(digCnt,:))
           if (sitePointer < 1) then
              flag = .false.; exit
@@ -1695,8 +1721,8 @@ CONTAINS
           if(E(sitePointer,digit(sitePointer))==1) exit ! Found a
           ! valid label for this site, so exit loop
        enddo
-       write(*,'("22DEBUG: digCnt=",100i2)') digCnt 
-       
+       write(*,'("22DEBUG: digCnt=",100i2)') digCnt
+
        a(sitePointer) = label(digCnt(sitePointer),sitePointer)
        write(*,'("Labeling: ",100i1)') a
        if(.not.flag) exit ! Done with the label generation
@@ -1724,7 +1750,7 @@ CONTAINS
                 ! not a rotation permutation (they're ordered in the
                 ! list...and there are n. The first is the identity so
                 ! skip that one.)
-                
+
                 ! This is a failsafe and should never trigger if the
                 ! algorithm is properly implemented
                 if (idx > nL) then
@@ -1742,7 +1768,7 @@ CONTAINS
     ! If there are no site restrictions, then the hash table is "minimal"
     ! and every entry should hove been visited. Double check if this is
     ! the case. Just another failsafe.
-    if(all(E==1) .and. any(lab=='')) then 
+    if(all(E==1) .and. any(lab=='')) then
        print*,"There are no site restrictions and yet not every labeling was marked in generate_permutation_labelings"
        stop "There is a bug in generate_permutations_labeling in labeling_related.f90"
     endif
@@ -1757,14 +1783,14 @@ CONTAINS
       integer, intent(in) :: labeling(:)
       integer, intent(in) :: concList(:)
       integer i
-      
+
       is_valid_multiplicity = .true.
       if (sum(concList)/=n*nD) stop "Something is strange in is_valid_multiplicity"
-      do i = 0, size(concList,1)-1 
+      do i = 0, size(concList,1)-1
          if(count(labeling==i)/=concList(i+1)) is_valid_multiplicity = .false.
       enddo
-      
+
     END FUNCTION is_valid_multiplicity
   END SUBROUTINE generate_disjoint_permutation_labelings
-  
+
 END MODULE labeling_related
