@@ -13,6 +13,8 @@ This required four lists to be maintained: (1) a list of the *full* set of sites
 
 -Need unit tests for more inactive and equivalent site testing.
 
+-the get_dvector_permutations tests have been disabled (in the xml file) because the calling interface changed (space group is passed in now). Need to get these going again.
+
 ## Revision 1.1.4 (GLWH)
 - Made some "precision strikes" to improve the handling of "inactive" sites. Sites which are fixed---just spectators.
 

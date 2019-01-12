@@ -112,6 +112,8 @@ CONTAINS
        allocate(conc_map(1,2),STAT=status)
        if(status/=0) stop "Allocation failed in recursively_stabilized_enum: conc_map."
        conc_map(1,:) = (/0,0/)
+       arrows = 0
+       nArrows = 0
     end if
     allocate(tconc(count(a_conc > 0)),labels(count(a_conc > 0)),STAT=status)
     if(status/=0) stop "Allocation failed in recursively_stabilized_enum: tconc, poly, labels."
@@ -148,7 +150,6 @@ CONTAINS
        ! operations to.
        call this_tree%coloring(temp_labeling)
        this_tree%unique = .True.
-
        if (this_tree%k /= 1) then
           call this_tree%check(temp_labeling,symsize,fixedcell)
        else if ((symsize > 1) .and. (this_tree%nArrows ==0)) then
