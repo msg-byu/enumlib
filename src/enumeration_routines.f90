@@ -39,16 +39,11 @@ nD = count( (/(i,i=1,nDFull)/)==equivTbl)
 nInAct = count((/(k-1==count(labelFull(:,i)==-1),i=1,nDFull)/))
 nD = nD - nInAct
 
-print*,"**labelFull**"
-do i = 1, size(labelFull,2)
-  write(*,'(6(i2,1x))') labelFull(:,i)
-enddo
 
 ! Set up arrays for the subset of sites that have some
 ! configurational freedom.
 allocate(d(3,nD),label(size(labelFull,1),nD), digit(nD))
 allocate(inactives(nInAct,2))
-print*,"Size of inactives",size(inactives)
 nD = 0; jInactive = 0
 do iD=1,nDFull
  if (iD==equivTbl(iD) .and. labelFull(2,iD)/=-1) then !
@@ -66,17 +61,12 @@ elseif (iD/=equivTbl(iD)) then
     labelFull(:,iD) = labelFull(:,equivTbl(iD))
     digitFull(iD)   = digitFull(equivTbl(iD))
  else
-    print*,"Found inactive site"
  ! Sites with only one label will be left out of the dFull table but
  ! we need to keep a list of these sites so we can add them
  ! back in later when we print out the list.
     jInactive = jInactive + 1
     inactives(jInactive,:) = (/iD,labelFull(1,iD)/)
  endif
-enddo
-print*,"inactives>>>"
-do i = 1, size(inactives,1)
-  write(*,'(2(i1,1x))') inactives(i,:)
 enddo
 
 END SUBROUTINE make_inactive_table
