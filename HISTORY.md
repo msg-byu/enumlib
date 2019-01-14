@@ -1,5 +1,8 @@
 # Revision History for `enumlib`
 
+## 2.0.1 (GLWH)
+- Removed a bunch of print statements related to debugging of Rev. 2.0.0
+
 # Major Revision 2.0.0 (GLWH)
 - Changed some of the interfaces of the routines (parameters changed from pointers to allocatable arrays). This "breaks" symlib and uncle without concomitant changes there
 - Split out the spacegroup finding from `get_devector_perms` and from `remove_duplicate_lattices` (partly to avoid duplicating code, repeating steps). Also put the 'inactive'-site-finding into its own routine.
