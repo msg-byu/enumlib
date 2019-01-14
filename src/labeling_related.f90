@@ -737,44 +737,15 @@ CONTAINS
           do i = 1, nInact
             iD = inactives(i,1)
             expLabeling((iD-1)*n+1:iD*n) = inactives(i,2)
-            write(*,'(30(i2,1x))') (/(i,i=iD,iD*n,nAllD)/)
           enddo
           ! Second, the remaining slots are those sites enumerated over
           do i = 1, nD*n
             idx = minloc(expLabeling)
             expLabeling(idx) = labeling(i)
           enddo
-!           do iUC = 1, n    ! loop over the unit cells
-!              do i = 1, nInact ! Would it be better to do this with some sort of clever vector subscript?
-!                          write(*,'("exp1: ",30i2)') expLabeling
-!                ! Labeling vector is divided into block by d-vector number. Inside each block the index is over unit cells
-!                print*,"inactive sites: ",inactives(:,1)
-!                print*,"iUC: ",iUC
-!                print*,"n: ",n
-!                 expLabeling((inactives(i,1)-1)*n+iUC) = inactives(i,2)
-!              enddo
-!              do i = 1, nAllD - nInact
-!                 idx = minloc(expLabeling) ! findloc would be better here (look for -1, but it hasn't yet been implemented in gfortran...)
-! !                write(*,'("i, iUC", 2(i3,1x))') i, iUC
-!                 expLabeling(idx) = pplabeling(i*iUC)
-!                 write(*,'("exp: ",30i2)') expLabeling
-!              enddo
-!           enddo
-! !          write(*,'("labeling: ",32(i1))') expLabeling
-!           if (any(expLabeling==-1)) stop "Failsafe triggered: inactive sites expansion in 'labeling_related.f90'"
        else
           expLabeling = pplabeling
        endif
-       !/GLWH 2018
-       print*,"nDAll",nAllD
-       print*,"nD",nD
-       print*,"n of supercell",n
-       write(*,'("inactives",2(i2,1x))') (inactives(i,:),i=1,nD)
-       print*,"length pplabel",size(pplabeling)
-       write(*,'("pplabel:  ",30i2)') pplabeling
-       print*,"length expLabel",size(expLabeling)
-       write(*,'("explabel: ",30i2)') explabeling
-
        do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
           jHNF = vsH(iHNF) ! Index of matching HNFs
           ! check if concentrations of this labeling match the user specification:
