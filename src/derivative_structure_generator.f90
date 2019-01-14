@@ -1059,10 +1059,6 @@ CONTAINS
           ic = ic + 1
           tmpOp%rot(:,:,ic) = thisRot
           tmpOp%shift(:,ic) = shift(:,iRot)
-          !print*,"nd",nD
-          !print*,"iRot,nRot",irot,nrot
-!GLWH 2018 inactive site changes...It seems that tv and dPerm have different sizes in the second dimension!GLWH 2019. This is fixed (I think) with changes up above (dFull vs dAct)
-!The problem now is that the tv and dPerm%v have a different number of
           tv(:,:,ic) = dPerm%v(:,:,iRot)
           tIndex(ic) = iRot
           ! Added by LN from here
