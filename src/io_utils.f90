@@ -95,8 +95,6 @@ CONTAINS
        write(99,'(3(f8.4,1x))',advance="no") d(:,iD)
        ! Now read in the labels for this d-vector
        line = trim(line(index(line,":")+1:))//"/"
-       print*,"line",line
-       stop "here"
        do i = 1, k ! Loop over the number of (possible) labels, exit when there are no more /'s
           if (index(line,"/")==0) &
                stop "The labels for each d-vectors should be formated as #/#/#... where 0<=#<k"
@@ -446,7 +444,6 @@ CONTAINS
           read(line,*) label(i,iD)
           ! Sanity check on the input for the label (perhaps not
           ! sufficient but catches some errors)
-          print*,"line: ",line
           if ((label(i,iD) > k-1 .and. i > 1) .or. label(i,iD) < 0) then
              !GH 2018 It's OK for label(i,iD) > k-1 IF it's the first (and only) label value outside the range 0..k-1
              ! In other words, it's ok if it's an "inactive" site
