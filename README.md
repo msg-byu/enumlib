@@ -34,8 +34,7 @@ Phys. Rev. B 80 014120 (July 2009)](http://msg.byu.edu/papers/multi.pdf)
 derivative structures at a fixed concentration," Comp. Mat. Sci. 59
 101-107 (March 2012)](http://msg.byu.edu/papers/enum3.pdf)
 
-If you download this code, please send me an email so I can let you
-know about bugs/improvements/etc.
+[Wiley S. Morgan, Gus L. W. Hart, Rodney W. Forcade, "Generating derivative superstructures for systems with high configurational freedom," Comp. Mat. Sci. 136 144-149 (May 2017)](http://msg.byu.edu/papers/recStabEnumeration.pdf) 
 
 
 ## COMPILING THE CODE
