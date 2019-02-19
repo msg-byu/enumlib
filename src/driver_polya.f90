@@ -1,5 +1,5 @@
 PROGRAM driver
-use num_types 
+use num_types
 use derivative_structure_generator
 use io_utils
 implicit none
@@ -8,7 +8,7 @@ integer nMin, nMax ! Numbers of various things
 integer k ! Number of colors/label types (i.e., binary, ternary, etc.)
 integer LatDim ! 2D or 3D parent lattice?
 integer nD ! Number of sites in the basis (i.e., number of points in the multilattice)
-real(dp), pointer :: d(:,:) => null()
+real(dp), allocatable :: d(:,:) 
 character(1) :: latTyp
 real(dp)  eps
 real(dp) :: parLV(3,3)
@@ -17,9 +17,9 @@ character(80) title, fname, arg2
 logical fullLab,concCheck
 logical :: origCrossOutAlgorithm = .false.
 integer, pointer :: cRange(:,:)
-integer, pointer :: label(:,:)
-integer, pointer :: digit(:)
-integer, pointer :: equivalencies(:)
+integer, allocatable :: label(:,:)
+integer, allocatable :: digit(:)
+integer, allocatable :: equivalencies(:)
 
 if (iargc()>=2) then
     call getarg(2,arg2)

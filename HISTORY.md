@@ -1,11 +1,29 @@
 # Revision History for `enumlib`
 
-## Revision 1.1.4 (WSM)
-- Fixed the bug reported in issue #73 by setting the number of Arrows
-  to zero when the "arrows.in" file isn't present.
+## 2.0.1 (GLWH)
+- Removed a bunch of print statements related to debugging of Rev. 2.0.0
+
+# Major Revision 2.0.0 (GLWH)
+- Changed some of the interfaces of the routines (parameters changed from pointers to allocatable arrays). This "breaks" symlib and uncle without concomitant changes there
+- Split out the spacegroup finding from `get_devector_perms` and from `remove_duplicate_lattices` (partly to avoid duplicating code, repeating steps). Also put the 'inactive'-site-finding into its own routine.
+- started a new file that contains the 'helper' routines. The file `derivative_structure_generator.f90` contains the main subroutine `gen_multilattice_derivatives`, but it contains a million helper routines too. Eventually would like to move most of these into the new file `enumeration_routines.f90`. ALso, the main subroutine is messy with stuff that should be moved to helper routines. The main routine should just by a list of calls to the helper, and maybe have a loop or two...
+
+- A lot of changes in this commit were made to aid in "spectator" or "inactive" sites. The basic approach was to *remove* those sites before the enumeration and then add them back in after the enumeration, but before the structures were written out.
+This required four lists to be maintained: (1) a list of the *full* set of sites, the "dset" (`dFull`, `nAllD`,  etc.), (2) a list of the *equivalent* sites (Tobias' old modification) for sites that are equivalent to others, (For example, an atom on one side of a slab should be equivalent to it's "image" on the other side of the slab.) (3) A list of the "inactive" sites (`inactives`), and (4) a subset (`d`, `nD`, etc.) that were actually used in the enumeration. After the enumeration is done for a block of HNFs, the labeling must be modified to add these sites back in. This is done by 'postprocessing' (Tobias' added code) and then by adding the labels of the "inactive" sites back in as well.  
+** Note: the code has not yet been updated for the "new" algorithm (Wiley's `recursively_stabilized_enum`). Because this algorithm uses its own routine to write out the derivative structures, it will require modification too (not done as of this commit)---the inactive and equivalent sites will needed to be added to the labeling.
+
+-All unit tests are passing except those related to `find_site_equivalencies`. This routine is used only in UNCLE. When we start changing that code to accommodate these changes, we'll have to keep an eye out for those.
+
+-Need unit tests for more inactive and equivalent site testing.
+
+-the get_dvector_permutations tests have been disabled (in the xml file) because the calling interface changed (space group is passed in now). Need to get these going again.
+
+## Revision 1.1.4 (GLWH)
+- Made some "precision strikes" to improve the handling of "inactive" sites. Sites which are fixed---just spectators.
 
 ## Revision 1.1.3 (GLWH)
-- Responds to Issue "Exit gracefully when index is out of range #69"
+- Response to Issue "Exit gracefully when index is out of range #69"
+[#69](https://github.com/msg-byu/enumlib/pull/69)
 Added a graceful exit and useful error message when the integer overflows.
 
 ## Revision 1.1.2 (GLWH)
@@ -13,7 +31,7 @@ Added a graceful exit and useful error message when the integer overflows.
 up enumlib when there are "inactive" sites.
 
 ## Revision 1.1.1 (GLWH)
-- Alexandr Fonari made a change to make sure the makstr.f90 included a space 
+- Alexandr Fonari made a change to make sure the makstr.f90 included a space
 between components of the lattice vectors of output POSCAR files.
 
 ## Revision 1.1.0 (WSM)
@@ -76,7 +94,7 @@ changes, so committing/pushing again.
   #37. The convert_structures_to_enumform.x executable now compiles.
 
 - Fixed the maxLabLength in makePerovStr.f90 to be 100. Also fixed the
-  call to reduce_to_shortest_basis as described in issue #38. 
+  call to reduce_to_shortest_basis as described in issue #38.
 
 ## Revision 1.0.6
 
@@ -86,7 +104,7 @@ changes, so committing/pushing again.
   generate_permutation_labelings algorithm when it should have been
   entering the recursively_stabilized_enum algorithm. The max_binomial
   is now 1E10 to force the correct behavior.
-  
+
 - Updated the EXAMPLES to include an example of potential overflow
   issues with the calculation of large multinomials.
 
@@ -116,7 +134,7 @@ changes, so committing/pushing again.
 
 - Fixed a bug number of bugs in the addArrows subroutine of
   tree_class.f90.
-  
+
 - Added nArrows as an input to tree_class and as an output to
   arrow_concs of arrow_related.
 
@@ -215,4 +233,3 @@ This commit is to move the "extra" or "auxiliary" files in the src folder to the
 ## Initial Repository: Revision 0.0.0
 
 The first few commits were to get the repo up to scratch and nice and clean with installation instructions etc. This includes the commit for new revision number 0.0.0. It includes an update of the `*.xml` files defining the unit tests so that they work with the distribution directory's structure.
-
