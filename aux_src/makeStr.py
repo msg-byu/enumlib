@@ -699,7 +699,7 @@ def _read_enum_out(args):
                 system["nD"] = int(temp.rstrip().split()[0])
             if system["nD"] != 0 and line_count in range(7,7+system["nD"]):
                 vec = [float(v) for v in temp.split() if RepresentsFloat(v)]
-                system["dvecs"].append(vec)
+                system["dvecs"].append(vec[:3])
             if line_count == 7+system["nD"]:
                 system["k"] = int(temp.split('-')[0].strip())
             if line_count == 9 + system["nD"]:
