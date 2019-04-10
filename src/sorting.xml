@@ -2,7 +2,7 @@
 <fortpy mode="docstring">
 
   <decorates name="sorting.sort_concs">
-    <group name="sort_concentrations" purpose="testing" staging="../unittests/">
+    <group name="sort_concentrations" purpose="paused" staging="../unittests/">
       <test identifier="sort_concs" description="Sorting tests."
 	    timed="true" cases="[1-10]">
 	<output identifier="sort_concs.out" folder="../tests/sorting"
@@ -22,15 +22,15 @@
   	<value identifier="labelfile" file="sort_concs_labels.in.{}"
   	       folder="../tests/sorting" rename="labels.in"/>
       </assignment>
-    </group>   
+    </group>
   </decorates>
 
   <decorates name="sorting.sort_permutations_list">
-    <group name="sort_tests1" purpose="testing" staging="../unittests/">
+    <group name="sort_tests1" purpose="paused" staging="../unittests/">
       <test identifier="sort_permutations_list" description="Sorting tests."
 	    timed="true" cases="[1-64],[66-264]">
 	<output identifier="sort_permutations_list.out" folder="../tests/sorting"
-		file="sort_permutations_list_key.out.{}" 
+		file="sort_permutations_list_key.out.{}"
 		template="integer.xml" />
 	<target name="key" compareto="sort_permutations_list.out"
 		varfile="sort_permutations_list.out" when="each" />
@@ -40,7 +40,7 @@
   	<value identifier="keyfile" file="sort_permutations_list_key.in.{}"
   	       folder="../tests/sorting" rename="key.in"/>
       </assignment>
-    </group>   
+    </group>
   </decorates>
 
   <decorates name="sorting.heapsort_records_int">
@@ -49,7 +49,7 @@
       <test identifier="heapsort_records_int_key" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_int_key.out" folder="../tests/sorting"
-		file="heapsort_records_int_key.out.{}" 
+		file="heapsort_records_int_key.out.{}"
 		template="integer" />
 	<target name="key" compareto="heapsort_records_int_key.out"
 		varfile="heapsort_records_int_key.out" when="each" />
@@ -59,7 +59,7 @@
   	<value identifier="keyfile" file="heapsort_records_int_key.in.{}"
   	       folder="../tests/sorting" rename="key.in"/>
       </assignment>
-    </group>   
+    </group>
   </decorates>
 
   <decorates name="sorting.heapsort_records_int">
@@ -68,7 +68,7 @@
       <test identifier="heapsort_records_int_list" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_int_list.out" folder="../tests/sorting"
-		file="heapsort_records_int_list.out.{}" 
+		file="heapsort_records_int_list.out.{}"
 		template="integer" />
 	<target name="key" compareto="heapsort_records_int_list.out"
 		varfile="heapsort_records_int_list.out" when="each" />
@@ -78,7 +78,7 @@
   	<value identifier="keyfile" file="heapsort_records_int_key.in.{}"
   	       folder="../tests/sorting" rename="key.in"/>
       </assignment>
-    </group>   
+    </group>
   </decorates>
 
   <decorates name="sorting.heapsort_records_dp">
@@ -86,7 +86,7 @@
       <test identifier="heapsort_records_dp_key" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_dp_key.out" folder="../tests/sorting"
-		file="heapsort_records_dp_key.out.{}" 
+		file="heapsort_records_dp_key.out.{}"
 		template="integer" />
 	<target name="key" compareto="heapsort_records_dp_key.out"
 		varfile="heapsort_records_dp_key.out" when="each" />
@@ -96,7 +96,7 @@
   	<value identifier="keyfile" file="heapsort_records_dp_key.in.{}"
   	       folder="../tests/sorting" rename="key.in"/>
       </assignment>
-    </group>   
+    </group>
   </decorates>
 
   <decorates name="sorting.heapsort_records_dp">
@@ -104,7 +104,7 @@
       <test identifier="heapsort_records_dp_list" description="Sorting tests."
 	    timed="true" cases="[]">
 	<output identifier="heapsort_records_dp_list.out" folder="../tests/sorting"
-		file="heapsort_records_dp_list.out.{}" 
+		file="heapsort_records_dp_list.out.{}"
 		template="integer" />
 	<target name="key" compareto="heapsort_records_dp_list.out"
 		varfile="heapsort_records_dp_list.out" when="each" />
@@ -114,6 +114,6 @@
   	<value identifier="keyfile" file="heapsort_records_dp_key.in.{}"
   	       folder="../tests/sorting" rename="key.in"/>
       </assignment>
-    </group>   
+    </group>
   </decorates>
 </fortpy>
