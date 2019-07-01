@@ -1,0 +1,18 @@
+fcc binary
+bulk
+0 0.5 0.5
+0.5 0 0.5
+0.5 0.5 0
+2 # Number of different atom types
+3 # Number of points in the multilattice
+# Cartesian coordinates:
+.25 .25 .25    2
+.25 .75 .75    2
+.5 .5 .5 0/1
+   1 2    # Starting and ending cell sizes for search
+0.001    # eps
+full list of labelings (including incomplete labelings) is used
+# Concentration ranges
+ 5 5 10
+ 5 5 10
+0 2 2

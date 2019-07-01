@@ -1,4 +1,4 @@
-fcc                 
+fcc
 bulk
 0.50000000     0.50000000      0.0000000        # a1 parent lattice vector
 0.50000000      0.0000000     0.50000000        # a2 parent lattice vector
@@ -9,5 +9,3 @@ bulk
     1 8   # Starting and ending cell sizes for search
 0.10000000E-06 # Epsilon (finite precision parameter)
 part list of labelings
-1 2 2
-1 2 2

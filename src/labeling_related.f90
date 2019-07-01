@@ -55,10 +55,10 @@ CONTAINS
   !!<parameter name="fixedcell" regular="true">A logical that for if this is a
   !!fixed cell.</parameter>
   !!<parameter name="aperms" regular="true">The list of arrow permutations.</parameter>
-  SUBROUTINE recursively_stabilized_enum(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell,aperms)
+  SUBROUTINE recursively_stabilized_enum(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,inactives,permIndx,allowed,fixedcell,aperms)
     integer, pointer, intent(in) :: perm(:,:)
     integer, pointer, intent(in) :: aperms(:,:)
-    integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:)
+    integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:), inactives(:,:)
     integer, intent(in) :: symsize, knary, iBlock
     type(oplist), pointer, intent(in) :: fixop(:)
     integer, intent(inout) :: nfound, HNFcnt, scount
@@ -249,10 +249,10 @@ CONTAINS
           if (this_tree%unique .eqv. .True.) then
              if (use_arrows) then
                 call this_tree%add_arrows(labeling+1,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
-                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+                     fixOp,SNF,HNF,LT,equivalencies,inactives,permIndx)
              else
                 call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
-                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+                     fixOp,SNF,HNF,LT,equivalencies,inactives,permIndx)
              end if
           end if
        end if
@@ -687,7 +687,7 @@ CONTAINS
 
     ! This should work even if there are no inactive sites
     nInact = size(inactives,1)
-    !GLWH 2019. I'm not sure that nAllD is big enough. Does it include a count of inactive sites as well?
+    !GLWH 2019. nAllD is the length of equivalencies which includes *all* d-vectors
     allocate(expLabeling(n*nAllD))
 
     conc_check = .false.
@@ -701,7 +701,6 @@ CONTAINS
     ! Packing...
     vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx);
     ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; enddo
-
     ! set up the multiplier, labels, digits, etc
     call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 
@@ -712,7 +711,15 @@ CONTAINS
        ! Now convert the base-10 number (labIndx) to the correct labeling
        if(conc_check) then
           labIndx = vsL(il)
+!del          write(*,'("labIndx,concVect,labeling")')
+!del          print*,labIndx
+!del          print*,concVect
+!del          print*,labeling
           call generate_labeling_from_index(labIndx,concVect,labeling)
+!del          print*,"After"
+!del          print*,labIndx
+!del          print*,concVect
+!del          print*,labeling
        else
           ! Get the base-10 index of the next unique labeling from the vector subscript array
           labIndx = vsL(il)-1
@@ -730,7 +737,7 @@ CONTAINS
           pplabeling = labeling ! nothing changes
        endif
 
-       !GLWH 2018/2019 Jan
+       !GLWH 2019 Jan (addition so that inactive sites can be skipped in enumeration)
        if (nInact/=0) then ! there are inactive sites to add back in
           expLabeling = -1
           ! First, load up the inactive sites in the appropriate slots

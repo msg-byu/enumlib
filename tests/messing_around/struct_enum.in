@@ -1,0 +1,17 @@
+hcp binary
+bulk
+1 0 0
+0.5 0.8660254038 0
+0 0 1.632993161855452
+2 # Number of different atom types
+2 # Number of points in the multilattice
+# Cartesian coordinates:
+0 0 0 0/1
+0.5 0.288675 0.816496 0/1
+   1 2    # Starting and ending cell sizes for search
+0.0001 # eps
+full list of labelings (including incomplete labelings) is used
+# Concentration ranges
+# 0 3 6
+# 0 3 6
+# 0 6 6
