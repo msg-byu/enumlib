@@ -738,7 +738,7 @@ def _read_enum_out(args):
     
     return (system, structure_data)
 
-def _write_config(system_data,space_data,structure_data,args,mapping=None, conf_id):
+def _write_config(system_data,space_data,structure_data,args,mapping=None, conf_id=None):
     """Writes a MTP config style file for the input structure and system
     data.
     :arg system_data: a dictionary of the system_data
@@ -943,6 +943,7 @@ def _make_structures(args):
             _write_POSCAR(system,space_data,structure,args)
         elif args["config"]=="t":
             _write_config(system,space_data,structure,args,args["mapping"], conf_id=_conf_id)
+            conf_id += 1
         
 def examples():
     """Print some examples on how to use this python version of the code."""
