@@ -738,7 +738,7 @@ def _read_enum_out(args):
     
     return (system, structure_data)
 
-def _write_config(system_data,space_data,structure_data,args,mapping=None):
+def _write_config(system_data,space_data,structure_data,args,mapping=None, conf_id):
     """Writes a MTP config style file for the input structure and system
     data.
     :arg system_data: a dictionary of the system_data
@@ -825,7 +825,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
                     else:
                         out_lab = mapping[ilab]
                     poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .8f}".format(i) for i in out_array])))
-        poscar.write(" Feature   conf_id  {}\n".format(title.split()[0]))
+        poscar.write(" Feature   conf_id  " + str(conf_id) + '\n')
         poscar.write("END_CFG\n\n")
 
 def _write_POSCAR(system_data,space_data,structure_data,args):
@@ -930,6 +930,7 @@ def _make_structures(args):
     (system, structure_data) = _read_enum_out(args)
 
     # for each structure write the vasp POSCAR
+    _conf_id = 0
     for structure in structure_data:
         # space_data is a dictionary containing the spacial data for
         # the structure
@@ -941,7 +942,7 @@ def _make_structures(args):
         if args["config"]=="f":
             _write_POSCAR(system,space_data,structure,args)
         elif args["config"]=="t":
-            _write_config(system,space_data,structure,args,args["mapping"])
+            _write_config(system,space_data,structure,args,args["mapping"], conf_id=_conf_id)
         
 def examples():
     """Print some examples on how to use this python version of the code."""
