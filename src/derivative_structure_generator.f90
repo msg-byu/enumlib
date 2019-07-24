@@ -21,8 +21,8 @@ implicit none
 private
 public get_all_HNFs, remove_duplicate_lattices, get_SNF, get_all_2D_HNFs,&
      &  gen_multilattice_derivatives, find_permutation_of_group,&
-     get_dvector_permutations, get_rotation_perms_lists, do_rotperms_form_groups,&
-     & mixed_radix_counter
+     & get_dvector_permutations, get_rotation_perms_lists,&
+     & do_rotperms_form_groups, mixed_radix_counter
 
 CONTAINS
 
