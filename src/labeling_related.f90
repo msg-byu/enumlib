@@ -17,7 +17,7 @@ private
 public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
-        generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
+        generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeration
         write_labelings, recursively_stabilized_enum
 CONTAINS
 
@@ -1110,7 +1110,7 @@ CONTAINS
        do iM = 1, count(tlr(nM(1),:)/=0)
           Gp = matmul(tM(:,:,tlr(nM(1),iM)),G)
           do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do
-          ! this without the loop, using vector notation?
+          ! this without the loop, using vector notation? see line 1060
           do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
              do j = 1, n
                 if (all(Gp(:,j)==G(:,i))) then ! the two images are
@@ -1387,9 +1387,8 @@ CONTAINS
                    idx = sum(b(perm(q,:))*multiplier)+1
                    if  (lab(idx)=='') then
                       degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
-                      lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
-                   endif
-                   ! not otherwise marked
+                      lab(idx) = 'E' ! Only marks off a label-exchange duplicate if it's
+                    endif            ! not otherwise marked
                 enddo
              enddo
           endif ! end block to remove label exchange duplicates
