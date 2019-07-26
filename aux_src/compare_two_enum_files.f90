@@ -1,5 +1,14 @@
+! Started around 2008, used on and off, extensively revised in 2019 when the Smith Normal Form
+! code in symlib (rational_mathematics) was updated to be more numerically stable (but
+! unfortunately that affected many of the unit tests of enumlib). This program is used to compare
+! output data from different versions of the code. The challenge is that data may often be
+! equivalent but NOT identical.
+!
+! A further challenge is that the format of the input and output files change slowly over time and ! this code is fragile to that.
+!
 ! This is not a pretty program. Not for general distribution. Don't release it into the wild.
-! It has really been used and it works...but is fragile.
+! It has really been used, a lot, and it works...but is fragile.
+! GLWH 2019
 program compare_two_struct_enum
 use num_types
 use symmetry
@@ -10,6 +19,7 @@ use io_utils
 use derivative_structure_generator
 use vector_matrix_utilities
 use labeling_related
+use combinatorics
 implicit none
 character(800)  title, dummy
 character(len=:), allocatable :: f1name, f2name
@@ -20,13 +30,13 @@ real(dp), pointer :: sLVlist(:,:,:)
 integer, pointer :: HNFout(:,:,:), eq(:), digit(:), HNFin(:,:,:)
 integer, pointer, dimension(:,:) :: label, g1, g2, dlabel, pLabel, qLabel
 integer :: LatDim1, LatDim2, match, nD1, nD2, Nmin, Nmax, k, ioerr
-integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f, i, jl
+integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f, i, jl, j, cDigits
 integer :: iuq, nuq, iP, nP, lc, iStr2, HNFtest(3,3), hdgenfact, labdgen, totdgen
-integer :: strN2, hnfN2, n2, pgOps2, diag2(3), iL, nL, idx, f1, f2
+integer :: strN2, hnfN2, n2, pgOps2, diag2(3), iL, nL, idx, f1, f2, iLP, nLP, jp
 !integer :: sizeN2
-integer, allocatable :: ilabeling(:), ilabeling2(:), atomType(:)
+integer, allocatable :: ilabeling(:), ilabeling2(:), atomType(:), permutedLab(:)
 real(dp) :: eps
-logical full, HNFmatch, foundLab, err
+logical full, HNFmatch, foundLab, err, equiatomic
 character(maxLabLength)   :: labeling ! List, 0..k-1, of the atomic type at each site
 type(RotPermList)         :: dRotList1, dRotList2
 type(RotPermList),pointer :: LattRotList1(:), LattRotList2(:)
@@ -35,7 +45,7 @@ integer, pointer          :: crange(:,:)
 !logical                   :: conc_check
 integer, pointer          :: degen_list(:)
 integer, pointer          :: rotProdLab(:)
-
+integer, pointer          :: labPerms(:,:)
 
 SNF = 0
 allocate(HNFin(3,3,1))
@@ -94,6 +104,10 @@ print *, "Be aware that HNFs are directly compared"
 print *, "Rotationally equivalent HNFs are not considered"
 print *, "Change this in the future"
 
+call get_permutations((/(i,i=0,k-1)/),labPerms)
+nLP = size(labPerms,2)
+write(*,'("labPerms",30i2)') (labPerms(i,:),i=1,size(labPerms,1))
+
 open(13,file="debug_match_check.out")
 do ! Read each structure from f1 and see if it is in the list of f2 structures
    read(f1,*,iostat=ioerr) strN, sizeN, hdgenfact, labdgen, totdgen, idx, n,  pgOps, diag, a,b,c,d,e,f, L1(:,:,1), labeling
@@ -106,8 +120,30 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    HNFin = 0 ! Load up the HNF with the elements that were read in.
    HNFin(1,1,1) = a; HNFin(2,1,1) = b; HNFin(2,2,1) = c;
    HNFin(3,1,1) = d; HNFin(3,2,1) = e; HNFin(3,3,1) = f;
+! Check to see if this case is "equiatomic", that is, whether or not the number of labels of each
+! color is exactly the same. If so, we need some extra logic when two labeling are compared
+! (see email discussion with Rod Forcade on May 16 2019, subject: "Monk?")
+   equiatomic = .false.
+   if (mod(n,k)== 0) then ! necessary but not sufficient condition for equiatomic.
+      equiatomic = .true.
+      do i = 0, k-1
+         cDigits = 0
+         do j = 1, n
+            print*,'char',char(i)
+            ! if (labeling(j)==char(i)) then
+            !    cDigits = cDigits + 1
+            ! endif
+         enddo
+         if (cDigits /= n/k) then ! can't be equiatomic
+            print*,"Not equiatomic"
+            equiatomic = .false.
+            exit
+         endif
+      enddo
+   endif
 
-! Why are we doing this? To get the dRotList? We only have one HNF, so there are no duplicates to remove...
+! Why are we doing this? To get the dRotList? We only have one HNF, so there are no duplicates to
+! remove...
    call remove_duplicate_lattices(HNFin,LatDim1,pLV1,rot,shift,dset1,dRotList1,HNFout,fixOp,&
                                   LattRotList1,sLVlist,degen_list,eps)
    open(17,file="debug_rotation_permutations.out")
@@ -124,7 +160,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    ! Use the permutations effected by the rotations that fix the superlattice to generate labelings
    ! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
    ! struct_enum file
-   allocate(ilabeling(n*nD1),ilabeling2(n*nD1))
+   allocate(ilabeling(n*nD1),ilabeling2(n*nD1))!,permutedLab(n*nD1)) 26 July, permutedLab not used
    read(labeling,'(500i1)') ilabeling
    !write(*,'("ilabeling:",/,30(i1),/)') ilabeling
    !print *,"size",size(ilabeling)
@@ -143,7 +179,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    match = 0
    ! Read in each structure from the second file and see if it matches the current structures from
    ! file 1.
-   f2 = 14;
+   f2 = 14; ! Define a unit number for the second file.
    open(f2,file=f2name,status="old")
    lc = 0 ! Count the number of lines
    do ! read the second file until the structure list begins
@@ -154,19 +190,18 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
       if (lc > 100) stop "Didn't find the 'start' tag in the second file"
    enddo
    iStr2 = 0
-   ! The trouble, subtle bug was that one of the routines from derStrGen was opening another file with unit number 11
-   ! this was clashing with th unit 11 that as being opened here..
+   ! You can get a subtle bug here, hard to chase down, if you have another module opening files with the same unit number. Make sure that the unit numbers for files opened by this program are unique.  GLWH 2019 (that's why f2 is set to 14 above)
    compareloop: do
       write(*,'("Compare loop: file1 strN ",i6)') strN
       write(13,'("Compare loop: file1 strN ",i6)') strN
       iStr2 = iStr2 + 1
       !write(*,'("iStr2: ",i4)') iStr2
       read(f2,*,iostat=ioerr) strN2, hnfN2, hdgenfact, labdgen, totdgen, sizeN, n2, pgOps2, diag2, a,b,c,d,e,f, L2(:,:,1), labeling
-!      read(f2,*,iostat=ioerr) strN2, hnfN2, hdgenfact, labdgen, totdgen,  idx2, n2,  pgOps2, diag2, a,b,c,d,e,f, L2(:,:,1), labeling
       write(*,'("read from file 2: strN2:",i5)') strN2
       if(ioerr/=0) exit
       read(labeling,'(500i1)') ilabeling2
       L2(:,:,1) = transpose(L2(:,:,1)) ! Written out column-wise but read in row-wise. So fix it by transposing
+      ! Check to see if the two files have different left transform matrices. If they do, they may !  still define equivalent structures so we'll have to do some work.
       if (any(L1/=L2)) then
          !make the qlabel list of permutations
          call get_dvector_permutations(pLV2,dset2,nD2,rot,shift,dRotList2,LatDim2,eps)
@@ -188,8 +223,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
             write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,qLabel(iuq,:)
          enddo
          close(17)
-
-      else
+      else ! The left transform matrices are the same, so the labelings can be compared without conversion
          if(associated(qlabel)) deallocate(qlabel)
          allocate(qlabel(1,n2*nD2))
          qlabel(1,:) = ilabeling2
@@ -201,6 +235,9 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
          write(13,'("Volume is too small for structure #: ",i9," in file 2 (label # ",i9,")")') iStr2
          cycle
       endif
+      ! Note here that we are assuming the structures are listed in ascending order by size. If
+      ! that is not the case, one cannot use this early exit to speed things up. As it stands now
+      ! though, the enum code always writes in ascending size order.
       if (n2 > n) then  ! We've passed the point in the f2 file where the size of cells matches
          write(13,'("Volume is too big for structure #: ",i9," in file 2 (label # ", &
               & i9,")")') iStr2, strN2
@@ -232,42 +269,32 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
       write(*,'("Concentrations match for structures ",2(i6,1x))') strN, strN2
       write(13,'("Concentrations match for structures ",2(i6,1x))') strN, strN2
       if (any(L1/=L2)) then ! We must find the automorphism that connects the two different groups and adjust ilabeling2 accordingly
-         print*,"hardwired change of labeling2 -- this is just temporary while testing/developing"
-         write(*,'("labeling before: ",20(i1))') ilabeling2
-         ilabeling2 = ilabeling2((/1,7,6,5,4,3,2,8,14,13,12,11,10,9/))
-         write(*,'("labeling after:  ",20(i1))') ilabeling2
          if (associated(g1)) deallocate(g1)
          if (associated(g2)) deallocate(g2)
          !1) build the member list
-
          call make_member_list(diag,g1) ! This routine allocates g1
-         do i = 1,3
-            write(*,'("g1: ",20(i2,1x))') g1(i,:)
-         enddo
-         print*
+         ! do i = 1,3
+         !    write(*,'("g1: ",20(i2,1x))') g1(i,:)
+         ! enddo
+         ! print*
 
          !2) find the group automorphism
          call matrix_inverse(real(L2(:,:,1),dp),L2inv,err)
          if (err) stop "L1inv is not defined"
-         T = matmul(L1,L2inv(:,:,1))
+         T = matmul(L1(:,:,1),L2inv)
          ! do i = 1,3
-         !    write(*,'("L1:  ",3(i2,1x))') L1(i,:,1)
-         ! enddo; print*
-         ! do i = 1,3
-         !    write(*,'("L2:  ",3(i2,1x))') L2(i,:,1)
+         !    write(*,'(" T:  ",3(f7.3,1x))') T(i,:)
          ! enddo
-         do i = 1,3
-            write(*,'(" T:  ",3(f7.3,1x))') T(i,:)
-         enddo
 
          allocate(g2(3,size(g1,2)))
          g2 = -1
          g2 = nint(matmul(T,g1))
+         g2 = modulo(g2,spread(diag,2,n))
          !if (any(g2==-1)) stop "Bug in group member mapping"
-         do i = 1,3
-            write(*,'("g2: ",20(i2,1x))') g2(i,:)
-         enddo
-         print*
+         ! do i = 1,3
+         !    write(*,'("g2: ",20(i2,1x))') g2(i,:)
+         ! enddo
+         ! print*
          do i = 1,size(qLabel,1)
             write(*,'("qL: ",20(i1))') qLabel(i,:)
          enddo
@@ -280,6 +307,12 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
          foundLab = .false.
          nL = size(pLabel,1)
          outer: do iL = 1, nL
+            ! We need to loop over all permutations (to get the full orbit) because we do not know
+            ! which member of the orbit is the representative.
+            ! Also, for 50-50 labelings that are self-complementary (more generally, any
+            ! "equiatomic" labeling may be self-complementary), we also need to check the
+            ! complement of each labeling because any of the complements may appear in either list.
+            ! GLWH 2019, see email chain, subject: "Monk?", with Rod Forcade starting May 16 2019
             do jL = 1, size(qlabel,1)
                ilabeling2 = qLabel(jL,:)
                write(*,'("plabel: ",14(i1))') plabel(iL,:)
@@ -297,6 +330,32 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
       !            match = iStr2
                   match = strN2
                   exit outer
+               endif
+               !if equiatomic then check for complements. I think it's OK to not check permutations (we've already done that above). We just need to check for different complements of the same labeling...
+               if (equiatomic) then ! check complements as well
+                  do iLP = 2, nLP ! Loop over all permutations of the
+                                  ! labels (stored in 'labPerms'). Start at 2 since
+                                  ! we want to skip the identity.
+                     do jp = 1, size(ilabeling2) ! For each digit in the labeling,
+                                                 ! permute the label (label exchange)
+                        write(*,'(20i2)') labPerms(iL,:)
+!                        ilabeling2(jp) = labPerms(a(jp)+1,iLP)
+                     enddo
+                     if(all(ilabeling2==pLabel(iL,:))) then
+                        foundLab = .true.
+                        print*,"MATCH (equiatomic)"
+                        if (match/=0) then
+                           write(*,'("Additional match found: ",i6," == ",i6)') strN, strN2
+                           write(*,'("In file 2, structure ",i6)') strN2
+                           write(*,'("was equivalent to ",i6)') match
+                           write(*,'("in file 1")')
+                           stop "BUG! Found more than one match in struct_enum.out file"
+                        endif
+            !            match = iStr2
+                        match = strN2
+!                        exit outer
+                     endif
+                  enddo
                endif
             enddo
          enddo outer
