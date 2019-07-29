@@ -34,7 +34,7 @@ integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f, i, jl, j, cDigits
 integer :: iuq, nuq, iP, nP, lc, iStr2, HNFtest(3,3), hdgenfact, labdgen, totdgen
 integer :: strN2, hnfN2, n2, pgOps2, diag2(3), iL, nL, idx, f1, f2, iLP, nLP, jp
 !integer :: sizeN2
-integer, allocatable :: ilabeling(:), ilabeling2(:), atomType(:), permutedLab(:)
+integer, allocatable :: ilabeling1(:), ilabeling2(:), atomType(:), automorphism(:)
 real(dp) :: eps
 logical full, HNFmatch, foundLab, err, equiatomic
 character(maxLabLength)   :: labeling ! List, 0..k-1, of the atomic type at each site
@@ -160,12 +160,12 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    ! Use the permutations effected by the rotations that fix the superlattice to generate labelings
    ! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
    ! struct_enum file
-   allocate(ilabeling(n*nD1),ilabeling2(n*nD1))!,permutedLab(n*nD1)) 26 July, permutedLab not used
-   read(labeling,'(500i1)') ilabeling
-   !write(*,'("ilabeling:",/,30(i1),/)') ilabeling
-   !print *,"size",size(ilabeling)
+   allocate(ilabeling1(n*nD1),ilabeling2(n*nD1))!,permutedLab(n*nD1)) 26 July, permutedLab not used
+   read(labeling,'(500i1)') ilabeling1
+   !write(*,'("ilabeling1:",/,30(i1),/)') ilabeling1
+   !print *,"size",size(ilabeling1)
    !print *,"strN",strN
-   call find_equivalent_labelings(ilabeling,LattRotList1,pLabel,rotProdLab)
+   call find_equivalent_labelings(ilabeling1,LattRotList1,pLabel,rotProdLab)
    ! do i = 1,size(plabel,1)
    !    write(*,'("equiv_labelings <> ",100(i1))') pLabel(i,:)
    ! enddo
@@ -260,7 +260,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
          cycle
       endif
       do i = 0, k-1
-         if (count(ilabeling2==i)/=count(ilabeling==i)) then
+         if (count(ilabeling2==i)/=count(ilabeling1==i)) then
             write(13,'("Concentrations don''t match for color ",i1)') i
             write(*,'("Concentrations don''t match for color ",i1)') i
             cycle compareloop
@@ -300,8 +300,17 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
          enddo
          print*
 
-         !stop
+         ! Next, find the rearrangement between the two groups (the automorphism)
+         if (allocated(automorphism)) deallocate(automorphism)
+         allocate(automorphism(n2))
+         call find_permutation_of_group(g1,g2,automorphism)
          !3) change ilabeling2 into the equivalent ilabeling1
+         write(*,'("before:  ",14i1)') ilabeling2
+         do i = 0, n*nD2-1, n
+!            write(*,'("i  ",i2," vs: ",7i2)')i,(automorphism+i)
+            ilabeling2(1+i:n+i) = ilabeling2(automorphism+i)
+         enddo
+         write(*,'("before:  ",14i1)') ilabeling2
          !4) proceed as normal
       endif
          foundLab = .false.
@@ -375,7 +384,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
       write(*,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
    endif
    deallocate(ilabeling2)
-   deallocate(ilabeling)
+   deallocate(ilabeling1)
 enddo
 close(13)
 
