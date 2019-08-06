@@ -28,24 +28,20 @@ integer, dimension(3,3,1):: L1, SNF, L2
 real(dp), allocatable :: dset1(:,:), dset2(:,:), rot(:,:,:), shift(:,:)
 real(dp), pointer :: sLVlist(:,:,:)
 integer, pointer :: HNFout(:,:,:), eq(:), digit(:), HNFin(:,:,:)
-integer, pointer, dimension(:,:) :: label, g1, g2, dlabel, pLabel, qLabel
+integer, pointer, dimension(:,:) :: label, g1, g2, dlabel, qLabel
 integer :: LatDim1, LatDim2, match, nD1, nD2, Nmin, Nmax, k, ioerr
-integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f, i, jl, j, cDigits
+integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f, i, jl, j
 integer :: iuq, nuq, iP, nP, lc, iStr2, HNFtest(3,3), hdgenfact, labdgen, totdgen
-integer :: strN2, hnfN2, n2, pgOps2, diag2(3), iL, nL, idx, f1, f2, iLP, nLP, jp
-!integer :: sizeN2
-integer, allocatable :: ilabeling1(:), ilabeling2(:), atomType(:), automorphism(:)
+integer :: strN2, hnfN2, n2, pgOps2, diag2(3), idx, f1, f2, iLP, nLP, equiN
+integer, allocatable :: ilabeling1(:), ilabeling2(:), atomType(:), automorphism(:), integerLab(:)
+integer, allocatable :: tempLab(:)
 real(dp) :: eps
 logical full, HNFmatch, foundLab, err, equiatomic
 character(maxLabLength)   :: labeling ! List, 0..k-1, of the atomic type at each site
 type(RotPermList)         :: dRotList1, dRotList2
 type(RotPermList),pointer :: LattRotList1(:), LattRotList2(:)
 type(opList), pointer     :: fixOp(:)
-integer, pointer          :: crange(:,:)
-!logical                   :: conc_check
-integer, pointer          :: degen_list(:)
-integer, pointer          :: rotProdLab(:)
-integer, pointer          :: labPerms(:,:)
+integer, pointer          :: crange(:,:), degen_list(:), rotProdLab(:), labPerms(:,:)
 
 SNF = 0
 allocate(HNFin(3,3,1))
@@ -124,21 +120,22 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
 ! color is exactly the same. If so, we need some extra logic when two labeling are compared
 ! (see email discussion with Rod Forcade on May 16 2019, subject: "Monk?")
    equiatomic = .false.
-   if (mod(n,k)== 0) then ! necessary but not sufficient condition for equiatomic.
+   if (mod(n*nD1,k)== 0) then ! necessary but not sufficient condition for equiatomic.
       equiatomic = .true.
-      do i = 0, k-1
-         cDigits = 0
-         do j = 1, n
-            print*,'char',char(i)
-            ! if (labeling(j)==char(i)) then
-            !    cDigits = cDigits + 1
-            ! endif
-         enddo
-         if (cDigits /= n/k) then ! can't be equiatomic
-            print*,"Not equiatomic"
-            equiatomic = .false.
-            exit
-         endif
+      equiN = n*nD1/k
+      allocate(integerLab(n*nD1))
+      do j = 1, n*nD1
+         read(labeling(j:j),'(i1)') integerLab(j)
+      enddo
+      write(*,'("IntLab",14i1)') integerLab
+      print*,count(integerLab==0)
+      do i = 0,k-1
+      if (count(integerLab==i)/=equiN) then ! can't be equiatomic
+         print*,"Not equiatomic"
+         equiatomic = .false.
+         exit
+      endif
+      if (equiatomic) print*,"Equiatomic"
       enddo
    endif
 
@@ -160,25 +157,15 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    ! Use the permutations effected by the rotations that fix the superlattice to generate labelings
    ! that are equivalent. The list of equivalent labelings will be used when we look for a match in the
    ! struct_enum file
-   allocate(ilabeling1(n*nD1),ilabeling2(n*nD1))!,permutedLab(n*nD1)) 26 July, permutedLab not used
+   allocate(ilabeling1(n*nD1),ilabeling2(n*nD1),tempLab(n*nD1))!,permutedLab(n*nD1)) 26 July, permutedLab not used
    read(labeling,'(500i1)') ilabeling1
    !write(*,'("ilabeling1:",/,30(i1),/)') ilabeling1
-   !print *,"size",size(ilabeling1)
-   !print *,"strN",strN
-   call find_equivalent_labelings(ilabeling1,LattRotList1,pLabel,rotProdLab)
-   ! do i = 1,size(plabel,1)
-   !    write(*,'("equiv_labelings <> ",100(i1))') pLabel(i,:)
-   ! enddo
-   !print *,"after find_eqv"
-   nuq = size(pLabel,1)
-   write(17,'(/,"Number of unique labelings: ",i5)') nuq
-   do iuq = 1, nuq
-      write(17,'("uq Labeling # :",i3,5x,"labeling:",1x,200(i1,1x))') iuq,pLabel(iuq,:)
-   enddo
-   close(17)
    match = 0
    ! Read in each structure from the second file and see if it matches the current structures from
    ! file 1.
+
+!! END read from file1
+
    f2 = 14; ! Define a unit number for the second file.
    open(f2,file=f2name,status="old")
    lc = 0 ! Count the number of lines
@@ -192,17 +179,20 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
    iStr2 = 0
    ! You can get a subtle bug here, hard to chase down, if you have another module opening files with the same unit number. Make sure that the unit numbers for files opened by this program are unique.  GLWH 2019 (that's why f2 is set to 14 above)
    compareloop: do
-      write(*,'("Compare loop: file1 strN ",i6)') strN
+      write(*,'("Compare loop: file1 strN ",i5)') strN
       write(13,'("Compare loop: file1 strN ",i6)') strN
       iStr2 = iStr2 + 1
       !write(*,'("iStr2: ",i4)') iStr2
       read(f2,*,iostat=ioerr) strN2, hnfN2, hdgenfact, labdgen, totdgen, sizeN, n2, pgOps2, diag2, a,b,c,d,e,f, L2(:,:,1), labeling
-      write(*,'("read from file 2: strN2:",i5)') strN2
+      write(*,'("read from file 2: strN2: ",i5)') strN2
       if(ioerr/=0) exit
       read(labeling,'(500i1)') ilabeling2
       L2(:,:,1) = transpose(L2(:,:,1)) ! Written out column-wise but read in row-wise. So fix it by transposing
+
+!! July29 Seems like the L1/L2 check should come *after* the HNF check (at least for the sake of efficiency).
       ! Check to see if the two files have different left transform matrices. If they do, they may !  still define equivalent structures so we'll have to do some work.
       if (any(L1/=L2)) then
+         print*,"Left transforms are different in file1 and file2"
          !make the qlabel list of permutations
          call get_dvector_permutations(pLV2,dset2,nD2,rot,shift,dRotList2,LatDim2,eps)
          call remove_duplicate_lattices(HNFin,LatDim2,pLV2,rot,shift,dset2,dRotList2,HNFout,fixOp,&
@@ -268,6 +258,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
       enddo
       write(*,'("Concentrations match for structures ",2(i6,1x))') strN, strN2
       write(13,'("Concentrations match for structures ",2(i6,1x))') strN, strN2
+      write(*,'(2(14i1,/))') ilabeling1, ilabeling2
       if (any(L1/=L2)) then ! We must find the automorphism that connects the two different groups and adjust ilabeling2 accordingly
          if (associated(g1)) deallocate(g1)
          if (associated(g2)) deallocate(g2)
@@ -296,7 +287,7 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
          ! enddo
          ! print*
          do i = 1,size(qLabel,1)
-            write(*,'("qL: ",20(i1))') qLabel(i,:)
+            write(*,'("qL:  ",20(i1))') qLabel(i,:)
          enddo
          print*
 
@@ -305,17 +296,21 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
          allocate(automorphism(n2))
          call find_permutation_of_group(g1,g2,automorphism)
          !3) change ilabeling2 into the equivalent ilabeling1
+         write(*,'("automorphism: ",2x,7i1)') automorphism
          write(*,'("before:  ",14i1)') ilabeling2
          do i = 0, n*nD2-1, n
 !            write(*,'("i  ",i2," vs: ",7i2)')i,(automorphism+i)
             ilabeling2(1+i:n+i) = ilabeling2(automorphism+i)
          enddo
-         write(*,'("before:  ",14i1)') ilabeling2
+         write(*,'("after:   ",14i1)') ilabeling2
          !4) proceed as normal
       endif
          foundLab = .false.
-         nL = size(pLabel,1)
-         outer: do iL = 1, nL
+!July 29         nL = size(pLabel,1)
+         !outer: !do iL = 1, nL
+            ! GLWH July 2019. As of today, this logic is wrong from earlier attempts. We do not want to loop over all permutations of both the file1 and file2 label. It is sufficient, now that we have the self-complementary equiatomic stuff sorted out, to just check each file2 labeling with all permutations of the file1 labeling (or the other way around.)
+
+
             ! We need to loop over all permutations (to get the full orbit) because we do not know
             ! which member of the orbit is the representative.
             ! Also, for 50-50 labelings that are self-complementary (more generally, any
@@ -324,33 +319,40 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
             ! GLWH 2019, see email chain, subject: "Monk?", with Rod Forcade starting May 16 2019
             do jL = 1, size(qlabel,1)
                ilabeling2 = qLabel(jL,:)
-               write(*,'("plabel: ",14(i1))') plabel(iL,:)
+               !July29 write(*,'("plabel: ",14(i1))') plabel(iL,:)
                write(*,'("qlabel: ",14(i1))') qlabel(jL,:)
-               if(all(ilabeling2==pLabel(iL,:))) then
+               if(all(ilabeling2==ilabeling1)) then
                   foundLab = .true.
                   print*,"MATCH"
                   if (match/=0) then
                      write(*,'("Additional match found: ",i6," == ",i6)') strN, strN2
-                     ! write(*,'("In file 2, structure ",i6)') strN2
-                     ! write(*,'("was equivalent to ",i6)') match
-                     ! write(*,'("in file 1")')
-                     !stop "BUG! Found more than one match in struct_enum.out file"
+                      write(*,'("In file 2, structure ",i6)') strN2
+                      write(*,'("was equivalent to ",i6)') match
+                      write(*,'("in file 1")')
+                     stop "BUG! Found more than one match in struct_enum.out file"
                   endif
       !            match = iStr2
                   match = strN2
-                  exit outer
+                  exit
                endif
                !if equiatomic then check for complements. I think it's OK to not check permutations (we've already done that above). We just need to check for different complements of the same labeling...
                if (equiatomic) then ! check complements as well
                   do iLP = 2, nLP ! Loop over all permutations of the
                                   ! labels (stored in 'labPerms'). Start at 2 since
-                                  ! we want to skip the identity.
-                     do jp = 1, size(ilabeling2) ! For each digit in the labeling,
-                                                 ! permute the label (label exchange)
-                        write(*,'(20i2)') labPerms(iL,:)
-!                        ilabeling2(jp) = labPerms(a(jp)+1,iLP)
-                     enddo
-                     if(all(ilabeling2==pLabel(iL,:))) then
+                                  ! we want to skip the identity. We already checked the unpermuted case in the preceding `if` statement.
+                  do i = 0,k-1
+                     where  (ilabeling2==i) tempLab = labPerms(iLP,i+1)
+                  enddo
+                  write(*,'("before: ",14i1)') ilabeling2
+                  write(*,'("after:  ",14i1)') tempLab
+
+                     ! do jp = 1, size(ilabeling2) ! For each digit in the labeling,
+                     !                             ! permute the label (label exchange)
+                     !    write(*,'(20i2)') labPerms(iLP,:)
+                        !stop "still haven't written this part"
+                        !ilabeling2(jp) = labPerms(a(jp)+1,iLP)
+                     ! enddo
+                     if(all(ilabeling2==tempLab)) then
                         foundLab = .true.
                         print*,"MATCH (equiatomic)"
                         if (match/=0) then
@@ -367,18 +369,18 @@ do ! Read each structure from f1 and see if it is in the list of f2 structures
                   enddo
                endif
             enddo
-         enddo outer
          if(.not. foundLab) then
             write(13,'("Labeling didn''t match for str #:",i8)') strN
          else
             write(13,'("Structure number:",i8," in file2 is a match to ",i8," in file1!")') strN2, strN
          endif
-         if (match/=0) exit
+         !if (match/=0) exit
    enddo compareloop
    close(f2)
    if(match==0) then
       write(13,'("Match for str #:",i8," in file 1 was not found in file 2")') strN
       write(*,'("Match for str #:",i8," in file 1 was not found in file 2")') strN
+      stop
    else
       write(13,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
       write(*,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
