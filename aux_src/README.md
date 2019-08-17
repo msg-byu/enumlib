@@ -1,4 +1,4 @@
-##BRIEF DESCRIPTION
+### BRIEF DESCRIPTION
 
 ## Description of aux_src files
 
