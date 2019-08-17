@@ -2,7 +2,7 @@
 
 ## Description of aux_src files
 
-These files contain programs that can be useful for some users and need should be maintained but are not necessary for the main code, enum.x, to run. A description of what each file does follows:
+These files contain programs that can be useful for some users and need should be maintained but are not necessary for the main code, `enum.x`, to run. A description of what each file does follows:
 
 # makestr.f90:
 `makestr.f90` is used for making `POSCAR`s. It is accessed and used in the src directory by typing
