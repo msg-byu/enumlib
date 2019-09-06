@@ -36,9 +36,9 @@ integer :: strN2, hnfN2, n2, pgOps2, diag2(3), idx, f1, f2, iLP, nLP
 integer, allocatable :: ilabeling1(:), ilabeling2(:), atomType(:), automorphism(:)
 integer, allocatable :: tempLab(:)
 real(dp) :: eps
-logical full, HNFmatch, foundLab, err, equiatomic
+logical full, HNFmatch, foundLab, err, concMatch
 character(maxLabLength)   :: labeling ! List, 0..k-1, of the atomic type at each site
-type(RotPermList)         :: dRotList1
+type(RotPermList)         :: dRotList1, dRotList2
 type(RotPermList),pointer :: LattRotList2(:)
 type(opList), pointer     :: fixOp(:)
 integer, pointer          :: crange(:,:), degen_list(:), rotProdLab(:), labPerms(:,:)
@@ -120,11 +120,6 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
    HNFin = 0 ! Load up the HNF with the elements that were read in.
    HNFin(1,1,1) = a; HNFin(2,1,1) = b; HNFin(2,2,1) = c;
    HNFin(3,1,1) = d; HNFin(3,2,1) = e; HNFin(3,3,1) = f;
-! Check to see if this case is "equiatomic", that is, whether or not the number of labels of each
-! color is exactly the same. If so, we need some extra logic when two labeling are compared
-! (see email discussion with Rod Forcade on May 16 2019, subject: "Monk?")
-   equiatomic = checkForEquiatomic(n,nD1,k,labeling)
-   !if (equiatomic) print *,"equiatomic"
 
    ! Use the permutations effected by the rotations that fix the superlattice to generate labelings
    ! that are equivalent. The list of equivalent labelings will be used when we look for a match in the struct_enum file
@@ -192,23 +187,35 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
                        & i9,")")') iStr2, strN2
          cycle
       endif
-      do i = 0, k-1
-         if (count(ilabeling2==i)/=count(ilabeling1==i)) then
-            write(13,'("Concentrations don''t match for color ",i1)') i
-            cycle compareloop
-         endif
+      ! If ilabeling2 *or* one if its complements has the correct concentration, then we need to continue in the check.
+
+      do iLP = 1, nLP ! Loop over all complements of the labels (stored in 'labPerms')
+         do i = 0,k-1 ! Loop over each color to make the complement of the label
+            where  (ilabeling2==i) tempLab = labPerms(iLP,i+1)
+         enddo
+         concMatch = .true.
+         do i = 0, k-1
+            if (count(tempLab==i)/=count(ilabeling1==i)) then
+               concMatch = .false.
+            endif
+         enddo
+         if (concMatch) exit
       enddo
-      write(13,'("Concentrations match for structures ",2(i6,1x))') strN, strN2
+      if (.not. concMatch) then
+         write(13,'("Concentrations (and all complements) don''t match")')
+         cycle compareloop
+      endif
+      write(13,'("Concentrations (or complements) match for structures:",2(i6,1x))') strN, strN2
+! <<< The next 100 lines or so compares the labelings---everything else matches at this point >>>
 
-!! Aug 12 This block of 30 lines was moved from above. We only need to check for L1/=L2 after everything else matches.
-   ! We do this even though there are no duplicates to remove. The routine also generates the vectors subscripts for the label permutations and we need these to generate the list of equivalent labelings
-
-! dRotList1 is used in following two calls because, at this point, we've established that they would be the same, and it's more efficient to find dRotList1 outside of the compare loop
-   call remove_duplicate_lattices(HNFin,LatDim2,pLV2,rot,shift,dset2,dRotList1,HNFout,fixOp,&
-                                  LattRotList2,sLVlist,degen_list,eps)
+   ! We do "remove_duplicate_lattices" even though there are no duplicates to remove because the routine also generates the vector subscripts for the label permutations and we need these to generate the list of equivalent labelings
+   ! We could use dRotList1 is used in the "remove_..." and "get_r..." calls below because, at this point, we've established that dRotList1 and dRotList2 would be the same, and it would be more efficient to find dRotList1 outside of the compare loop
+   call get_dvector_permutations(pLV2,dset2,nD2,rot,shift,dRotList2,LatDim2,eps) ! get dRotList2
+   call remove_duplicate_lattices(HNFin,LatDim2,pLV2,rot,shift,dset2,dRotList2,HNFout,fixOp,&
+                                  LattRotList2,sLVlist,degen_list,eps) ! get fixing operations
    open(17,file="debug_rotation_permutations.out")
    ! Get the list of label permutations
-   call get_rotation_perms_lists(pLV2,HNFout,L2,SNF,fixOp,LattRotList2,dRotList1,eps)
+   call get_rotation_perms_lists(pLV2,HNFout,L2,SNF,fixOp,LattRotList2,dRotList2,eps)
    write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList2(1)%RotIndx(:)
    write(17,'("Permutation group (trans+rot):")')
    nP = size(LattRotList2(1)%perm,1)
@@ -216,104 +223,103 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
       write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList2(1)%perm(ip,:)
    enddo
    call find_equivalent_labelings(ilabeling2,LattRotList2,qLabel,rotProdLab)
-   do i = 1,size(qLabel,1)
-!      write(*,'("pL: ",i3,2x,14i1)')i,qLabel(i,:)
-   enddo
-      if (any(L1/=L2)) then ! We must find the automorphism that connects the two different groups and adjust ilabeling2 accordingly
-         if (associated(g1)) deallocate(g1); if (associated(g2)) deallocate(g2)
-         !1) build the member list
-         call make_member_list(diag,g1) ! This routine allocates g1
-         !2) find the group automorphism
-         call matrix_inverse(real(L2(:,:,1),dp),L2inv,err)
-         if (err) stop "L2inv is not defined"
-         T = matmul(L1(:,:,1),L2inv)
-          ! do i = 1,3
-          !    write(*,'(" T:  ",3(f7.3,1x))') T(i,:)
-          ! enddo
-         allocate(g2(3,size(g1,2)))
-         !g2 = -1
-         g2 = nint(matmul(T,g1))
-         g2 = modulo(g2,spread(diag,2,n))
-         !if (any(g2==-1)) stop "Bug in group member mapping"
-         ! do i = 1,3
-         !    write(*,'("g2: ",20(i2,1x))') g2(i,:)
-         ! enddo
-         ! print*
+   if (any(L1/=L2)) then ! We must find the automorphism that connects the two different groups and adjust ilabeling2 accordingly
+      print*,"L1/=L2"
+      if (associated(g1)) deallocate(g1); if (associated(g2)) deallocate(g2)
+      !1) build the member list
+      call make_member_list(diag,g1) ! This routine allocates g1
+      ! do i = 1,3
+      !    write(*,'("g1: ",20(i2,1x))') g1(i,:)
+      ! enddo
+      ! print*
+      !2) find the group automorphism
+      call matrix_inverse(real(L2(:,:,1),dp),L2inv,err)
+      if (err) stop "L2inv is not defined"
+      ! do i = 1,3
+      !    write(*,'(" L1:  ",3(i2,1x))') L1(i,:,1)
+      ! enddo
+      ! do i = 1,3
+      !    write(*,'(" L2:  ",3(i2,1x))') L2(i,:,1)
+      ! enddo
 
-         ! Next, find the rearrangement between the two groups (the automorphism)
-         if (allocated(automorphism)) deallocate(automorphism)
-         allocate(automorphism(n2))
-         call find_permutation_of_group(g1,g2,automorphism)
-         write(13,"('automorphism')")
-         write(13,"(20i1)") automorphism
-         ! 3) Apply the automorphism to every permuted labeling (qLabels)
+      T = matmul(L1(:,:,1),L2inv)
+       ! do i = 1,3
+       !    write(*,'(" T:  ",3(f7.3,1x))') T(i,:)
+       ! enddo
+      allocate(g2(3,size(g1,2)))
+      !g2 = -1
+      g2 = nint(matmul(T,g1))
+      g2 = modulo(g2,spread(diag,2,n))
+      !if (any(g2==-1)) stop "Bug in group member mapping"
+      ! do i = 1,3
+      !    write(*,'("g2: ",20(i2,1x))') g2(i,:)
+      ! enddo
+      ! print*
 
-         do j = 1,size(qLabel,1)
-            do i = 0, n*nD2-1, n
-               qLabel(j,1+i:n+i) = qLabel(j,automorphism+i)
-            enddo
-            ! write(*,'(i3,"   qL:  ",20(i1))') j, qLabel(j,:)
+      ! Next, find the rearrangement between the two groups (the automorphism)
+      if (allocated(automorphism)) deallocate(automorphism)
+      allocate(automorphism(n2))
+      call find_permutation_of_group(g1,g2,automorphism)
+      write(13,"('automorphism')")
+      write(13,"(20i1)") automorphism
+      ! 3) Apply the automorphism to every permuted labeling (qLabels)
+      do j = 1,size(qLabel,1)
+         do i = 0, n*nD2-1, n ! Each block of 'n' needs a copy of the automorphism
+            qLabel(j,1+i:n+i) = qLabel(j,automorphism+i)
          enddo
-         print*
-         !4) proceed as normal
-      endif
-      foundLab = .false.
-         ! We need to loop over all permutations (to get the full orbit) because we do not know
-         ! which member of the orbit is the representative.
-         ! Also, for 50-50 labelings that are self-complementary (more generally, any
-         ! "equiatomic" labeling may be self-complementary), we also need to check the
-         ! complement of each labeling because any of the complements may appear in either list.
-         ! GLWH 2019, see email chain, subject: "Monk?", with Rod Forcade starting May 16 2019
-         do jL = 1, size(qlabel,1)
-            ilabeling2 = qLabel(jL,:)
-            if(all(ilabeling2==ilabeling1)) then
-               foundLab = .true.
-               write(13,'("MATCH  Perm #: ",i3)') jl
-               if (match/=0) then
-                  write(13,'("Additional match found: ",i6," == ",i6)') strN, strN2
-                   write(13,'("In file 2, structure ",i6)') strN2
-                   write(13,'("was equivalent to ",i6)') match
-                   write(13,'("in file 1")')
-                  stop "BUG! Found more than one match in struct_enum.out file"
-               endif
-               match = strN2
-               exit
+      enddo
+      !4) proceed as normal
+   endif
+   foundLab = .false.
+   ! We need to loop over all permutations (to get the full orbit) because we do not know
+   ! which member of the orbit is the representative.
+   ! We also need to check the complement of each labeling because any of the complements may appear
+   ! in either list. GLWH 2019, see email chain, subject: "Monk?", with Rod Forcade starting May 16 2019
+   do jL = 1, size(qlabel,1)
+      !ilabeling2 = qLabel(jL,:)
+      ! if(all(ilabeling2==ilabeling1)) then
+      !    foundLab = .true.
+      !    write(13,'("MATCH  Perm #: ",i3)') jl
+      !    if (match/=0) then
+      !       write(13,'("Additional match found: ",i6," == ",i6)') strN, strN2
+      !        write(13,'("In file 2, structure ",i6)') strN2
+      !        write(13,'("was equivalent to ",i6)') match
+      !        write(13,'("in file 1")')
+      !       stop "BUG! Found more than one match in struct_enum.out file"
+      !    endif
+      !    match = strN2
+      !    exit
+      ! endif
+      do iLP = 1, nLP ! Loop over all complements of the labels (stored in 'labPerms').
+         do i = 0,k-1 ! Loop over each color to make the complement of the label
+            where  (qLabel(jL,:)==i) ilabeling2 = labPerms(iLP,i+1)
+         enddo
+         if(all(ilabeling1==ilabeling2)) then
+            foundLab = .true.
+            if (match/=0) then
+               write(13,'("Additional match found: ",i6," == ",i6)') strN, strN2
+               write(13,'("In file 2, structure ",i6)') strN2
+               write(13,'("was also equivalent to ",i6)') match
+               write(13,'("in file 1")')
+               stop "BUG! Found more than one match in struct_enum.out file"
             endif
-            !if equiatomic then check for complements. I think it's OK to not check permutations (we've already done that above). We just need to check for different complements of the same labeling...
-            if (equiatomic) then ! check complements as well
-               do iLP = 2, nLP ! Loop over all complements of the labels
-                               ! (stored in 'labPerms'). Start at 2 since
-                               ! we want to skip the identity. We already checked the unpermuted case in the preceding `if` statement.
-                  do i = 0,k-1
-                     where  (ilabeling2==i) tempLab = labPerms(iLP,i+1)
-                  enddo
-                  if(all(ilabeling1==tempLab)) then
-                     foundLab = .true.
-                     if (match/=0) then
-                        write(13,'("Additional match found: ",i6," == ",i6)') strN, strN2
-                        write(13,'("In file 2, structure ",i6)') strN2
-                        write(13,'("was also equivalent to ",i6)') match
-                        write(13,'("in file 1")')
-                        stop "BUG! Found more than one match in struct_enum.out file"
-                     endif
-                     match = strN2
-                     exit !iLP loop over complements
-                  endif
-               enddo !iLP loop
-            endif
-            if (foundLab) exit ! loop over permutations. Some labelings are invariant under some permutations. So without the exit, we will find a duplicate
-         enddo ! jL Loop over permutations
-      if(.not. foundLab) then
-         write(13,'("Labeling didn''t match for str #:",i8)') strN
-      else
-         write(13,'("Structure number:",i8," in file2 is a match to ",i8," in file1!")') strN2, strN
-      endif
-      !if (match/=0) exit
+            match = strN2
+            exit !iLP loop over complements
+         endif
+      enddo !iLP loop
+      if (foundLab) exit ! loop over permutations. Some labelings are invariant under some permutations. So without the exit, we will find a duplicate
+   enddo ! jL Loop over permutations
+   if(.not. foundLab) then
+      write(13,'("Labeling didn''t match for str #:",i8)') strN
+   else
+      write(13,'("Structure number:",i8," in file2 is a match to ",i8," in file1!")') strN2, strN
+   endif
+   !if (match/=0) exit
    enddo compareloop
    close(f2)
    if(match==0) then
       write(13,'("Match for str #:",i8," in file 1 was not found in file 2")') strN
-      stop
+      stop "Match not found!"
    else
       write(13,'("Structure number:",i8," is a match to # ",i9," in file 2.")') strN, match
    endif
@@ -321,30 +327,6 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
    deallocate(ilabeling1)
 enddo f1loop
 close(13)
-
-CONTAINS
-function checkForEquiatomic(n,nD1,k,labeling) result(equiatomic)
-integer, intent(in)  :: n, nD1, k
-character(len=*), intent(in):: labeling
-logical              :: equiatomic
-integer              :: equiN
-integer, allocatable :: integerLab(:)
-integer              :: j, i
-equiatomic = .false.
-if (mod(n*nD1,k)== 0) then ! necessary but not sufficient condition for equiatomic.
-   equiatomic = .true.
-   equiN = n*nD1/k
-   allocate(integerLab(n*nD1))
-   do j = 1, n*nD1
-      read(labeling(j:j),'(i1)') integerLab(j)
-   enddo
-   do i = 0,k-1
-      if (count(integerLab==i)/=equiN) then ! can't be equiatomic
-         equiatomic = .false.
-         exit
-      endif
-   enddo
-endif
-endfunction checkForEquiatomic
+write(*,'("The labelings in the two lists have 1-1 correspondence.")')
 
 endprogram compare_two_struct_enum
