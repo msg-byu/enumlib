@@ -88,8 +88,8 @@ be found in the ('enumlib/support/input') directory.
 Detailed directions on how to run the code for several of the example
 input files can be found in the `enumlib/support/EXAMPLES` file.
 
-There are also helper programs in the aux_src directory for making VASP POSCARs, pictures of
-2-D enumerations, etc.
+There are also helper programs in the `aux_src` directory for making VASP POSCARs, pictures of
+2D enumerations, etc.
 
 `makeStr.py` <-- Makes POSCARS for the desired enumerated structures.
 (`makeStr.x` from the fortran code has been superceded by this python script.)

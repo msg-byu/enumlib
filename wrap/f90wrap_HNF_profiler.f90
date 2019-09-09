@@ -4,10 +4,10 @@ subroutine f90wrap_get_hnfs(a, atom_pos, atom_types, hnfs, r_mins, r_maxs, pgs, 
     dets, n0, n1, n2, n_, eps_)
     use hnf_profiler, only: get_hnfs
     implicit none
-    
+
     real(8), intent(in), dimension(3,3) :: a
-    real(8), intent(in), dimension(n0,n1) :: atom_pos
-    integer, intent(in), dimension(n2) :: atom_types
+    real(8), intent(in), dimension(n0,n1), allocatable :: atom_pos(:,:)
+    integer, intent(inout), dimension(n2) :: atom_types
     integer, dimension(100,3,3), intent(inout) :: hnfs
     real(8), dimension(100), intent(inout) :: r_mins
     real(8), dimension(100), intent(inout) :: r_maxs
@@ -26,4 +26,3 @@ subroutine f90wrap_get_hnfs(a, atom_pos, atom_types, hnfs, r_mins, r_maxs, pgs, 
 end subroutine f90wrap_get_hnfs
 
 ! End of module hnf_profiler defined in file ../aux_src/HNF_profiler.f90
-
