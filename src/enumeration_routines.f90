@@ -165,7 +165,7 @@ allocate(aTyp(nDfull),STAT=status)
 if(status/=0)stop "Allocation failed in get_dvector_permutations: aTyp"
 
 aTyp = 1
-aTyp(inactives(:,1)) = 2 ! inactive sites should never map to active, label distinctly
+aTyp(inactives(:,1)) = 2 ! inactive sites should never map to active, so give them a distinct label
 call get_spaceGroup(pLV,aTyp,dFull,rot,shift,.false.,eps)
 if(latDim==2) call rm_3D_operations(pLV,rot,shift,eps)
 
