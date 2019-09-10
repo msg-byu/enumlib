@@ -657,7 +657,7 @@ end subroutine check_for_fixed_cells
   SUBROUTINE write_rotperms_list(rpList,listfile)
     type(RotPermList), intent(in) :: rpList
     character(80), intent(in) :: listfile
-    integer nP, iP
+    integer nP, iP, iD
     open(11,file=listfile)
     nP = rpList%nL
     if(size(rpList%perm,1)/=rpList%nL) stop "rp list not initialized correctly (write_rotperms_list in io_utils)"
@@ -669,6 +669,12 @@ end subroutine check_for_fixed_cells
     write(11,'("Number of permutations: ",i4)') nP
     do iP = 1, nP
        write(11,'("Perm #: ",i5,1x,"Perm: ",40(i4,1x))') iP, rpList%perm(iP,:)
+    enddo
+    write(11,'(/,"Shifts required to move point inside unit cell after operation:")')
+    do iD = 1, size(rpList%v,2)
+      do iP = 1, nP
+         write(11,'("Perm #:",i3,1x,"iD:",i2,"  v: ",3(f8.4,1x))') iP, iD, rpList%v(:,iD,iP)
+      enddo
     enddo
     close(11)
   END SUBROUTINE write_rotperms_list
