@@ -1,5 +1,8 @@
 # Revision History for `enumlib`
 
+## 2.0.2 (JJ)
+- Fixed functions in `enumlib/wrap` to reflect changes to `get_dvector_permutations`.
+
 ## 2.0.1 (GLWH)
 - Removed a bunch of print statements related to debugging of Rev. 2.0.0
 
