@@ -514,7 +514,7 @@ CONTAINS
   !!<summary>This routine takes in a list of labels of the parent cell
   !!and the number of different labels allowed on each site. It
   !!returns a "multiplier", and *expanded* versions of parLabel and
-  ! parDigit.</summary>
+  !! parDigit.</summary>
   !!<parameter name="n" regular="true">The index (volume factor) of
   !!the supercell.</parameter>
   !!<parameter name="k" regular="true">k-nary case</parameter>
@@ -1186,7 +1186,7 @@ CONTAINS
   !!super-periodic labelings (non-primitive superstructures). If the
   !!"full" variable is false, it also removes "label-permutation"
   !!duplicates---labelings that are not unique when the labels
-  !!themselves (not their positions) are permuted (e.g., 00111 &lt;--&gt;
+  !!themselves (not their positions) are permuted (e.g., 00111 turns into
   !!11000).  The basic idea of the routine is to run like an
   !!"odometer", generating all numbers (base k) from 0 to k^n - 1, and
   !!then use rotation and translation permutations to eliminate
@@ -1301,8 +1301,8 @@ CONTAINS
     !call make_translation_group(d,trgrp) ! Find equivalent
     ! translations (permutations of labelings)
 
-    ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize
-    ! digit counter In the recent version of multienum.x, we can't assume
+    ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
+    ! In the recent version of multienum.x, we can't assume
     ! that the label of the first type appears on all sites. So this naive
     ! initialization doesn't work any more. Instead we need to count how
     ! many times each label appears in the starting labeling. I think that
@@ -1318,7 +1318,7 @@ CONTAINS
 
     ic = 0
     nUniq = 0
-    do; ic = ic + 1
+    do; ic = ic + 1 ! Main loop over odometer readings
        if (ic > nexp) exit ! Fail safe
        idx = sum((digCnt-1)*multiplier)+1
        if (any(c==0)) then ! Check to see if there are missing digits
@@ -1342,7 +1342,7 @@ CONTAINS
                 cycle
              endif
              idx = sum((digCnt(perm(q,:))-1)*multiplier)+1
-             if (.not. fixed_cells) then
+             if (.not. fixed_cells) then ! (we don't eliminate superperiodic cases in 'fixed_cells' mode)
                 ! This will happen if the coloring is superperiodic
                 ! (i.e., non-primitive superstructure). The q=<n
                 ! condition makes sure we are considering a
