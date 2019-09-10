@@ -1,13 +1,17 @@
+! Compares two output files, usually "struct_enum.out" from enumlib (enum.x) to see if they contain
+! equivalent lists.
+!
 ! Started around 2008, used on and off, extensively revised in 2019 when the Smith Normal Form
 ! code in symlib (rational_mathematics) was updated to be more numerically stable (but
 ! unfortunately that affected many of the unit tests of enumlib). This program is used to compare
 ! output data from different versions of the code. The challenge is that data may often be
 ! equivalent but NOT identical.
 !
-! A further challenge is that the format of the input and output files change slowly over time and ! this code is fragile to that.
+! A further challenge is that the format of the input and output files change slowly over time and
+! this code is fragile to that.
 !
-! This is not a pretty program. Not for general distribution. Don't release it into the wild.
-! It has really been used, a lot, and it works...but is fragile.
+! This is not a pretty program. Nor is it efficient. Not for general distribution.
+! Don't release it into the wild. It has really been used, a lot, and it works...but is fragile.
 ! GLWH 2019
 program compare_two_struct_enum
 use num_types
@@ -28,7 +32,7 @@ integer, dimension(3,3,1):: L1, SNF, L2
 real(dp), allocatable :: dset1(:,:), dset2(:,:), rot(:,:,:), shift(:,:)
 real(dp), pointer :: sLVlist(:,:,:)
 integer, pointer :: HNFout(:,:,:), eq(:), digit(:), HNFin(:,:,:)
-integer, pointer, dimension(:,:) :: label, g1, g2, dlabel, qLabel
+integer, pointer, dimension(:,:) :: label, g1=>null(), g2=>null(), dlabel, qLabel
 integer :: LatDim1, LatDim2, match, nD1, nD2, Nmin, Nmax, k, ioerr
 integer :: strN, sizeN, n, pgOps, diag(3), a, b, c, d, e, f, i, jl, j
 integer :: iP, nP, lc, iStr2, HNFtest(3,3), hdgenfact, labdgen, totdgen
@@ -168,11 +172,11 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
       ! though, the enum code always writes in ascending size order.
       if (n2 > n) then  ! We've passed the point in the f2 file where the size of cells matches
          write(13,'("Volume is too big for structure #: ",i9," in file 2 (label # ", &
-              & i9,")")') iStr2, strN2
+              !& i9,")")') iStr2, strN2
          exit
       else
          write(13,'("Volume matches for structure #: ",i9," in file 2 (label # ", &
-              & i9,")")') iStr2, strN2
+              !& i9,")")') iStr2, strN2
       endif
       !read(labeling,'(500i1)') ilabeling2(1:n2*nD2)
       HNFtest = 0;
@@ -180,11 +184,11 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
       HNFmatch = .false.
       if(all(HNFtest==HNFin(:,:,1))) then ! HNFs match, next check the labeling
          write(13,'("HNF matches for structure #: ",i9," in file 2 (label # ", &
-              & i9,")")') iStr2, strN2
+              !& i9,")")') iStr2, strN2
          HNFmatch = .true.
       else
          write(13,'("HNF doesn''t match for structure #: ",i9," in file 2 (label # ", &
-                       & i9,")")') iStr2, strN2
+               !        & i9,")")') iStr2, strN2
          cycle
       endif
       ! If ilabeling2 *or* one if its complements has the correct concentration, then we need to continue in the check.
@@ -213,68 +217,49 @@ f1loop: do ! Read each structure from f1 and see if it is in the list of f2 stru
    call get_dvector_permutations(pLV2,dset2,nD2,rot,shift,dRotList2,LatDim2,eps) ! get dRotList2
    call remove_duplicate_lattices(HNFin,LatDim2,pLV2,rot,shift,dset2,dRotList2,HNFout,fixOp,&
                                   LattRotList2,sLVlist,degen_list,eps) ! get fixing operations
-   open(17,file="debug_rotation_permutations.out")
+   !open(17,file="debug_rotation_permutations.out")
    ! Get the list of label permutations
    call get_rotation_perms_lists(pLV2,HNFout,L2,SNF,fixOp,LattRotList2,dRotList2,eps)
-   write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList2(1)%RotIndx(:)
-   write(17,'("Permutation group (trans+rot):")')
+   !write(17,'("Rots Indx:",/,8(24(i3,1x),/))') LattRotList2(1)%RotIndx(:)
+   !write(17,'("Permutation group (trans+rot):")')
    nP = size(LattRotList2(1)%perm,1)
-   do ip = 1, nP
-      write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList2(1)%perm(ip,:)
-   enddo
+   ! do ip = 1, nP
+   !    write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList2(1)%perm(ip,:)
+   ! enddo
    call find_equivalent_labelings(ilabeling2,LattRotList2,qLabel,rotProdLab)
    if (any(L1/=L2)) then ! We must find the automorphism that connects the two different groups and adjust ilabeling2 accordingly
       print*,"L1/=L2"
       if (associated(g1)) deallocate(g1); if (associated(g2)) deallocate(g2)
       !1) build the member list
       call make_member_list(diag,g1) ! This routine allocates g1
-      ! do i = 1,3
-      !    write(*,'("g1: ",20(i2,1x))') g1(i,:)
-      ! enddo
-      ! print*
       !2) find the group automorphism
       call matrix_inverse(real(L2(:,:,1),dp),L2inv,err)
-      if (err) stop "L2inv is not defined"
-      ! do i = 1,3
-      !    write(*,'(" L1:  ",3(i2,1x))') L1(i,:,1)
-      ! enddo
-      ! do i = 1,3
-      !    write(*,'(" L2:  ",3(i2,1x))') L2(i,:,1)
-      ! enddo
-
+      if (err) stop "Inverse of L_2 matrix is not defined"
       T = matmul(L1(:,:,1),L2inv)
-       ! do i = 1,3
-       !    write(*,'(" T:  ",3(f7.3,1x))') T(i,:)
-       ! enddo
       allocate(g2(3,size(g1,2)))
       !g2 = -1
       g2 = nint(matmul(T,g1))
       g2 = modulo(g2,spread(diag,2,n))
-      !if (any(g2==-1)) stop "Bug in group member mapping"
-      ! do i = 1,3
-      !    write(*,'("g2: ",20(i2,1x))') g2(i,:)
-      ! enddo
-      ! print*
 
       ! Next, find the rearrangement between the two groups (the automorphism)
       if (allocated(automorphism)) deallocate(automorphism)
       allocate(automorphism(n2))
       call find_permutation_of_group(g1,g2,automorphism)
-      write(13,"('automorphism')")
-      write(13,"(20i1)") automorphism
+      !write(13,"('automorphism')")
+      !write(13,"(50i1)") automorphism
       ! 3) Apply the automorphism to every permuted labeling (qLabels)
       do j = 1,size(qLabel,1)
          do i = 0, n*nD2-1, n ! Each block of 'n' needs a copy of the automorphism
             qLabel(j,1+i:n+i) = qLabel(j,automorphism+i)
          enddo
       enddo
-      !4) proceed as normal
    endif
+   !4) proceed as normal
+
    foundLab = .false.
    ! We need to loop over all permutations (to get the full orbit) because we do not know
    ! which member of the orbit is the representative.
-   ! We also need to check the complement of each labeling because any of the complements may appear
-   ! in either list. GLWH 2019, see email chain, subject: "Monk?", with Rod Forcade starting May 16 2019
+   ! We also need to check the complement of each labeling because any of the complements ! may appear in either list. GLWH 2019, see email chain, subject: "Monk?", with Rod Forcade starting May 16 2019, and subject "Eureka" starting Sep 5 2019
    do jL = 1, size(qlabel,1)
       !ilabeling2 = qLabel(jL,:)
       ! if(all(ilabeling2==ilabeling1)) then
