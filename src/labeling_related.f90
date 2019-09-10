@@ -342,7 +342,7 @@ CONTAINS
        write(*,*) "Allocation of 'lab' failed in generate_permutation_labelings"
        write(*,*) "This typically happens when the enumeration problem attempted"
        write(*,*) "is too big and the hash table cannot be allocated."
-       stop
+       stop "Allocation error"
     endif
     lab = ""
     nPerm = size(perm,1)
@@ -367,7 +367,7 @@ CONTAINS
        write(*,*) "Allocation of 'degeneracy list' failed in generate_permutation_labelings"
        write(*,*) "This typically happens when the enumeration problem attempted"
        write(*,*) "is too big and the hash table cannot be allocated."
-       stop
+       stop "Allocation error"
     endif
     degeneracy_list = 0
     nUniq = 0
@@ -425,7 +425,7 @@ CONTAINS
                         & N!/(n_1! n_2! ... n_k!). This number should not exceed the &
                         & maximum value that can be stored in a long integer. You should &
                         & reduce the maximum supercell size."
-             stop
+             stop "Bad Index Error"
           end if
 
           ! table and then mark the symmetry brothers
@@ -459,7 +459,7 @@ CONTAINS
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
                    print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
-                   stop
+                   stop "Failsafe triggered"
                 endif
                 if(lab(idx)=='')then
                    degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
