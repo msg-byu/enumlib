@@ -10,13 +10,13 @@
 		identifier="sLV.out" />
 	<target name="sLV" compareto="sLV.out" />
       </test>
-      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()"
 	      dimensions=":,:" />
-      <global name="spin" type="integer" modifiers="pointer"  
+      <global name="spin" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="gIndx" type="integer" modifiers="pointer" 
+      <global name="gIndx" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="x" type="real(dp)" modifiers="pointer" 
+      <global name="x" type="real(dp)" modifiers="pointer"
 	      dimensions=":" />
       <assignment name="k" value="kfile">
 	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
@@ -71,13 +71,13 @@
 		template="float.xml" identifier="gIndx.out" />
 	<target name="gIndx" compareto="gIndx.out" />
       </test>
-      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()"
 	      dimensions=":,:" />
-      <global name="spin" type="integer" modifiers="pointer"  
+      <global name="spin" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="gIndx" type="integer" modifiers="pointer" 
+      <global name="gIndx" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="x" type="real(dp)" modifiers="pointer" 
+      <global name="x" type="real(dp)" modifiers="pointer"
 	      dimensions=":" />
       <assignment name="k" value="kfile">
 	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
@@ -132,13 +132,13 @@
 		template="float.xml" identifier="spin.out" />
 	<target name="spin" compareto="spin.out" />
       </test>
-      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()"
 	      dimensions=":,:" />
-      <global name="spin" type="integer" modifiers="pointer"  
+      <global name="spin" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="gIndx" type="integer" modifiers="pointer" 
+      <global name="gIndx" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="x" type="real(dp)" modifiers="pointer" 
+      <global name="x" type="real(dp)" modifiers="pointer"
 	      dimensions=":" />
       <assignment name="k" value="kfile">
 	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
@@ -193,13 +193,13 @@
 		template="float.xml" identifier="aBas.out" />
 	<target name="aBas" compareto="aBas.out" />
       </test>
-      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()"
 	      dimensions=":,:" />
-      <global name="spin" type="integer" modifiers="pointer"  
+      <global name="spin" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="gIndx" type="integer" modifiers="pointer" 
+      <global name="gIndx" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="x" type="real(dp)" modifiers="pointer" 
+      <global name="x" type="real(dp)" modifiers="pointer"
 	      dimensions=":" />
       <assignment name="k" value="kfile">
 	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
@@ -254,13 +254,13 @@
 		template="float.xml" identifier="x.out" />
 	<target name="x" compareto="x.out" />
       </test>
-      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()" 
+      <global name="aBas" type="real(dp)" modifiers="pointer" default="> null()"
 	      dimensions=":,:" />
-      <global name="spin" type="integer" modifiers="pointer"  
+      <global name="spin" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="gIndx" type="integer" modifiers="pointer" 
+      <global name="gIndx" type="integer" modifiers="pointer"
 	      dimensions=":" />
-      <global name="x" type="real(dp)" modifiers="pointer" 
+      <global name="x" type="real(dp)" modifiers="pointer"
 	      dimensions=":" />
       <assignment name="k" value="kfile">
 	<value identifier="kfile" file="map_enumStr_to_real_space_k.in"
@@ -307,7 +307,7 @@
   </decorates>
 
   <decorates name="enumeration_utilities.cartesian2direct">
-    <group name="enum_utils6" purpose="testing" staging="../unittests/">
+    <group name="enum_utils6" purpose="paused" staging="../unittests/">
       <test identifier="cartesian2direct"
 	    description="Original tests of mapping structure to real space." cases="[1-100]"
 	    timed="true">

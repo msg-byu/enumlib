@@ -9,9 +9,28 @@ implicit none
 
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file, &
-       read_struct_enum_out, read_struct_enum_out_oldstyle, co_ca, read_arrows
+       read_struct_enum_out, read_struct_enum_out_oldstyle, co_ca, read_arrows, check_for_fixed_cells
 
 CONTAINS
+   !!<summary> This routine looks to see if the enumeration should be limited to a set of fixed cell shapes. If so,
+   !! there will be a file called 'fixed_cells.in'.</summary>
+   !!<parameter name="fixed_cells" regular="true"></parameter>
+   subroutine check_for_fixed_cells(fixed_cells,nMin,nMax)
+      logical, intent(out) :: fixed_cells
+      integer, intent(in)  :: nMin, nMax
+      integer              :: status
+       fixed_cells = .false.
+       open(43,file="fixed_cells.in",status="old",iostat=status)
+       if(status==0) then
+          write(*,'(A)') "---------------------------------------------------------------------------------------------"
+          write(*,'("Generating permutations for fixed cells. index n=",i2," to ",i2)') nMin, nMax
+          write(*,'("Be aware: non-primitive structures (super-periodic configurations) are included",/,&
+               &"in the final list in this mode.")')
+          fixed_cells=.true.
+       endif
+       close(43)
+end subroutine check_for_fixed_cells
+
 
   !!<summary>This file reads from struct_enum.*out* file. Used by the
   !!compare code It's a partial copy and paste from "read_input"</summary>
@@ -36,7 +55,7 @@ CONTAINS
     character(len=:), allocatable, optional :: fname
     integer,intent(out):: Nmin, Nmax, k, LatDim, nD
     real(dp),intent(out) :: pLV(3,3), eps
-    real(dp), pointer :: d(:,:)
+    real(dp), allocatable :: d(:,:)
     integer, pointer :: label(:,:), digit(:)
     integer, pointer :: eq(:), cRange(:,:)
     !logical, intent(out):: conc_check
@@ -113,6 +132,7 @@ CONTAINS
        enddo
        write(99,*)
        digit(iD) = i ! Store the number of labels that were specified for each d-vector
+       !GLWH 2019 the logic above assumes that no labels were skipped over, is that OK? Not always true...
        ! Should also check that no labels were repeated.
     enddo
     ! Check that each label appears at least once
@@ -509,9 +529,14 @@ CONTAINS
     else; stop 'Specify "full" or "part" in the input file';endif
 
     ! Read in the concentration ranges
-    allocate(cRange(k,3))
+    ! GLWH 2019 Mar
+    ! To be consistent, it seems that we should include a range for each atom label, even
+    ! those that are inactive. So instead of using do i=1,k we will replace k with the maximum
+    ! value (plus 1, because we are 1-indexed) in the list of labels
+!del    print*,"max of labels (input routine)",maxval(label)
+    allocate(cRange(maxval(label)+1,3))
     cRange = 0
-    do i = 1, k
+    do i = 1, maxval(label)+1
        call co_ca(10,err)
        read(10,*,iostat=status) cRange(i,:)
        conc_check = .true.
@@ -622,6 +647,7 @@ CONTAINS
        write(11,'(3(f10.6,1x))') (rot(:,i,iOp),i=1,3)
        write(11,'("shift: ",3(f8.4,1x))') shift(:,iOp)
     enddo
+    close(11)
   END SUBROUTINE write_lattice_symmetry_ops
 
   !!<summary>Write out the information contained in a
@@ -631,7 +657,7 @@ CONTAINS
   SUBROUTINE write_rotperms_list(rpList,listfile)
     type(RotPermList), intent(in) :: rpList
     character(80), intent(in) :: listfile
-    integer nP, iP
+    integer nP, iP, iD
     open(11,file=listfile)
     nP = rpList%nL
     if(size(rpList%perm,1)/=rpList%nL) stop "rp list not initialized correctly (write_rotperms_list in io_utils)"
@@ -643,6 +669,12 @@ CONTAINS
     write(11,'("Number of permutations: ",i4)') nP
     do iP = 1, nP
        write(11,'("Perm #: ",i5,1x,"Perm: ",40(i4,1x))') iP, rpList%perm(iP,:)
+    enddo
+    write(11,'(/,"Shifts required to move point inside unit cell after operation:")')
+    do iD = 1, size(rpList%v,2)
+      do iP = 1, nP
+         write(11,'("Perm #:",i3,1x,"iD:",i2,"  v: ",3(f8.4,1x))') iP, iD, rpList%v(:,iD,iP)
+      enddo
     enddo
     close(11)
   END SUBROUTINE write_rotperms_list

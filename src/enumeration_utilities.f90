@@ -321,7 +321,9 @@ CONTAINS
     real(dp) :: testsite(3), diff(3)
 
     nAt = size(aBas,2)
-    if(nAt/=size(aTyp)) stop "Input to get_HNF_of_derivative_structure is inconsistent"
+    if(nAt/=size(aTyp)) then
+      write(*,'(A80)') title
+    stop "Input to get_HNF_of_derivative_structure is inconsistent"; endif
 
     nD = size(dset,2)
 

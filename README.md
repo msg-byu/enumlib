@@ -34,7 +34,7 @@ Phys. Rev. B 80 014120 (July 2009)](http://msg.byu.edu/papers/multi.pdf)
 derivative structures at a fixed concentration," Comp. Mat. Sci. 59
 101-107 (March 2012)](http://msg.byu.edu/papers/enum3.pdf)
 
-[Wiley S. Morgan, Gus L. W. Hart, Rodney W. Forcade, "Generating derivative superstructures for systems with high configurational freedom," Comp. Mat. Sci. 136 144-149 (May 2017)](http://msg.byu.edu/papers/recStabEnumeration.pdf) 
+[Wiley S. Morgan, Gus L. W. Hart, Rodney W. Forcade, "Generating derivative superstructures for systems with high configurational freedom," Comp. Mat. Sci. 136 144-149 (May 2017)](http://msg.byu.edu/papers/recStabEnumeration.pdf)
 
 
 ## COMPILING THE CODE
@@ -60,8 +60,8 @@ Then compile using the Makefile:
 
 (Alternatively, instead of setting the `F90` environmental variable first, you may just specify the variable during the make: `make F90=gfortran`.)
 
-Next, make the enumeration library  
-```cd ../../enumlib/src```  
+Next, make the enumeration library itself  
+```cd ../../src```  
 `make`
 
 Finally, to make a stand-alone executable for enumeration:  
@@ -79,7 +79,7 @@ assist you.  gus.hart@gmail.com, 801-422-7444
 
 ## HOW TO USE THE CODE:
 
-Example input files are in the `input` ('enumlib/support/input') directory. 
+Example input files are in the `input` ('enumlib/support/input') directory.
 
 To include displacement directions in the enumeration, it is also
 neccessary to provide an `arrows.in` file examples of which can also

@@ -14,7 +14,7 @@ MODULE tree_class
   !!enumerating derivative structures at a fixed
   !!concentration. Translated from the python version "enum4" in the
   !!projects git repository</summary>
-  type :: tree 
+  type :: tree
      !!<member name="done"> The entire tree has been traversed
      !!</member>
      !!<member name="unique">A logical that indicates if a
@@ -40,8 +40,8 @@ MODULE tree_class
      !!associated with them.</member>
      !!<member name="A">The permutation group of the arrows.</member>
      integer, pointer :: colors(:) => null()
-     integer          :: k 
-     integer          :: n 
+     integer          :: k
+     integer          :: n
      type(GroupList)  :: G
      type(GroupList)  :: A
      integer, pointer :: Gsize(:) => null()
@@ -54,14 +54,14 @@ MODULE tree_class
      integer, pointer :: color_map(:,:) => null()
    contains
      procedure, public :: init => initializeTree
-     procedure, public :: coloring => generateColoringFromLocation 
-     procedure, public :: depth 
+     procedure, public :: coloring => generateColoringFromLocation
+     procedure, public :: depth
      procedure, public :: increment_location
      procedure, public :: check => check_labeling
      procedure, public :: get_loc => generateLocationFromColoring
      procedure, public :: add_arrows => addArrowsToEnumeration
   endtype tree
-  
+
 
 CONTAINS
 
@@ -86,41 +86,41 @@ CONTAINS
     integer, pointer, intent(in)    :: generators(:,:)
     integer, intent(in) :: nArrows
     logical, optional, intent(in)   :: makeG
-    
+
     integer :: species_i, status
 
     self%k = size(colors)
     allocate(self%colors(self%k),STAT=status)
-    if(status/=0) stop "Allocation failed in initializeTree: self%colors."       
+    if(status/=0) stop "Allocation failed in initializeTree: self%colors."
     self%colors = colors
-    self%n = sum(colors) 
+    self%n = sum(colors)
     allocate(self%loc(self%k),self%branches(self%k-1),STAT=status)
-    if(status/=0) stop "Allocation failed in initializeTree: self%loc, self%branches."       
+    if(status/=0) stop "Allocation failed in initializeTree: self%loc, self%branches."
     allocate(self%Gsize(self%k),STAT=status)
-    if(status/=0) stop "Allocation failed in initializeTree: self%Gsize."           
+    if(status/=0) stop "Allocation failed in initializeTree: self%Gsize."
     self%loc = -1
     self%nArrows = nArrows
     allocate(self%color_map(size(color_map,1),size(color_map,2)),STAT=status)
-    if(status/=0) stop "Allocation failed in initializeTree: self%color_map."       
+    if(status/=0) stop "Allocation failed in initializeTree: self%color_map."
     self%color_map = color_map
     if (self%k > 1) then
        allocate(self%branches(self%k-1),STAT=status)
-       if(status/=0) stop "Allocation failed in initializeTree: self%branches."       
+       if(status/=0) stop "Allocation failed in initializeTree: self%branches."
        do species_i = 1, self%k-1
           self%branches(species_i) = nchoosek(sum(self%colors(species_i:)),self%colors(species_i))
        enddo
        allocate(self%base(self%branches(1)),STAT=status)
-       if(status/=0) stop "Allocation failed in initializeTree: self%base"       
+       if(status/=0) stop "Allocation failed in initializeTree: self%base"
        self%base = 0
        ! Initialize the group for layer 1. Generate the group if makeG =
        ! .true., otherwise assume that the list of generators given is
        ! the entire group
        allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm lists.
-       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer" 
+       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer"
        allocate(self%G%layer(1)%perms(size(generators,1),size(generators,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"       
+       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"
        allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in initializeTree: self%A%layer%perms"       
+       if(status/=0) stop "Allocation failed in initializeTree: self%A%layer%perms"
        self%G%layer(1)%perms = generators
        self%A%layer(1)%perms = arrow_group
 
@@ -143,11 +143,11 @@ CONTAINS
        ! self%done = .True.
        self%unique = .True.
        allocate(self%G%layer(self%k),self%A%layer(self%k),STAT=status) !Allocate number of perm lists
-       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer" 
+       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer, self%A%layer"
        allocate(self%G%layer(1)%perms(size(generators,1),size(generators,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"       
+       if(status/=0) stop "Allocation failed in initializeTree: self%G%layer%perms"
        allocate(self%A%layer(1)%perms(size(arrow_group,1),size(arrow_group,2)),STAT=status)
-       if(status/=0) stop "Allocation failed in initializeTree: self%A%layer%perms"       
+       if(status/=0) stop "Allocation failed in initializeTree: self%A%layer%perms"
        self%G%layer(1)%perms = generators
        self%A%layer(1)%perms = arrow_group
     end if
@@ -163,17 +163,17 @@ CONTAINS
   subroutine generateColoringFromLocation(self,labeling)
     class(tree) :: self
     integer, allocatable, intent(out) :: labeling(:)
-    
+
     integer, allocatable :: clabeling(:), freeIndices(:), configList
     integer              :: ik, cIdx, iIdx, jIdx, ilc, jlc, nEmp, status
 
     allocate(labeling(self%n),STAT=status)
-    if(status/=0) stop "Allocation failed in generateColoringFromLocation: labeling."       
+    if(status/=0) stop "Allocation failed in generateColoringFromLocation: labeling."
     labeling = 0 ! Empty labeling container to start
     do ik = 1, self%depth() ! Loop over all colors up to the current depth
        nEmp = count(labeling==0) ! How many empty slots remaining up to this level?
        allocate(freeIndices(nEmp),STAT=status)
-       if(status/=0) stop "Allocation failed in generateColoringFromLocation: freeIndices." 
+       if(status/=0) stop "Allocation failed in generateColoringFromLocation: freeIndices."
        jlc = 0 ! Counter for the empty slots
        ! Find the indices of the empty slots
        do ilc = 1, self%n
@@ -196,7 +196,7 @@ CONTAINS
        deallocate(freeIndices,clabeling)
     enddo
   end subroutine generateColoringFromLocation
-  
+
   !!<summary>Convert an integer to binary labeling. Takes the index of
   !!the current coloring, number of open slots, and number of this
   !!color. There are n (m) choose k (a) possible configurations and
@@ -213,10 +213,10 @@ CONTAINS
 
     integer :: I,t,ell, status
     integer, allocatable :: configList(:)
-    
+
     I = y; t = a; ell = m
     allocate(configList(0:m-1),STAT=status)
-    if(status/=0) stop "Allocation failed in integer2coloring: configList."       
+    if(status/=0) stop "Allocation failed in integer2coloring: configList."
     configList = -1
     do while (ell > 0)
        if (nchoosek(ell-1,t-1) <= I) then
@@ -244,7 +244,7 @@ CONTAINS
     end if
     ! depth is 1 less that location of first -1
   endfunction depth
-  
+
   !!<summary>Increment the location in tree. Either move across
   !!branches at the same depth or move up or down between levels. When
   !!possible downward moves are first, then lateral moves, lastly
@@ -265,11 +265,11 @@ CONTAINS
        ! we can still go down in the tree
        d = d + 1
        self%loc(d) = 0
-       
+
        ! Set next stabilizer to initially be as big as the previous layer
        allocate(self%G%layer(d+1)%perms(self%Gsize(d),self%n),STAT=status)
        if(status/=0) stop "Allocation failed in increment_location: self%G%layer%perms."
-       allocate(self%A%layer(d+1)%perms(self%Gsize(d),size(self%A%layer(d)%perms,2)),STAT=status) 
+       allocate(self%A%layer(d+1)%perms(self%Gsize(d),size(self%A%layer(d)%perms,2)),STAT=status)
        if(status/=0) stop "Allocation failed in increment_location: self%A%layer%perms."
        self%G%layer(d+1)%perms = 0
        self%A%layer(d+1)%perms = 0
@@ -411,7 +411,7 @@ CONTAINS
           self%Gsize(d+1) = stab_size
           self%G%layer(d+1)%perms(stab_size,:) = self%G%layer(d)%perms(perm_i,:)
           self%A%layer(d+1)%perms(stab_size,:) = self%A%layer(d)%perms(perm_i,:)
-       else 
+       else
           ! check to see if the configuration is unique by finding the
           ! location of the permuted labeling. If it comes before the
           ! original labeling then the original labeling is a
@@ -435,7 +435,7 @@ CONTAINS
           end if
        end if
     end do groupCheck
-   
+
   END SUBROUTINE check_labeling
 
   !!<summary>This routine takes a labeling and returns it's location
@@ -510,14 +510,14 @@ CONTAINS
   !!<parameter name="equivalencies" regular="true">The list of
   !!equivalencies of the system.</parameter>
   subroutine addArrowsToEnumeration(self,coloring,symsize,nfound,scount,HNFcnt,&
-                        iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx)
+                        iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,inactives,permIndx)
     class(tree) :: self
     integer, intent(in) :: coloring(:)
     integer, intent(in)      :: symsize, HNFcnt, iBlock
     integer, intent(inout)   :: scount, nfound
     integer, intent(in)      :: SNF(:,:,:), HNF(:,:,:), LT(:,:,:)
-    integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:)
-    type(opList), intent(in) :: fixOp(:)    
+    integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:),inactives(:,:)
+    type(opList), intent(in) :: fixOp(:)
 
     !!<local name="all_sites">The arrow label being tested, including
     !!places without arrows.</local>
@@ -550,7 +550,7 @@ CONTAINS
     d = d + 1
     nperms = self%Gsize(d)
     arrow_dim = maxval(self%A%layer(d)%perms(1,:), 1)
-    
+
     allocate(max_arrowings(self%nArrows),arrowing(self%nArrows),STAT=status)
     if(status/=0) stop "Allocation failed in addArrowsToEnumeration: max_arrowings, arrowings."
     ! Within this algorithm the arrowings are treated as an odometer
@@ -574,7 +574,7 @@ CONTAINS
        site_j = 1
        do site_i = 1, size(coloring)
           if (any(self%color_map(:,1) == coloring(site_i)) .and. (self%nArrows >= site_j)) then
-             all_sites(site_i) = arrowing(site_j) 
+             all_sites(site_i) = arrowing(site_j)
              site_j = site_j + 1
           end if
        end do
@@ -587,7 +587,7 @@ CONTAINS
              if (rotated_arrowing(site_i) /= 0) then
                 permuted_arrowing(site_i) = self%A%layer(d)%perms(perm_i,rotated_arrowing(site_i))
              else
-                permuted_arrowing(site_i) = 0                
+                permuted_arrowing(site_i) = 0
              end if
           end do
           if (all(permuted_coloring == coloring) .and. all(permuted_arrowing == all_sites)) then
@@ -628,11 +628,11 @@ CONTAINS
              end if
           end do
           call write_single_labeling(full_coloring,symsize,nfound,scount,HNFcnt,&
-               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,permIndx,arrow_label=all_sites)
+               iBlock,hnf_degen,fixOp,SNF,HNF,LT,equivalencies,inactives,permIndx,arrow_label=all_sites)
 
        end if
     end do
-    
+
   end subroutine addArrowsToEnumeration
 
   !!<summary>Writes a single labeling to file for the enum4 code. This
@@ -659,14 +659,15 @@ CONTAINS
   !!<parameter name="arrow_label" regular="true">(Optional) The arrow
   !!label to be written to file if present in the
   !!enumeration.</parameter>
-  subroutine write_single_labeling(labeling,n,Tcnt,Scnt,Hcnt,HNFi,hnf_degen,fixOp,SNFlist,HNFlist,L,equivalencies,permIndx, arrow_label)
+  subroutine write_single_labeling(labeling,n,Tcnt,Scnt,Hcnt,HNFi,hnf_degen,fixOp,SNFlist,HNFlist,L,equivalencies,inactives,permIndx, arrow_label)
     integer, intent(in)      :: n, Hcnt, HNFi
     integer, intent(inout)   :: Scnt, Tcnt
     integer, intent(in)      :: SNFlist(:,:,:), HNFlist(:,:,:), L(:,:,:)
     integer, intent(in)      :: equivalencies(:), hnf_degen(:), permIndx(:), labeling(:)
+    integer, intent(in)  :: inactives(:,:)   ! A list of indices and labels for inactive sites
     type(opList), intent(in) :: fixOp(:)
     integer, optional, intent(in):: arrow_label(:)
-    
+
     !!<local name="conc_check">Are the concentrations restricted</local>
     !!<local name="lab_degen">The degeneracy of this label.</local>
     !!<local name="iHNF">Counter that loops over the HNFs</local>
@@ -678,7 +679,7 @@ CONTAINS
     !!<local name="jHNF">Which HNF this is in the permIndx</local>
     !!<local name="nHNF">How many of this HNF are there.</local>
     logical :: conc_check = .true.
-    integer :: lab_degen, iHNF, status, i, jHNF, nHNF
+    integer :: lab_degen, iHNF, status, i, jHNF, nHNF, nInAct, iD, idx(1), nD
     integer, allocatable :: vsH(:)
     character(105) :: struct_enum_out_formatstring
     character(3) :: dummy
@@ -693,6 +694,7 @@ CONTAINS
     integer              :: nAllD
     integer, allocatable :: allD(:)
     integer, allocatable :: pplabeling(:)
+    integer, allocatable :: expLabeling(:)   ! Expanded labeling that includes inactive sites, if present
     logical :: postprocessLabeling
     integer, allocatable :: allD2LabelD(:)
 
@@ -719,7 +721,7 @@ CONTAINS
     !    therefore specify the following equivalency list:
     !
     !         equivalency of dvector# | 1 2 3 4
-    !         ---------------------------------   
+    !         ---------------------------------
     !         equivalency list        | 1 2 2 1
     !
     !    which means that dvector# 1 and dvector# 4 have to have the same
@@ -731,7 +733,7 @@ CONTAINS
     !    dvector# 3 and dvector# 4 are then constructed in a
     !    postprocessing step.  The postprocessing step takes the
     !    enumerated form (i.e. dvectors# 1 and 2, e.g. a labeling 0101 for
-    !    two unit cells) and tranforms it into a form that is valid for
+    !    two unit cells) and transforms it into a form that is valid for
     !    ALL dvectors, e.g. labeling 01010101 for two unit cells).
     !
     postprocessLabeling = .not. (all(  abs( equivalencies-allD ) ==0))
@@ -753,14 +755,36 @@ CONTAINS
        ! are points for which dset=equivalencies
     endif
 
+!!! This code was added to the other write routine
+!GLWH 2018/2019 Jan
+nInact = size(inactives,1)
+nD = size(equivalencies,1)-nInact
+if (nInact/=0) then ! there are inactive sites to add back in
+   expLabeling = -1
+   ! First, load up the inactive sites in the appropriate slots
+   do i = 1, nInact
+     iD = inactives(i,1)
+     expLabeling((iD-1)*n+1:iD*n) = inactives(i,2)
+   enddo
+   ! Second, the remaining slots are those sites enumerated over
+   do i = 1, nD*n
+     idx = minloc(expLabeling)
+     expLabeling(idx) = labeling(i)
+   enddo
+else
+   expLabeling = pplabeling
+endif
+
+!!! end added code
+
     lab_degen = 0
     nHNF = count(permIndx==HNFi)
     allocate(vsH(nHNF),STAT=status); if (status/=0) stop "Allocation failed in write_single_labelings: vsH"
-    
-    ! Packing...
-    vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx); 
 
-    write(dummy,'(I3)') n*nAllD    
+    ! Packing...This give a vector subscript that pulls out all the HNFs that make the permutation index
+    vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx);
+
+    write(dummy,'(I3)') n*nAllD
 
     if (present(arrow_label)) then
        struct_enum_out_formatstring = '(i11,1x,i9,1x,i7,1x,i8,1x,i8,1x,i11,1x,i3,2x,i4,2x,3(i2,1x),2x,6(i2,1x),2x,9(i4,1x),2x,'//trim(dummy)//'i1,4x,'//trim(dummy)//'i1)'
@@ -770,11 +794,11 @@ CONTAINS
 
     if (postprocessLabeling) then
        ! see the comments at the beginning of the current routine
-       call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD) 
+       call postprocess_labeling(n,nAllD,labeling,pplabeling,allD2LabelD)
     else
        pplabeling = labeling ! nothing changes
     endif
-    
+
     do iHNF = 1, nHNF ! Write this labeling for each corresponding HNF
        jHNF = vsH(iHNF) ! Index of matching HNFs
        Tcnt = Tcnt + 1; Scnt = Scnt + 1
@@ -815,10 +839,10 @@ CONTAINS
     !!<parameter name="newD2oldD" regular="true">{ new D# }: a map
     !!newD -> oldD</parameter>
     subroutine postprocess_labeling(nUC,nAllD,oldlabeling,newlabeling,newD2oldD)
-      integer, intent(in) :: nUC, nAllD          
-      integer, intent(in) :: oldlabeling(:)      
-      integer, intent(out):: newlabeling(:)      
-      integer, intent(in) :: newD2oldD(:)        
+      integer, intent(in) :: nUC, nAllD
+      integer, intent(in) :: oldlabeling(:)
+      integer, intent(out):: newlabeling(:)
+      integer, intent(in) :: newD2oldD(:)
 
       !!<local name="newlab_pos">The position in the new label.</local>
       !!<local name="oldlab_pos">The position in the old label.</local>
@@ -826,7 +850,7 @@ CONTAINS
       !!<local name="iUC">Variable for looping.</local>
       integer :: newlab_pos, oldlab_pos
       integer :: iD,iUC
-      
+
       do iD=1,nAllD
          do iUC=1,nUC
             newlab_pos = (iD-1)*nUC + iUC               ! position in the new labeling

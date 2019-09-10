@@ -17,7 +17,7 @@ private
 public  count_full_colorings, &
         make_member_list, make_label_rotation_table, &
         generate_unique_labelings, &       ! original algorithm for full concentration enumeration
-        generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeation
+        generate_permutation_labelings, &  ! 2011 algorithm for concentration-restricted enumeration
         write_labelings, recursively_stabilized_enum
 CONTAINS
 
@@ -55,10 +55,10 @@ CONTAINS
   !!<parameter name="fixedcell" regular="true">A logical that for if this is a
   !!fixed cell.</parameter>
   !!<parameter name="aperms" regular="true">The list of arrow permutations.</parameter>
-  SUBROUTINE recursively_stabilized_enum(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,permIndx,allowed,fixedcell,aperms)
+  SUBROUTINE recursively_stabilized_enum(perm,conc,symsize,knary,SNF,LT,HNF,HNFcnt,hnf_degen,nfound,scount,fixOp,iBlock,equivalencies,inactives,permIndx,allowed,fixedcell,aperms)
     integer, pointer, intent(in) :: perm(:,:)
     integer, pointer, intent(in) :: aperms(:,:)
-    integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:)
+    integer, intent(in) :: conc(:), hnf_degen(:), equivalencies(:), permIndx(:), inactives(:,:)
     integer, intent(in) :: symsize, knary, iBlock
     type(oplist), pointer, intent(in) :: fixop(:)
     integer, intent(inout) :: nfound, HNFcnt, scount
@@ -249,10 +249,10 @@ CONTAINS
           if (this_tree%unique .eqv. .True.) then
              if (use_arrows) then
                 call this_tree%add_arrows(labeling+1,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
-                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+                     fixOp,SNF,HNF,LT,equivalencies,inactives,permIndx)
              else
                 call write_single_labeling(labeling,symsize,nfound,scount,HNFcnt,iBlock,hnf_degen,&
-                     fixOp,SNF,HNF,LT,equivalencies,permIndx)
+                     fixOp,SNF,HNF,LT,equivalencies,inactives,permIndx)
              end if
           end if
        end if
@@ -342,7 +342,7 @@ CONTAINS
        write(*,*) "Allocation of 'lab' failed in generate_permutation_labelings"
        write(*,*) "This typically happens when the enumeration problem attempted"
        write(*,*) "is too big and the hash table cannot be allocated."
-       stop
+       stop "Allocation error"
     endif
     lab = ""
     nPerm = size(perm,1)
@@ -367,7 +367,7 @@ CONTAINS
        write(*,*) "Allocation of 'degeneracy list' failed in generate_permutation_labelings"
        write(*,*) "This typically happens when the enumeration problem attempted"
        write(*,*) "is too big and the hash table cannot be allocated."
-       stop
+       stop "Allocation error"
     endif
     degeneracy_list = 0
     nUniq = 0
@@ -425,7 +425,7 @@ CONTAINS
                         & N!/(n_1! n_2! ... n_k!). This number should not exceed the &
                         & maximum value that can be stored in a long integer. You should &
                         & reduce the maximum supercell size."
-             stop
+             stop "Bad Index Error"
           end if
 
           ! table and then mark the symmetry brothers
@@ -459,7 +459,7 @@ CONTAINS
                    write(*,'(100i1)') a
                    write(*,'(100i1)') a(perm(q,:))
                    print *,"An index outside the expected range (i.e., outside the hash table) occurred in get_permutations_labeling"
-                   stop
+                   stop "Failsafe triggered"
                 endif
                 if(lab(idx)=='')then
                    degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
@@ -514,7 +514,7 @@ CONTAINS
   !!<summary>This routine takes in a list of labels of the parent cell
   !!and the number of different labels allowed on each site. It
   !!returns a "multiplier", and *expanded* versions of parLabel and
-  ! parDigit.</summary>
+  !! parDigit.</summary>
   !!<parameter name="n" regular="true">The index (volume factor) of
   !!the supercell.</parameter>
   !!<parameter name="k" regular="true">k-nary case</parameter>
@@ -687,7 +687,7 @@ CONTAINS
 
     ! This should work even if there are no inactive sites
     nInact = size(inactives,1)
-    !GLWH 2019. I'm not sure that nAllD is big enough. Does it include a count of inactive sites as well?
+    !GLWH 2019. nAllD is the length of equivalencies which includes *all* d-vectors
     allocate(expLabeling(n*nAllD))
 
     conc_check = .false.
@@ -701,7 +701,6 @@ CONTAINS
     ! Packing...
     vsH = pack((/(i,i=1,size(HNFlist,3))/), HNFi==permIndx);
     ivsL=0; do i=1,size(lm); if (lm(i)=='U') then; ivsL=ivsL+1; vsL(ivsL)=i; endif; enddo
-
     ! set up the multiplier, labels, digits, etc
     call setup_mixed_radix_multiplier(n,k,parLabel,parDigit,label,digit,multiplier)
 
@@ -712,7 +711,15 @@ CONTAINS
        ! Now convert the base-10 number (labIndx) to the correct labeling
        if(conc_check) then
           labIndx = vsL(il)
+!del          write(*,'("labIndx,concVect,labeling")')
+!del          print*,labIndx
+!del          print*,concVect
+!del          print*,labeling
           call generate_labeling_from_index(labIndx,concVect,labeling)
+!del          print*,"After"
+!del          print*,labIndx
+!del          print*,concVect
+!del          print*,labeling
        else
           ! Get the base-10 index of the next unique labeling from the vector subscript array
           labIndx = vsL(il)-1
@@ -730,7 +737,7 @@ CONTAINS
           pplabeling = labeling ! nothing changes
        endif
 
-       !GLWH 2018/2019 Jan
+       !GLWH 2019 Jan (addition so that inactive sites can be skipped in enumeration)
        if (nInact/=0) then ! there are inactive sites to add back in
           expLabeling = -1
           ! First, load up the inactive sites in the appropriate slots
@@ -1103,7 +1110,7 @@ CONTAINS
        do iM = 1, count(tlr(nM(1),:)/=0)
           Gp = matmul(tM(:,:,tlr(nM(1),iM)),G)
           do i=1,3; Gp(i,:) = modulo(Gp(i,:),d(i));enddo  ! Can you do
-          ! this without the loop, using vector notation?
+          ! this without the loop, using vector notation? see line 1060
           do i = 1, n ! Loop over each element of Gp and find its corresponding element in G
              do j = 1, n
                 if (all(Gp(:,j)==G(:,i))) then ! the two images are
@@ -1179,7 +1186,7 @@ CONTAINS
   !!super-periodic labelings (non-primitive superstructures). If the
   !!"full" variable is false, it also removes "label-permutation"
   !!duplicates---labelings that are not unique when the labels
-  !!themselves (not their positions) are permuted (e.g., 00111 &lt;--&gt;
+  !!themselves (not their positions) are permuted (e.g., 00111 turns into
   !!11000).  The basic idea of the routine is to run like an
   !!"odometer", generating all numbers (base k) from 0 to k^n - 1, and
   !!then use rotation and translation permutations to eliminate
@@ -1294,8 +1301,8 @@ CONTAINS
     !call make_translation_group(d,trgrp) ! Find equivalent
     ! translations (permutations of labelings)
 
-    ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize
-    ! digit counter In the recent version of multienum.x, we can't assume
+    ic = 0; c = 0; c(0) = nl ! Loop counter for fail safe; initialize digit counter
+    ! In the recent version of multienum.x, we can't assume
     ! that the label of the first type appears on all sites. So this naive
     ! initialization doesn't work any more. Instead we need to count how
     ! many times each label appears in the starting labeling. I think that
@@ -1311,7 +1318,7 @@ CONTAINS
 
     ic = 0
     nUniq = 0
-    do; ic = ic + 1
+    do; ic = ic + 1 ! Main loop over odometer readings
        if (ic > nexp) exit ! Fail safe
        idx = sum((digCnt-1)*multiplier)+1
        if (any(c==0)) then ! Check to see if there are missing digits
@@ -1335,7 +1342,7 @@ CONTAINS
                 cycle
              endif
              idx = sum((digCnt(perm(q,:))-1)*multiplier)+1
-             if (.not. fixed_cells) then
+             if (.not. fixed_cells) then ! (we don't eliminate superperiodic cases in 'fixed_cells' mode)
                 ! This will happen if the coloring is superperiodic
                 ! (i.e., non-primitive superstructure). The q=<n
                 ! condition makes sure we are considering a
@@ -1380,9 +1387,8 @@ CONTAINS
                    idx = sum(b(perm(q,:))*multiplier)+1
                    if  (lab(idx)=='') then
                       degeneracy_list(nUniq) = degeneracy_list(nUniq) + 1
-                      lab(idx) = 'E' ! Only marks of a label-exchange duplicate if it's
-                   endif
-                   ! not otherwise marked
+                      lab(idx) = 'E' ! Only marks off a label-exchange duplicate if it's
+                    endif            ! not otherwise marked
                 enddo
              enddo
           endif ! end block to remove label exchange duplicates

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fortpy mode="docstring">
+<decorates name="enumeration_routines.adjust_crange_for_inactive_sites">
+ <group name="Adjust_cRange" purpose="paused" staging="../unittests/">
+   <test identifier="3and4nary_tests" description="Make sure that inactive sites in ternary cases work correctly"
+     cases="ternary[1-3],quaternary1,fornari1" timed="true">
+     <output folder="../tests/enumeration_routines" file="cRange.out.{}"
+       template="integer.xml" identifier="adjust_crange_for_inactive_sites.out"/>
+       <target name="concRanges" compareto="adjust_crange_for_inactive_sites.out"
+         varfile="adjust_crange_for_inactive_sites.target" when="each"/>
+   </test>
+   <assignment name="concRanges" value="cRangeval" allocate="true">
+     <value identifier="cRangeval" file="cRange_tests_crange.{}" folder="../tests/enumeration_routines"
+       rename="cRange.in"/>
+   </assignment>
+   <assignment name="inactvTbl" value="inactvTblval" allocate="true">
+     <value identifier="inactvTblval" file="cRange_tests_inactvTbl.{}" folder="../tests/enumeration_routines"
+       rename="inactvTbl.in"/>
+   </assignment>
+   <assignment name="LabelsTbl" value="LabelsTblval" allocate="true">
+     <value identifier="LabelsTblval" file="cRange_tests_LabelsTbl.{}" folder="../tests/enumeration_routines"
+       rename="LabelsTbl.in"/>
+   </assignment>
+   <assignment name="nDFull" value="nDFullval" >
+     <value identifier="nDFullval" file="cRange_tests_nDFull.{}" folder="../tests/enumeration_routines"
+       rename="nDFullval.in"/>
+   </assignment>
+ </group>
+</decorates>
+</fortpy>

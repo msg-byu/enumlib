@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
   <decorates name="tree_class.initializeTree">
-    <group name="enum4_initialization" purpose="testing" staging="../unittests/">
+    <group name="enum4_initialization" purpose="paused" staging="../unittests/">
       <test identifier="initializeTree" description="Test the fortran translation of enum4"
 	    timed="true" cases="120a, 120b, Z10, 1110, 576_9, 228_8, 216_12,
 	1152_12, 256_16, 16_8, 64_8, 360_6, 20_10, 50_10, 120_10, 32_16,
@@ -17,11 +17,11 @@
       	<target name="self" autoclass = "true" compareto="initializeTree.out"
       		varfile="initializeTree.out" when="each" />
       </test>
-      <assignment name="colors" value="colorsFile" allocate="true"> 
+      <assignment name="colors" value="colorsFile" allocate="true">
 	<value identifier="colorsFile" folder="../tests/tree_class"
 	       file="colors.in.{}" rename="colors.in"/>
       </assignment>
-      <assignment name="generators" value="generatorsFile"> 
+      <assignment name="generators" value="generatorsFile">
 	<value identifier="generatorsFile" folder="../tests/tree_class"
 	       file="generators.in.{}" rename="generators.in"/>
       </assignment>
@@ -34,14 +34,14 @@
 		 file="conc_map.in.{}" rename="color_map.in"/>
       </assignment>
       <assignment name="makeG" constant=".true."/>
-      <assignment name="self" allocate="true"/>      
+      <assignment name="self" allocate="true"/>
     </group>
   </decorates>
 
   <decorates name="tree_class.generateColoringFromLocation">
-    <group name="enum4_tests10" purpose="testing" staging="../unittests/">
+    <group name="enum4_tests10" purpose="paused" staging="../unittests/">
       <test identifier="generateColoringFromLocation"
-	    description="Test the fortran translation of enum4" timed="true" cases="[1-20]"> 
+	    description="Test the fortran translation of enum4" timed="true" cases="[1-20]">
 	<output identifier="coloring_labeling.out"
 		folder="../tests/tree_class" file="coloring_labeling.out.{}"
 		template="integer.xml" />
@@ -49,7 +49,7 @@
 		varfile="coloring_labeling.out" when="each" />
       </test>
       <global name="self" type="class" kind="tree" modifiers="pointer"/>
-      <assignment name="self" allocate="true"/>      
+      <assignment name="self" allocate="true"/>
       <assignment name="self" value="locfile">
 	<value identifier="locfile" member="loc" folder="../tests/tree_class"
 	       file="coloring_loc.in.{}" rename="loc.in"/>
@@ -68,7 +68,7 @@
   <decorates name="tree_class.integer2coloring">
     <group name="enum4_tests12" purpose="testingf" staging="../unittests/">
       <test identifier="integer2coloring"
-	    description="Test the fortran translation of enum4" timed="true" cases=""> 
+	    description="Test the fortran translation of enum4" timed="true" cases="">
 	<output identifier="integer2coloring.out"
 		folder="../tests/tree_class" file="integer2coloring.out.{}"
 		template="integer.xml" />
@@ -91,9 +91,9 @@
   </decorates>
 
   <decorates name="tree_class.depth">
-    <group name="enum4_depth" purpose="testing" staging="../unittests/">
+    <group name="enum4_depth" purpose="paused" staging="../unittests/">
       <test identifier="depth"
-	    description="Test the fortran translation of enum4" timed="true" cases="[1-10],21"> 
+	    description="Test the fortran translation of enum4" timed="true" cases="[1-10],21">
 	<output identifier="depth.out"
 		folder="../tests/tree_class" file="depth.out.{}"
 		template="integer.xml" />
@@ -101,7 +101,7 @@
 		varfile="depth.out" when="each" />
       </test>
       <global name="self" type="class" kind="tree" modifiers="pointer"/>
-      <assignment name="self" allocate="true"/>      
+      <assignment name="self" allocate="true"/>
       <assignment name="self" value="locfile">
 	<value identifier="locfile" member="loc" folder="../tests/tree_class"
 	       file="get_loc.in.{}" rename="loc.in"/>
@@ -110,9 +110,9 @@
   </decorates>
 
   <decorates name="tree_class.increment_location">
-    <group name="enum4_location" purpose="testing" staging="../unittests/">
+    <group name="enum4_location" purpose="paused" staging="../unittests/">
       <test identifier="increment_location" description="Test the fortran translation of enum4"
-	    timed="true" cases="[1-22]"> 
+	    timed="true" cases="[1-22]">
       	<output folder="../tests/tree_class/incr_loc.out.{}"
 		identifier="incr_loc.out" autoclass = "true" />
       	<target name="self" autoclass = "true" compareto="incr_loc.out"
@@ -126,15 +126,15 @@
   </decorates>
 
   <decorates name="tree_class.generateLocationFromColoring">
-    <group name="enum4_hashing_test" purpose="testing" staging="../unittests/">
+    <group name="enum4_hashing_test" purpose="paused" staging="../unittests/">
       <test identifier="generateLocationFromColoring"
-	    description="Test the fortran translation of enum4" timed="true" cases="[1-20]"> 
+	    description="Test the fortran translation of enum4" timed="true" cases="[1-20]">
 	<output identifier="get_loc.out" folder="../tests/tree_class" file="get_loc.out.{}"
 		template="integer.xml" />
 	<target name="index" compareto="get_loc.out" varfile="get_loc.out" when="each" />
       </test>
       <global name="self" type="class" kind="tree" modifiers="pointer"/>
-      <assignment name="self" allocate="true"/>      
+      <assignment name="self" allocate="true"/>
       <assignment name="self" value="locfile">
 	<value identifier="locfile" member="loc" folder="../tests/tree_class"
 	       file="get_loc.in.{}" rename="loc.in"/>
@@ -148,9 +148,9 @@
 
 
   <decorates name="tree_class.check_labeling">
-    <group name="enum4_labeling_check" purpose="testing" staging="../unittests/">
+    <group name="enum4_labeling_check" purpose="paused" staging="../unittests/">
       <test identifier="check_labeling" description="Test the fortran translation of enum4"
-	    timed="true" cases="[2-18]"> 
+	    timed="true" cases="[2-18]">
       	<output folder="../tests/tree_class/check.out.{}"
 		identifier="check.out" autoclass = "true" />
       	<target name="self" autoclass = "true" compareto="check.out"
@@ -169,7 +169,7 @@
 
   <skip reason="Explicitly tested by the gen_multilatice_derivative subroutine."/>
   <decorates name="tree_class.addArrowsToEnumeration">
-    <group name="arrow_test" purpose="testing" staging="../unittests/">
+    <group name="arrow_test" purpose="paused" staging="../unittests/">
     </group>
   </decorates>
 </fortpy>

@@ -1,0 +1,59 @@
+\documentclass[12pt]{article}
+%\usepackage[usenames]{color} %used for font color
+\usepackage{amssymb} %maths
+\usepackage{amsmath} %maths
+\usepackage[letterpaper,left=3cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+%\usepackage[utf8]{inputenc} %useful to type directly diacritic
+                            %characters
+\usepackage{parskip}
+\usepackage{xspace}
+\usepackage[mathcal]{euscript}
+\newcommand{\bb}[1]{\ensuremath{\mathbb{#1}}\xspace}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\Bra}[1]{\big\langle #1\big\rvert}
+\newcommand{\BRA}[1]{\Big\langle #1\Big\rvert}
+
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\Ket}[1]{\big\lvert #1\big\rangle}
+\newcommand{\KET}[1]{\Big\lvert #1\Big\rangle}
+\begin{document}
+These notes describe the routine \verb=adjust_crange_for_inactive_sites=. This routine adjusts the user's concentration restrictions (if any) so that only active sites are considered. In other words, the user specifies the concentration restrictions for \emph{all} the sites in the parent cell, active, inactive, or equivalent, but not all of these sites are used in the actual enumeration.
+
+The algorithm removes equivalent and inactive (i.e., ``spectator'') sites, only enumerating the configurations of active sites. This means the concentration restrictions must be modified accordingly. The routine for adjusting the \verb=crange= input is not complicated but the freedom that the user is allowed in specifying \verb=cRange= makes the logic a little subtle.
+
+The \verb=cRange= input is a range, lower and upper limit for each color as a percentage of the total number of sites in an enumerated cell. The range is specified in three numbers, representing two fractions, the first two numbers are the numerators, the third the denominator.
+
+The logic of the routine will be illustrated with an example: Consider a case with 5 sites ($d$-vectors) and five different colors. There are three inactive sites. One color (4) appears only on an inactive site and so could be removed entirely.
+\begin{verbatim}
+d1: 0/1
+d2: 1/2/3
+d3: 3
+d4: 3
+d5: 4
+
+c0: 0  2  7
+c1: 1  2  11
+c2: 2  3  13
+c3: 6  7  17
+c4: 3  5  19
+\end{verbatim}
+
+The first thing to note is that the number of active sites is 2 (total sites is 5). Then, for any color that does not exist on an inactive site, the limits on that color range need to be multiplied by $\frac{5}{2}$. So, the color range for \verb=c0= will change from $\frac{0}{7}\leq c_0\leq \frac{2}{7}$ to $\frac{0}{14}\leq c_0\leq\frac{10}{14}$ (\verb&cRange(1,:)= (/0,10,14/)&). Actually, the code also reduces the fractions, so the actual output will be (\verb&cRange(1,:)= (/0,5,7/)&)
+
+ Similarly, \verb=c1= will change from $\frac{1}{11}\leq c_1\leq\frac{2}{11}$ to $\frac{5}{22}\leq c_1\leq\frac{10}{22}$.
+
+For a color that exists on both active and inactive sites, the appropriate fraction needs to be subtracted from the limits of the range, and then the range needs to be rescaled by the fraction $f=\frac{N_\mathrm{total}}{N_\mathrm{active}}=\frac{5}{2}$, as before. To illustrate, continue the example, looking at \verb=c3=. We need to subtract 40\% from the range limits for \verb=c3= because
+40\% of the total sites were inactive sites labeled with color 3. When subtracting, we must maintain a common denominator, because we want to store the range limits as fractions (not floats).
+
+$$\frac{6}{17}-\frac{2}{5}\leq c_3\leq \frac{7}{17}-\frac{2}{5}$$
+$$\frac{5}{5}\cdot\frac{6}{17}-\frac{2}{5}\cdot\frac{17}{17}\leq c_3\leq \frac{7}{17}\cdot\frac{5}{5}-\frac{2}{5}\cdot\frac{17}{17}$$
+$$-\frac{4}{85}\leq c_3\leq \frac{1}{85}$$
+Note that it is possible (depending on user input) for the new range limits to lie outside of $(0,1)$. The limits should be adjusted to lie in $(0,1)$ (after multiplying by $f$,$\frac{5}{2}$ in this case).
+$$-\frac{20}{170}\leq c_3\leq \frac{5}{170}$$
+$$\frac{0}{170}\leq c_3\leq \frac{5}{170}$$
+and we can always reduce our fractions using the $gcd$ of the numerators and denominators in the ranges.
+$$\frac{0}{34}\leq c_3\leq \frac{1}{34}$$
+
+
+
+\end{document}

@@ -3,7 +3,7 @@
 
   <decorates name="labeling_related.recursively_stabilized_enum">
   <!-- <skip reason="This routine is not currently used in UNCLE"/> -->
-    <group name="labeling_tests" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests" purpose="paused" staging="../unittests/">
       <!-- <test identifier="binary" -->
       <!-- 	    description="Finds all possible labels at fixed concentration for binary systems." -->
       <!-- 	    timed="true" -->
@@ -125,10 +125,10 @@
       </assignment>
     </group>
   </decorates>
-  
+
   <decorates name="labeling_related.generate_permutation_labelings">
   <!-- <skip reason="This routine is not currently used in UNCLE"/> -->
-    <group name="labeling_tests_old" purpose="testing" staging="../unittests/">
+    <group name="labeling_tests_old" purpose="paused" staging="../unittests/">
       <!-- <test identifier="binary" -->
       <!-- 	    description="Finds all possible labels at fixed concentration for binary systems." -->
       <!-- 	    timed="true" -->

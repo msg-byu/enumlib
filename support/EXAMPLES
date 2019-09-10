@@ -1,11 +1,11 @@
-This file is contains walk-throughs for a few examples illustrating
+This file contains walk-throughs for a few examples illustrating
 how to use the enumeration code. Please take a look at the README file
 before stepping through this file. The README is not long.
 
 If you have suggestions about how to make it easier to learn how to
-use the enumeration code, please call or email me: 
+use the enumeration code, please call or email me:
 
-Gus Hart 
+Gus Hart
 801-422-7444
 gus.hart@byu.edu
 
@@ -15,8 +15,8 @@ gus.hart@byu.edu
 Ex. 1: Generate all fcc-based, binary superstructures from 1
 atoms/cell to 8 atoms/cell
 
-In the input directory, there is a file for this case called
-"struct_enum.in.fcc". 
+In the input directory (`enumlib/support/input/`), there is a file for this case called
+"struct_enum.in.fcc".
 
 You can run this example by typing (in the input directory):
 ../../src/enum.x struct_enum.in.fcc
@@ -24,7 +24,7 @@ You can run this example by typing (in the input directory):
 Or, copy the struct_enum.in.fcc file to "struct_enum.in" and simply:
 ../../src/enum.x
 
-(See sample output below) 
+(See sample output below)
 
 This will generate an output file called "struct_enum.out", as well as
 some supporting files that you needn't pay any attention to. We'll
@@ -56,7 +56,7 @@ this number isn't an actual volume but a factor of the parent.)
 comparing two real numbers to avoid finite precision errors. Should be
 much smaller than the absolute value of the coordinates in your
 lattice vectors. Almost anything works as long as it's not too small
-(1e-14). 
+(1e-14).
 *Line 11+Nd-1: "full" or "part" When "full" is specified, every
 symmetrically-distinct configuration is generated (this is what most
 people want). When "part" is specified, structures that are identical
@@ -65,7 +65,7 @@ enumerating fcc superstructurs of size 4, the L1_2 structure would
 appear twice, once as A_3B and once again as AB_3 with the "full"
 setting. But with the "part" setting, L1_2 would only be listed
 once. The "full" setting lists all structures that are *physically*
-distinct (different energies), whereas the "part" setting lists only 
+distinct (different energies), whereas the "part" setting lists only
 structures that *crystallographically* distinct. (It doesn't list the
 "concentration mirror image" structures.)
 
@@ -99,7 +99,7 @@ The 631 structures that were generated are stored in a file called
 editor. Make your window really wide to view it. (Make your current
 window wider to view this EXAMPLES file.)
 
-**********************************************************************
+```
 bulk
  0.50000000      0.50000000       0.0000000        # a1 parent lattice vector
  0.50000000       0.0000000      0.50000000        # a2 parent lattice vector
@@ -134,7 +134,7 @@ start   #tot      HNF     #size idx    pg    SNF             HNF                
         629      55         388   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00011111
         630      55         389   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   00111101
         631      55         390   8    48   2  2  2    2  0  2  0  0  2      1    0    0    0    1    0    0    0    1   01111111
-**********************************************************************
+```
 
 The header of this file, echos the input from your struct_enum.in
 file. This is followed by the main body which lists each structure on
@@ -149,11 +149,11 @@ structure. Use this number when generating POSCARs from this output
 Column 2: This number is essentially the cell number. It just counts
 over the HNF matrices (see first enumeration paper, listed in README)
 used to generate the super cells. (Most users won't care about this
-number.) 
+number.)
 
 Column 3: Same as column 2 but this counter resets each time the
 volume of the cell is increased. (Most users won't care about this
-number.) 
+number.)
 
 Column 4: Size of the unit cell for this structure. 1 is the parent
 cell, 2 is doubled, 3 is tripled, and so on.
@@ -166,11 +166,11 @@ first is L1_0 (CuAu), and the other is L1_1 (CuPt).
 
 Columns 6-8: This is the Smith Normal Form of the group (or lattice)
 associated with this cell. See the first enumeration paper if you are
-curious about this. (Most users won't care about these numbers.) 
+curious about this. (Most users won't care about these numbers.)
 
 Column 9-14: These 6 numbers are the elements of the lower-triangular
 matrix that makes up the HNF describing the supercell. (Most users won't care about this
-matrix.)  
+matrix.)
 
 Column 15-23: These 9 numbers are the elements of a 3x3 matrix that is
 used to transform the HNF into SNF form. This matrix is needed when
@@ -179,7 +179,7 @@ matrix is used by program that generates POSCARS from the data in this
 file. But a typical user will not need to look at this matrix.
 
 Column 24: This string of 0s, 1s, etc. represents the types atoms
-inside the supercell. 
+inside the supercell.
 
 
 Now that you have enumerated fcc cells up to a volume 8x that of the
@@ -188,7 +188,7 @@ structures in the "struct_enum.out" file.
 
 First, compile the structure generating program, makestr.x
 
-make makestr.x 
+`make makestr.x`
 
 Now, assuming your are still in the input directory, type
 
@@ -233,7 +233,7 @@ struct_enum.in.square). Note again that you'll want to widen your text
 editor window to make this readable.
 
 **********************************************************************
-~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.square 
+~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.square
 Concentration ranges are not specified
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to 16
@@ -284,7 +284,7 @@ except that the extra lattice points must be added in the input file.
 An example input file for a 2-D multilattice case is given in
 "struct_enum.in.triangle". You can use 2Dplot.x to make a picture of
 this one as well, though adjustments in the 2Dplot settings are
-necessary to make it look nice. 
+necessary to make it look nice.
 
 **********************************************************************
 ~/codes/enumlib/support/input> ../../src/enum.x *triangle
@@ -369,7 +369,7 @@ stoichiometry. The input file for this part of the example is called
 "struct_enum.in.fcc.1_1". If you run this case, you will find only 121
 structures. Note in the output below that all of the supercells of
 "odd" sizes have been skipped because it is impossible for them to
-meet the concentration restrictions. 
+meet the concentration restrictions.
 
 **********************************************************************
 ~/codes/enumlib/support/input> ../../src/enum.x *1_1
@@ -395,19 +395,19 @@ concentrations.
 In this example, we want to enumerate inside a large supercell, with a
 fixed shape, with a fixed concentration. We'll use a 2D example that
 is easy to visualize. Suppose we have a square lattice and the
-supercell we are interested in is 18 times bigger than the
-parent. Suppose further that there are two lattice points in each
+supercell we are interested contains 16 sites. Suppose further that
+there are two lattice points in the
 parent cell, one at the corners of the square and one at the
 center. The corner sites can be occupied by either A or B atoms, and
 the center sites by C or D atoms.
 
-The supercell has sides of length 3*sqrt(2) and is a large square
+The supercell has sides of length 2*sqrt(2) and is a large square
 whose sides make an angle of 45 degrees with respect to the Cartesian
-axes. You could make a primitive unit cell, with 18*2 sites, and
+axes. You could make a primitive unit cell, with 8*2=16 sites, and
 enumerate over that. This works but is tedious to set up. An easier
 approach is to define the parent cell as a simple square cell, with
 two lattice points, and then tell the enumeration code to only work
-inside the square supercell. 
+inside the square "root2xroot2" supercell.
 
 Finally, we'll restrict the enumeration to a concentration of 1/16 for
 the A atoms and 1/16 for the C atoms.
@@ -422,7 +422,7 @@ Copy "fixed_cells.in.8x" to "fixed_cells.in" and then run
 "../../src/enum.x struct_enum.in.ex5".
 
 **********************************************************************
-~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.ex5 
+~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.ex5
 ---------------------------------------------------------------------------------------------
 Generating permutations for fixed cells. index n= 8 to  8
 ---------------------------------------------------------------------------------------------
@@ -460,7 +460,7 @@ To generate the enumerated system run:
 `../../src/enum.x arrow_enum_struct_enum.in'.
 
 **********************************************************************
-~/codes/enumlib/support/input> ../../src/enum.x arrow_enum_struct_enum.in 
+~/codes/enumlib/support/input> ../../src/enum.x arrow_enum_struct_enum.in
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  3
 Including only structures of which the concentration of each atom is in the range:
@@ -483,7 +483,7 @@ cause the code to fail. An exmple system con be found in
 'overflow_struct_enum.in'.
 
 **********************************************************************
-~/codes/enumlib/support/input> ../../src/enum.x overflow_struct_enum.in 
+~/codes/enumlib/support/input> ../../src/enum.x overflow_struct_enum.in
 ---------------------------------------------------------------------------------------------
 Calculating derivative structures for index n= 1 to  1
 Including only structures of which the concentration of each atom is in the range:

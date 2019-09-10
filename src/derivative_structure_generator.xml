@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fortpy mode="docstring">
+<!-- This set of tests was never actually created. When Wiley tried, he hit some sort of
+bug in fortpy, so the tests were never created
   <decorates name="derivative_structure_generator.get_list_at_this_size">
-    <group name="stuct_enum_tests1" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests1" purpose="fortpy_bug" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-40]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -29,9 +31,8 @@
       </assignment>
     </group>
   </decorates>
-
   <decorates name="derivative_structure_generator.get_concentration_list">
-    <group name="stuct_enum_tests2" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests2" purpose="input_files_never_created" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-40]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -55,9 +56,8 @@
       </assignment>
     </group>
   </decorates>
-
   <decorates name="derivative_structure_generator.mixed_radix_counter">
-    <skip reason="This routine is not used in UNCLE."/>
+    <skip reason="This routine is not used in UNCLE. Also not used in enumlib (anymore)"/>
     <group name="stuct_enum_tests3" purpose="testing_not_used" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[]" timed="true">
@@ -94,7 +94,9 @@
       </assignment>
     </group>
   </decorates>
+-->
 
+<!-- auxread was broken in fortpy. Not sure if it was ever fixed...
   <decorates name="derivative_structure_generator.organize_rotperm_lists">
     <group name="stuct_enum_tests5" purpose="testing_auxread" staging="../unittests/">
       <test identifier="organize_rotperm_lists_rdRPList"
@@ -122,10 +124,9 @@
       </assignment>
     </group>
   </decorates>
-
-<!-- the get_dvector_permutations tests have been disabled because the calling interface changed (space group is passed in now) -->
+-->
   <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="stuct_enum_tests6" purpose="disabled" staging="../unittests/">
+    <group name="struct_enum_tests6" purpose="ready" staging="../unittests/">
       <test identifier="get_dvector_permutations_dRPList"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-20]" timed="true">
@@ -135,16 +136,31 @@
 		compareto="get_dvector_permutations_dRPList.out"
 		varfile="get_dvector_permutations_dRPList.out" when="each"/>
       </test>
-      <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+<!--      <global name="pd" type="real(dp)" modifiers="pointer" dimensions=":,:"/>
+I commented this out because pd (now "d") is no longer a pointer
+-->
       <assignment name="dRPList" allocate="true"/>
       <assignment name="pLV" value="pLVfile" allocate="true">
 	<value identifier="pLVfile" file="get_dvector_permutations_pLV.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="pLV.in"/>
       </assignment>
-      <assignment name="pd" value="pdfile" allocate="true">
+			<!-- renamed "pd" to "d" but left input file names the same GLWH 4/2019-->
+      <assignment name="d" value="pdfile" allocate="true">
 	<value identifier="pdfile" file="get_dvector_permutations_pd.in.{}"
-	       folder="../tests/derivative_structure_generator" rename="pd.in"/>
+	       folder="../tests/derivative_structure_generator" rename="d.in"/>
       </assignment>
+			<assignment name="rot" value="rotsfile" allocate="true">
+	<value identifier="rotsfile" file="get_dvector_permutations_rots.in.{}"
+				 folder="../tests/derivative_structure_generator" rename="rots.in"/>
+			</assignment>
+			<assignment name="shift" value="shiftsfile" allocate="true">
+	<value identifier="shiftsfile" file="get_dvector_permutations_shifts.in.{}"
+	       folder="../tests/derivative_structure_generator" rename="shifts.in"/>
+      </assignment>
+			<assignment name="nD" value="nDfile">
+	<value identifier="nDfile" file="get_dvector_permutations_nD.in.{}"
+				 folder="../tests/derivative_structure_generator" rename="nD.in"/>
+			</assignment>
       <assignment name="LatDim" value="LatDimfile">
 	<value identifier="LatDimfile" file="get_dvector_permutations_LatDim.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="LatDim.in"/>
@@ -155,7 +171,10 @@
       </assignment>
     </group>
   </decorates>
-<!--
+
+<!-- The input files for this set of tests somehow never made it into the repo. Recreating
+these would require adding fortpy write statements into the main code again. Probably, we
+won't get around to this. :-(
   <decorates name="derivative_structure_generator.get_rotation_perms_lists">
     <group name="stuct_enum_tests7" purpose="testing" staging="../unittests/">
       <test identifier="RPList"
@@ -224,7 +243,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.map_dvector_permutation">
-    <group name="stuct_enum_tests9" purpose="testing" staging="../unittests/">
+    <group name="stuct_enum_tests9" purpose="ready" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-200]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -241,10 +260,23 @@
 	<value identifier="dfile" file="map_dvector_permutation_d.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="d.in"/>
       </assignment>
-      <assignment name="RP" value="RPfile" allocate="true">
+
+			<assignment name="d" value="dfile" allocate="true">
+	<value identifier="dfile" file="map_dvector_permutation_d.in.{}"
+				 folder="../tests/derivative_structure_generator" rename="d.in"/>
+			</assignment>
+
+			<assignment name="d" value="dfile" allocate="true">
+	<value identifier="dfile" file="map_dvector_permutation_d.in.{}"
+	       folder="../tests/derivative_structure_generator" rename="d.in"/>
+      </assignment>
+
+<!-- the contents of this variable are irrelevant, but it needs to be allocated already.
+That's why there are input files for it. Having input gives it a shape.-->
+  <assignment name="RP" value="RPfile" allocate="true">
 	<value identifier="RPfile" file="map_dvector_permutation_RP.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="RP.in"/>
-      </assignment>
+      </assignment>-->
       <assignment name="eps" value="epsfile" >
 	<value identifier="epsfile" file="map_dvector_permutation_eps.in.{}"
 	       folder="../tests/derivative_structure_generator" rename="eps.in"/>
@@ -253,7 +285,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_diagonals">
-    <group name="stuct_enum_tests10" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests10" purpose="ready" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-100]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -270,8 +302,9 @@
     </group>
   </decorates>
 
+<!--This set of tests does not seem to have any input or output files prepared
   <decorates name="derivative_structure_generator.get_all_HNFs">
-    <group name="stuct_enum_tests11" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests11" purpose="disabled" staging="../unittests/">
       <test identifier="get_all_HNFs"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-28]" timed="true">
@@ -288,7 +321,8 @@
       </assignment>
     </group>
   </decorates>
-
+-->
+<!-- presumably "bug" means a fortpy bug -->
   <decorates name="derivative_structure_generator.get_SNF">
     <group name="stuct_enum_tests12" purpose="testing_bug" staging="../unittests/">
       <test identifier="get_SNF_SNF"
@@ -459,7 +493,7 @@
   </decorates>
 
   <decorates name="derivative_structure_generator.get_sLV_fixing_operations">
-    <group name="stuct_enum_tests14" purpose="testing" staging="../unittests/">
+    <group name="stuct_enum_tests14" purpose="ready" staging="../unittests/">
       <test identifier="get_sLV_fixing_operations_fixOp"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-151]" timed="true">
@@ -514,9 +548,9 @@
       </assignment>
     </group>
   </decorates>
-
+<!-- Missing input/output files. PRobably the tests were never actually set up
   <decorates name="derivative_structure_generator.get_all_2D_HNFs">
-    <group name="stuct_enum_tests15" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests15" purpose="missing_input_output" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-10]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -531,10 +565,10 @@
 	       folder="../tests/derivative_structure_generator" rename="volume.in"/>
       </assignment>
     </group>
-  </decorates>
+  </decorates>-->
 
   <decorates name="derivative_structure_generator.get_HNF_2D_diagonals">
-    <group name="stuct_enum_tests16" purpose="testing_f" staging="../unittests/">
+    <group name="stuct_enum_tests16" purpose="ready" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-50]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -567,7 +601,7 @@
 		-->
       <test identifier="vanilla_enum" description="Original enumerations tests of basic
       					       structures. Used to test enum3 against enum4."
-      	    cases="sc[1-6],sc[4-6],fcc[1-3],bcc[1-3],hcp[1-5]" timed="true">
+      	    cases="sc[1-6],fcc[1-3],bcc[1-3],hcp[1-5]" timed="true">
       	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
       	       rename="struct_enum.in" />
       	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"

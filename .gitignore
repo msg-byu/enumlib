@@ -4,9 +4,6 @@
 \#*
 .#*
 
-# Unit Testing
-staging/
-
 # Compiled Object files
 src/compile.log
 *.slo
@@ -43,7 +40,14 @@ version.enum
 
 # Test folders
 unittests/
-stagging/
+staging/
+
+#Atom/Latex files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
 
 #Mac dung
 .DS_Store
