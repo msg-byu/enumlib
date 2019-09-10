@@ -178,7 +178,7 @@ CONTAINS
     counter = 1
 
     ! Find the total number of numbers that the mixed radix system can represent
-    nUq = product(digit) !;print *," Number of mixed-radix numbers",nUq
+    nUq = product(digit)
 
     multiplier = 0; multiplier(n)=1
     do i = n-1,1,-1
@@ -192,7 +192,7 @@ CONTAINS
     do; ic = ic + 1
        if(ic > nUq + 1) stop "Fail safe triggered. Wrong number of iterations in mixed-radix counterem"
        j = n ! Reset the digit index; start with j = the last place in the number
-       do !;print *, "inner loop"
+       do
           if (counter(j) /= digit(j)) exit ! The digit isn't ready to
           ! roll over, so exit and advance it
           counter(j) = 1     ! Roll back j-th digit to the beginning
@@ -264,13 +264,7 @@ CONTAINS
                 write(11,'("failed at ",2i3)')  jP, iP
                 write(11,'("testperm ",20i2,/)') testperm
                 write(11,'("permlist ",8i2)') transpose(rpl(iL)%perm)
-                !write(*,'(20i2,/)') testperm
-                print *
-                !do itest = 1,nP
-                !   write(*,'(20i2)') rpl(iL)%perm(itest,:)
-                !enddo
                 do_rotperms_form_groups = .false.
-                !exit lists
                 exit perms
              endif
           enddo
@@ -278,10 +272,8 @@ CONTAINS
        enddo perms
        if (exists)write(11,*) iL,"The permutations form a group"
        if(.not. exists) write(11,*) iL,"failed"
-    enddo lists ! Loop over lists
-    !if(exists) then; do_rotperms_form_groups = .true.
-    !else; do_rotperms_form_groups = .false.
-    !endif
+    enddo lists
+
   ENDFUNCTION do_rotperms_form_groups
 
   !!<summary>This routine takes a list of permutation lists and
@@ -467,14 +459,14 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     real(dp), intent(in) :: A(3,3)
     integer, intent(in), dimension(:,:,:) :: HNF, L, SNF
     type(OpList), intent(in) :: Op(:)
-    type(RotPermList) :: RPlist(:)
+    type(RotPermList) :: RPlist(:) ! input
     type(RotPermList), intent(in) :: dperms
     real(dp), intent(in) :: eps
     type(RotPermList), optional, pointer :: aperms(:)
     logical, optional, intent(in) :: use_arrows, surf
 
     !!<local name="taperms">Temporary storage of the arrow permutations.</local>
-    !!<local name="arrows">Logigal, true if arrows are to be used.</local>
+    !!<local name="arrows">Logical; .true. if arrows are to be used.</local>
     type(RotPermList) :: rperms, tperms, taperms
     integer, pointer :: g(:,:) => null()
     integer, allocatable :: gp(:,:), dgp(:,:), ag(:,:), dap(:) ! G prime; the "rotated"
@@ -532,7 +524,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     identT = reshape((/(ig,ig=1,n*nD)/),(/n,nD/))  ! we could combine
     ! those two lines, but gfortran
     ident  = transpose(identT)                     ! does some strange things then.
-    forall(iH = 1:nH); RPlist(iH)%nL=0; end forall ! initialize the number in each list
+    forall(iH = 1:nH); RPList(iH)%nL=0; end forall ! initialize the number in each list
     ! Make the group member list for the first SNF
     diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
     call make_member_list(diag,g)
@@ -561,6 +553,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
           dap = 0
           do iD = 1, nD ! Loop over each row in the (d,g) table
              ! LA^-1(v_i+(RAL^-1)G)
+             ! v_i is the lattice vector that must be added to return a rotated d-vector to the unit cell
              rgp = matmul(Tinv,(-spread(RPList(iH)%v(:,iD,iOp),2,n)+matmul(matmul(Op(iH)%rot(:,:,iOp),T),g)))
              rag = transpose(matmul(transpose(arrow_basis),op(iH)%rot(:,:,iOp)))
              if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
@@ -575,19 +568,22 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
              do im = 1, n
                 do jm = 1, n
                    if (skip(jm)) cycle ! Skip elements whose mapping is already known
-                   if (all(gp(:,jm)==g(:,im))) then ! these elements
-                   ! map to each other The list of operations that fix
+                   if (all(gp(:,jm)==g(:,im))) then ! these elements map to each other
+
+                   ! The list of operations that fix
                    ! the superlattice are a subset of those that fix
                    ! the parent lattice. RotIndx stores the indicies
                    ! of the parent lattice operations in a list with
-                   ! as many entries as supercell fixing operations.
+                   ! as many entries as there are supercell fixing operations.
 
                    ! dperms%perm stores a list of d-vector
                    ! permutations, one permutation (an nD list) for
                    ! each operation in the parent lattice symmetries
-                      OpIndxInSuperCellList = RPList(iH)%RotIndx(iOp)
+                      OpIndxInSuperCellList = RPList(iH)%RotIndx(iOp) !Need this to index dperm; must know if if this op permutes dvectors. If so, (d',g') moves to a different row in the DxG table
                       RowInDxGTable = dperms%perm(OpIndxInSuperCellList,iD)
-                      dgp(RowInDxGTable,im) = jm+(iD-1)*n
+
+                      ! Could have just made dgp a single vector like rotperm vector (that's done below). Each (d,g) element has an index (jm+(iD-1)*n) and it's placed in the 'dgp' table according to its permuted index (or vice versa)
+                      dgp(RowInDxGTable,im) = jm+(iD-1)*n !dgp has nD rows, n columns
                       skip(jm) = .true.
                       exit
                    endif
@@ -611,9 +607,8 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
-          rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/)) ! store
-          taperms%perm(iOp,:) = dap
-          ! permutation in the "long form"
+          rperms%perm(iOp,:) = reshape(transpose(dgp),(/nD*n/)) ! store permutation in the "long form"
+          taperms%perm(iOp,:) = dap ! same for arrows
           rperms%nL = nOp
           !write(*,'(i2,1x,20i2)')iOp,rperms%perm(iOp,:)
           !write(*,'("nL",1x,20i2)')rperms%nL
@@ -634,7 +629,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
        ! (with the translations) will not have duplicates.
        if ((size(rperms%perm,1) > 1) .and. (arrows .eqv. .false.)) then
           call sort_permutations_list(rperms%perm)
-
        else if (arrows .eqv. .True.) then
           allocate(temp_perms(size(rperms%perm,1),size(rperms%perm,2)+size(taperms%perm,2)))
           do im=1, size(rperms%perm,1)
@@ -669,18 +663,18 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
           tperms%perm(ig,:) = reshape(transpose(ident(:,perm)),(/n*nD/))
        enddo
 
-       RPlist(iH)%nL = size(rperms%perm,1)*n
-       allocate(RPlist(iH)%perm(RPlist(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
+       RPList(iH)%nL = size(rperms%perm,1)*n
+       allocate(RPList(iH)%perm(RPList(iH)%nL,n*nD)) ! nL rows and n*nD columns in the list
        if ((arrows) .and. present(aperms)) then
-          allocate(aperms(iH)%perm(RPlist(iH)%nL,size(arrow_basis,2)))
+          allocate(aperms(iH)%perm(RPList(iH)%nL,size(arrow_basis,2)))
        else if (present(aperms)) then
-          allocate(aperms(iH)%perm(RPlist(iH)%nL,1))
+          allocate(aperms(iH)%perm(RPList(iH)%nL,1))
        end if
        do it = 1,n ! Loop over translation perms (r type)
           do iOp = 1,size(rperms%perm,1) ! Loop over unique rotation
              ! perms (N+t type) Form the permutation effected by
              ! composing the iOp-th one with the it-th one
-             RPlist(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
+             RPList(iH)%perm((iOp-1)*n+it,:) = tperms%perm(it,(rperms%perm(iOp,:)))
              if ((arrows .eqv. .true.) .and. present(aperms)) then
                 aperms(iH)%perm((iOp-1)*n+it,:) = taperms%perm(iOp,:)
              else if (present(aperms)) then
@@ -760,8 +754,8 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
        print *,"is rounded too severely and comparisons between rotated and unrotated"
        print *,"atomic positions that should be equal are failing. Examine your input."
        print *,"Current default settings assume that there are 6 digits of precision"
-       print *,"in the input. (absolute tolerance value in the 'equal' function in)"
-       print *,"'numerical_utilities.f90.''"
+       print *,"in the input. (absolute tolerance value in the 'equal' function in"
+       print *,"'numerical_utilities.f90.'')"
        write(*,'("permutations: ", 200(i2,1x))') RP
     stop 1;endif
   ENDSUBROUTINE map_dvector_permutation
@@ -1285,10 +1279,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     ! have 1 label ["inactive sites" or "spectator sites"]). By removing these from the enumeration
     ! itself (adding them back in afterwards) reduces unnecessary combinatoric explosion.
     call make_inactive_table(k,nD, equivalencies,nDFull,labelFull,dFull,d,label,digit,digitFull,inactives)
-!del    write(*,'("crange orig:")')
-!del  do i = 1, size(crange,1)
-!del     write(*,'(10(1x,i2))') crange(i,:)
-!del  enddo
+
     ! Are we going to use a set of fixed cells? Or loop over all possible cells?
     call check_for_fixed_cells(fixed_cells,nMin,nMax) ! fixed_cells will be .true. on exit if `fixed_cells.in` exists
 
@@ -1308,10 +1299,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
        call adjust_crange_for_inactive_sites(cRange,inactives,labelFull,nDFull)
        !GLHW Mar 2019. Experimenting with applying the "inactives" fix for concentration restricted stuff by modifying
        ! cRange so that it applies only to "active" sites
-!del       write(*,'("crange adjusted:")')
-!del       do i = 1, size(crange,1)
-!del         write(*,'(10(1x,i2))') crange(i,:)
-!del      enddo
     endif
 
     write(*,'("Volume",7x,"CPU",8x,"#HNFs",2x,"#SNFs",&
@@ -1363,7 +1350,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     endif
     if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
     else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
-    write(14,'("Equivalency list:" ,40(I2,1x))') equivalencies(:)
+    write(14,'("(Non)Equivalency list:" ,40(I2,1x))') equivalencies(:)
 
     !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 
@@ -1482,10 +1469,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
                    ! efficient...unless there are arrows present in the
                    ! enumeration or the multinomial of possible
                    ! arrangements is too large for enum3 to handle.
-!del                   print*, "site_res", site_res
-                   ! ! print*, "max_binomial", max_binomial
-                   ! ! print*, "multinomial(iRange(iC,:))", multinomial(iRange(iC,:))
-                   ! print*, "arrows",arrows
                    if (origCrossOutAlgorithm .or. (any(site_res == 0)&
                          .and. (multinomial(iRange(iC,:)) < max_binomial)&
                          .and. (arrows .eqv. .false.))) then
