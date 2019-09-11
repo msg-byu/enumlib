@@ -1217,6 +1217,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     integer             :: nD
     !Had to change character to 80 from 10 to match the definition in io_utils.read_input
     character(80), intent(in) :: title
+    character(len=255) :: version
     real(dp), intent(in) :: parLV(3,3), eps
     real(dp), allocatable :: dFull(:,:), d(:,:)
     character(1), intent(in) :: pLatTyp
@@ -1268,6 +1269,9 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     max_binomial = 1E10
 
     ! Beginning of main routine for enumeration
+    open(23,file="VERSION.enum")
+    write(23,'(A)') "v2.0.3-1-g2eca-dirty"
+    close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
 
