@@ -1,5 +1,9 @@
 # Revision History for `enumlib`
 
+## 2.0.3 (GLWH)
+- Made changes in `aux_src/compare_two_enum_files.f90` so that two output files could be compared, including considering the automorphism induced by changes the Smith Normal Form routine. This allowed us to update all the unit tests after the changes to the SNF routine in `symlib` which impacted the output in many cases. When the left transform matrix associated with the transformation of an HNF matrix to SNF matrix changes (it is not unique) that changes the enumeration output. The enumeration is *equivalent*, but not always identical to, the previous (pre-SNF change) enumeration. Figuring out how to apply the automorphism, how to take into account permutations of labelings in the old and new files, and how to take into account complementary cases (when labels are exchanged) took months.
+- Now that these changes have been made, the rest of the updates needed to complete the "inactive site" work of version 2.0.0 can be made.
+
 ## 2.0.2 (JJ)
 - Fixed functions in `enumlib/wrap` to reflect changes to `get_dvector_permutations`.
 
