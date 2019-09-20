@@ -608,6 +608,14 @@ That's why there are input files for it. Having input gives it a shape.-->
       		template="struct_enum.out.xml" identifier="struct_enum.out" />
       	<target name="./struct_enum.out" compareto="struct_enum.out" />
       </test>
+			<test identifier="L12-Ternary" description="Test of fixed sites in routine."
+      	    cases="L12-Ternary" timed="true">
+      	<input folder="../tests/derivative_structure_generator" file="struct_enum.in.{}"
+      	       rename="struct_enum.in" />
+      	<output folder="../tests/derivative_structure_generator" file="struct_enum.out.{}"
+      		template="struct_enum.out.xml" identifier="struct_enum.out" />
+      	<target name="./struct_enum.out" compareto="struct_enum.out" />
+      </test>
 			<!--
       <test identifier="conc_check_enum" description="Original enumerations tests of basic
       					       structures. Used to test enum3 against enum4."
