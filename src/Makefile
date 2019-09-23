@@ -81,6 +81,7 @@ lib: pre_comp libenum.a
 
 pre_comp:
 	+$(MAKE) -C ../symlib/src
+	sed -i.bak "s/\(write(23,'(A)')\)\(.*\)/\1 \"`git describe --tags --dirty --abbrev=4`\"/" derivative_structure_generator.f90
 
 libenum.a: ${OBJS}
 	ar ru $@ $?
