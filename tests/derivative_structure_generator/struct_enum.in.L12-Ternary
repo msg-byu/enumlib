@@ -1,0 +1,16 @@
+L12
+bulk      # 3D crystal
+1 0 0     # lattice vector 1
+0 1 0     # lattice vector 2
+0 0 1     # lattice vector 3
+  3       # number of element types
+  4       # number of points in unit cell
+# Direct coordinants of lattice points
+0.0 0.0 0.0 1/2
+0.5 0.5 0.0 0
+0.5 0.0 0.5 0
+0.0 0.5 0.5 0
+  1 7     # cell sizes
+0.1E-06   #eps
+full list of labelings
+# Concentrations
