@@ -126,7 +126,7 @@ bug in fortpy, so the tests were never created
   </decorates>
 -->
   <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="struct_enum_tests6" purpose="ready" staging="../unittests/">
+    <group name="struct_enum_tests6" purpose="testing" staging="../unittests/">
       <test identifier="get_dvector_permutations_dRPList"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-20]" timed="true">
