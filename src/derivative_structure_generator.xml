@@ -220,8 +220,10 @@ won't get around to this. :-(
     </group>
   </decorates>
 -->
+
+<!--I'm not sure about needing the perm.in but when I turned these on and tried rerunning all the tests ended with a segfault -->
   <decorates name="derivative_structure_generator.find_permutation_of_group">
-    <group name="stuct_enum_tests8" purpose="testing_need_perm.in" staging="../unittests/">
+    <group name="stuct_enum_tests8" purpose="testing" staging="../unittests/">
       <test identifier="find_permutation_of_group"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-634]" timed="true">
