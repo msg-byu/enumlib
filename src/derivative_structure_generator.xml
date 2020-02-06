@@ -126,7 +126,7 @@ bug in fortpy, so the tests were never created
   </decorates>
 -->
   <decorates name="derivative_structure_generator.get_dvector_permutations">
-    <group name="struct_enum_tests6" purpose="ready" staging="../unittests/">
+    <group name="struct_enum_tests6" purpose="testing" staging="../unittests/">
       <test identifier="get_dvector_permutations_dRPList"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-20]" timed="true">
@@ -220,8 +220,10 @@ won't get around to this. :-(
     </group>
   </decorates>
 -->
+
+<!--I'm not sure about needing the perm.in but when I turned these on and tried rerunning all the tests ended with a segfault -->
   <decorates name="derivative_structure_generator.find_permutation_of_group">
-    <group name="stuct_enum_tests8" purpose="testing_need_perm.in" staging="../unittests/">
+    <group name="stuct_enum_tests8" purpose="fortpy broken; issue #128" staging="../unittests/">
       <test identifier="find_permutation_of_group"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-634]" timed="true">
@@ -243,7 +245,7 @@ won't get around to this. :-(
   </decorates>
 
   <decorates name="derivative_structure_generator.map_dvector_permutation">
-    <group name="stuct_enum_tests9" purpose="ready" staging="../unittests/">
+    <group name="stuct_enum_tests9" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-200]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -285,7 +287,7 @@ That's why there are input files for it. Having input gives it a shape.-->
   </decorates>
 
   <decorates name="derivative_structure_generator.get_HNF_diagonals">
-    <group name="stuct_enum_tests10" purpose="ready" staging="../unittests/">
+    <group name="stuct_enum_tests10" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-100]" timed="true">
 	<output folder="../tests/derivative_structure_generator"
@@ -322,9 +324,9 @@ That's why there are input files for it. Having input gives it a shape.-->
     </group>
   </decorates>
 -->
-<!-- presumably "bug" means a fortpy bug -->
+
   <decorates name="derivative_structure_generator.get_SNF">
-    <group name="stuct_enum_tests12" purpose="testing_bug" staging="../unittests/">
+    <group name="stuct_enum_tests12" purpose="testing" staging="../unittests/">
       <test identifier="get_SNF_SNF"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-38]" timed="true">
@@ -414,6 +416,7 @@ That's why there are input files for it. Having input gives it a shape.-->
     </group>
   </decorates>
 
+<!-- presumably "bug" means a fortpy bug -->
   <decorates name="derivative_structure_generator.remove_duplicate_lattices">
     <group name="stuct_enum_tests13" purpose="testing_bug" staging="../unittests/">
       <test identifier="remove_duplicate_lattices_uq_hnf"
@@ -493,7 +496,7 @@ That's why there are input files for it. Having input gives it a shape.-->
   </decorates>
 
   <decorates name="derivative_structure_generator.get_sLV_fixing_operations">
-    <group name="stuct_enum_tests14" purpose="ready" staging="../unittests/">
+    <group name="stuct_enum_tests14" purpose="testing" staging="../unittests/">
       <test identifier="get_sLV_fixing_operations_fixOp"
 	    description="Original enumerations tests of basic structures"
 	    cases="[1-151]" timed="true">
@@ -568,7 +571,7 @@ That's why there are input files for it. Having input gives it a shape.-->
   </decorates>-->
 
   <decorates name="derivative_structure_generator.get_HNF_2D_diagonals">
-    <group name="stuct_enum_tests16" purpose="ready" staging="../unittests/">
+    <group name="stuct_enum_tests16" purpose="testing" staging="../unittests/">
       <test identifier="original" description="Original enumerations tests of basic structures"
 	    cases="[1-50]" timed="true">
 	<output folder="../tests/derivative_structure_generator"

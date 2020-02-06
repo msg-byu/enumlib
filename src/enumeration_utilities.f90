@@ -1359,7 +1359,7 @@ CONTAINS
   SUBROUTINE compare_two_gstructures(LatDim,pLV,dset,eps, A_HNF, A_labeling, B_HNFlist, B_labelingList, match)
     real(dp), intent(in), dimension(3,3) :: pLV
     integer, intent(in)                  :: LatDim
-    real(dp), pointer                    :: dset(:,:)     ! (in)
+    real(dp), allocatable                :: dset(:,:)     ! (in) changed this to allocatable for uncle, 2/6/20 GLWH
     ! "original" structure A:
     integer, intent(in) :: A_HNF(:,:)          ! (in) HNF
     integer, intent(in) :: A_labeling(:)       ! (in) labeling

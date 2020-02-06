@@ -670,12 +670,12 @@ end subroutine check_for_fixed_cells
     do iP = 1, nP
        write(11,'("Perm #: ",i5,1x,"Perm: ",40(i4,1x))') iP, rpList%perm(iP,:)
     enddo
-    write(11,'(/,"Shifts required to move point inside unit cell after operation:")')
-    do iD = 1, size(rpList%v,2)
-      do iP = 1, nP
-         write(11,'("Perm #:",i3,1x,"iD:",i2,"  v: ",3(f8.4,1x))') iP, iD, rpList%v(:,iD,iP)
-      enddo
-    enddo
+    ! write(11,'(/,"Shifts required to move point inside unit cell after operation:")')
+    ! do iD = 1, size(rpList%v,2)
+    !   do iP = 1, nP
+    !      write(11,'("Perm #:",i3,1x,"iD:",i2,"  v: ",3(f8.4,1x))') iP, iD, rpList%v(:,iD,iP)
+    !   enddo
+    ! enddo
     close(11)
   END SUBROUTINE write_rotperms_list
 
