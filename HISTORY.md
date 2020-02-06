@@ -1,5 +1,8 @@
 # Revision History for `enumlib`
 
+## 2.0.6 (GLWH)
+- Changed the `compare_two_gstructures` routine so that `dset` was allocatable instead of pointer
+
 ## 2.0.5 (GLWH)
 - Updated some of the unit tests for `get_dvector_permutations`. The interface for this routine has changed so the inputs have also changed. Also, because the "inactive" sites are no longer included, the symmetry has changed for some cases. This necessarily made the previous output (like the permutation list) outdated. I merely copied the new output into the unit test part of the repo, overwriting the old target files.
 - Still to do: turn on the rest of the unit tests that were deactivited during the development of 2.0.0.
