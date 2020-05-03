@@ -41,7 +41,7 @@ lines in the arb().
 """
 icols = ["red", "yellow", "cyan", "blue", "white", "green"]
 nocolor = False
-"""When true, the colored outputs all use the regular print() instead 
+"""When true, the colored outputs all use the regular print() instead
 so that the stdout looks ordinary.
 """
 
@@ -109,18 +109,18 @@ def set_testmode(testing):
 def RepresentsInt(s):
     """Determines if a string could be an int.
     :arg s: The string to be tested.
-    """    
-    try: 
+    """
+    try:
         int(s)
         return True
     except ValueError:
         return False
-    
+
 def RepresentsFloat(s):
     """Determines if a string could be an float.
     :arg s: The string to be tested.
-    """    
-    try: 
+    """
+    try:
         float(s)
         return True
     except ValueError:
@@ -210,7 +210,7 @@ def will_print(level=1):
     else:
         return ((isinstance(verbosity, int) and level <= verbosity) or
                 (isinstance(verbosity, bool) and verbosity == True))
-    
+
 def warn(msg, level=0, prefix=True):
     """Prints the specified message as a warning; prepends "WARNING" to
     the message, so that can be left off.
@@ -250,7 +250,7 @@ def std(msg, level=1):
     """Prints using the standard print() function."""
     if will_print(level):
         print(msg)
-    
+
 def _gaussian_reduce_two_vectors(U,V,eps):
     """This routine takes two vectors (in three-space) and reduces them to
     form a shortest set (Minkowski reduced). The idea is to subtract
@@ -303,7 +303,7 @@ def _minkowski_conditions_check(basis,eps):
     :arg eps: finitie precision tolerance
     """
     from numpy import linalg
-    
+
     b1 = basis[0]
     b2 = basis[1]
     b3 = basis[2]
@@ -375,9 +375,9 @@ def _reduce_C_in_ABC(A,B,C,eps):
     from numpy import cross, linalg, dot, allclose, matmul, array
     from copy import deepcopy
     from math import floor
-    
+
     oldABC = deepcopy([A,B,C])
-    
+
     # Use Gaussian reduction to reduce the A,B 2D basis so that it is
     # itself Minkowski reduced. If this is done, then the closest
     # lattice point (in A,B plane) to the projection of C (into the
@@ -447,7 +447,7 @@ def _get_lat_param_element(lat_vecs,n_basis_atoms,element):
         lat_vecs (list): The lattice vectors for the system.
         n_basis_atoms (int): The number of atoms in the atomic basis.
         element (str): The symbol for the element.
-    
+
     Returns:
         lat_param (float): The lattice parameter.
     """
@@ -455,7 +455,7 @@ def _get_lat_param_element(lat_vecs,n_basis_atoms,element):
     lat_vol = abs(np.linalg.det(lat_vecs)/n_basis_atoms)
     atom_vol = element_volume[element]/lat_vol
 
-    return atom_vol**(1./3.)   
+    return atom_vol**(1./3.)
 
 def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title,remove_zeros=False):
     """Finds the lattice parameters for the provided atomic species using Vagars law.
@@ -502,7 +502,7 @@ def _cartesian2direct(sLV,aBas, eps):
     :arg eps: Finite precision tolerance.
     """
     from numpy import linalg, matmul, array
-    
+
     nAt = len(aBas)
     sLVinv = linalg.inv(sLV)
     # Convert aBas to DIRECT COORDINATES
@@ -526,7 +526,7 @@ def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
     :arg minkowskiReduce: logical indicating if basis should be reduced.
     """
     from numpy import matmul, allclose, matrix, array
-    
+
     nD = system_data["nD"]
     n = structure_data["n"]
     # DEFINE the non-zero elements of the HNF matrix
@@ -550,12 +550,12 @@ def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
 
     if minkowskiReduce:
         sLV = list(map(list,zip(*_minkowski_reduce_basis(list(map(list,zip(*sLV))),eps))))
-        
+
     # Find each atomic position from the g-space information
     aBas = []
     ic = 0  # Keep track of the number of points mapped so far
     # Loop over the number at sites/parent cell (the d set)it
-    for iD in range(0, nD):  
+    for iD in range(0, nD):
         # For the limits on the loops, see the "interior_points.pdf" write-up
         for z1 in range(a):
             for z2 in range(int((b*z1)/a), int(c+(b*z1)/a)):
@@ -569,13 +569,13 @@ def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
                     temp2 = [temp[i]+pBas[iD][i] for i in range(len(pBas[iD]))]
                     aBas.append(temp2)
                     # Map position into the group
-                    greal = matmul(L,[float(z1),float(z2),float(z3)]).tolist() 
+                    greal = matmul(L,[float(z1),float(z2),float(z3)]).tolist()
                     g = [int(i) for i in greal] # Convert the g-vector from real to integer
                     if not allclose(greal,g,rtol=eps,atol=eps): #pragma: no cover
                         err("map2G didn't work in map_enumStr_to_real_space")
                         exit()
                     # Bring the g-vector back into the first tile
-                    g = [g[i]%S[i] for i in range(len(S))] 
+                    g = [g[i]%S[i] for i in range(len(S))]
                     # gIndx is the index in the configuration string that
                     # tells us which atom type is used at this position
 
@@ -588,7 +588,7 @@ def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
     x = []
     for i in range(k):
         x.append(0.0)
-        
+
     labeling = structure_data["labeling"]
     spin = []
     if k % 2 == 0:
@@ -646,7 +646,7 @@ def _minkowski_reduce_basis(IN,eps):
         err("ERROR in minkowski_reduce_basis: Minkowski conditions not met."
             "Number of iterations: {}".format(str(limit)))
         exit()
-    
+
     # we want to make sure that the det is positive.
     # NOTE: This *destroys* the mathematical picture of a "greedy reduced basis" (Minkowski), but
     #       from a physical point of view we don't care ;-)
@@ -733,9 +733,9 @@ def _read_enum_out(args):
                     this_struct["directions"] = '0'*len(this_struct["labeling"])
                 structure_data.append(this_struct)
             line_count += 1
-            
+
     system["plattice"] = transpose(system["plattice"])
-    
+
     return (system, structure_data)
 
 def _write_config(system_data,space_data,structure_data,args,mapping=None):
@@ -751,12 +751,12 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
     from numpy import array, dot, transpose
     from random import uniform
     from numpy.random import randint
-    
+
     filename = args["outfile"]
 
     # Get the labeling, group index, structure number and arrow labels
     # from the input data structure.
-    labeling = structure_data["labeling"]            
+    labeling = structure_data["labeling"]
     gIndx = space_data["gIndx"]
     arrows = structure_data["directions"]
     struct_n = structure_data["strN"]
@@ -783,7 +783,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
         species = [args["species"][i] for i in mapping.values()]
     else:
         species = args["species"]
-    
+
     lattice_parameter, title = _get_lattice_parameter(species,concs,
                                                      system_data["plattice"],system_data["nD"],
                                                       def_title,remove_zeros=True)
@@ -803,8 +803,8 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
         # Then write out the lattice vectors.
         for i in range(3):
             poscar.write("   {}\n".format("      ".join(
-                ["{0: .6f}".format(j) for j in sLV[i]])))
-        
+                ["{0: .8f}".format(j) for j in sLV[i]])))
+
         poscar.write("  ")
 
         poscar.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z\n")
@@ -848,7 +848,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
 
     # Get the labeling, group index, structure number and arrow labels
     # from the input data structure.
-    labeling = structure_data["labeling"]            
+    labeling = structure_data["labeling"]
     gIndx = space_data["gIndx"]
     arrows = structure_data["directions"]
     struct_n = structure_data["strN"]
@@ -890,7 +890,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
         for i in range(3):
             poscar.write(" {}\n".format(" ".join(
                 ["{0: .8f}".format(j) for j in sLV[i]])))
-        
+
         poscar.write("  ")
 
         # Write the concentrations to the output file. If the species
@@ -904,8 +904,8 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
                     poscar.write("{}   ".format(str(ic)))
         else:
             for ic in concs:
-                poscar.write("{}   ".format(str(ic)))                    
-        
+                poscar.write("{}   ".format(str(ic)))
+
         poscar.write("\n")
         poscar.write("D\n")
         # Now write out the atomic positions to the file.
@@ -923,7 +923,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
                     out_array = array(space_data["aBas"][iAt]) + displace
                     poscar.write(" {}\n".format(
                         "  ".join(["{0: .8f}".format(i) for i in out_array.tolist()])))
-        
+
 def _make_structures(args):
     """Makes a VASP POSCAR file for the desired structures."""
 
@@ -942,7 +942,7 @@ def _make_structures(args):
             _write_POSCAR(system,space_data,structure,args)
         elif args["config"]=="t":
             _write_config(system,space_data,structure,args,args["mapping"])
-        
+
 def examples():
     """Print some examples on how to use this python version of the code."""
     script = "makeStr: Makes a vasp style POSCAR for the desired system."
@@ -1006,7 +1006,7 @@ script_options = {
                         help=("Specify the atomic species numbers for the system. This option "
                               "is only used for making MTP config files.")),
     "-outfile": dict(default="vasp.{}",type=str,
-                        help=("Override the default output file names: 'vasp.{structure#}'" 
+                        help=("Override the default output file names: 'vasp.{structure#}'"
                               "for the structures.")),
     "-rattle": dict(default=0.0, type=float,
                         help=("Randomizes the positions of the atoms in the POSCAR by no "
@@ -1016,7 +1016,7 @@ script_options = {
                          "MTP config file already exists it will be appended to, not "
                          "overwritten.")),
     "-remove_zeros" : dict(default="f",choices=["t","f"],
-                   help=("Remove the zeros from the concentrations string in the 'POSCAR'."))    
+                   help=("Remove the zeros from the concentrations string in the 'POSCAR'."))
 }
 """dict: default command-line arguments and their
     :meth:`argparse.ArgumentParser.add_argument` keyword arguments.
@@ -1031,7 +1031,7 @@ def _parser_options():
     parser = argparse.ArgumentParser(parents=[bparser], description=pdescr)
     for arg, options in script_options.items():
         parser.add_argument(arg, **options)
-        
+
     args = exhandler(examples, parser)
     if args is None:
         return
@@ -1062,20 +1062,20 @@ def run(args):
                          "indicate the first and last structure to be used in the input "
                          "file, or all. The values {} don't match this "
                          "format.".format(args["structures"]))
-    
+
     if args["species_mapping"] is not None:
         args["mapping"] = {}
         for i in range(len(args["species_mapping"])):
             args["mapping"][i] = args["species_mapping"][i]
     else:
         args["mapping"] = None
-        
+
     if args["remove_zeros"] == "t":
         args["remove_zeros"] = True
     else:
         args["remove_zeros"] = False
 
     _make_structures(args)
-        
+
 if __name__ == '__main__':
     run(_parser_options())
