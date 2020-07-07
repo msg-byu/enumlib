@@ -24,7 +24,7 @@ would appreciate it if you would cite the appropriate paper below. Thank you.
 
 
 [Gus L. W. Hart and Rodney W. Forcade, "Algorithm for generating
-derivative structures," Phys. Rev. B 77 224115, (26 June 2008)](http://msg.byu.edu/docs/papers/GLWHart_enumeration.pdf)
+derivative structures," Phys. Rev. B 77 224115, (26 June 2008)](http://msg.byu.edu/docs/papers/GLWHart-enumeration.pdf)
 
 [Gus L. W. Hart and Rodney W. Forcade, "Generating derivative
 structures from multilattices: Application to hcp alloys,"
