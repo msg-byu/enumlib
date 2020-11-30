@@ -803,7 +803,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
         # Then write out the lattice vectors.
         for i in range(3):
             poscar.write("   {}\n".format("      ".join(
-                ["{0: .13f}".format(j) for j in sLV[i]])))
+                ["{0: .11f}".format(j) for j in sLV[i]])))
         poscar.write("  ")
         poscar.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z\n")
         for iAt in range(structure_data["n"]*system_data["nD"]):
@@ -822,7 +822,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
                         out_lab = ilab
                     else:
                         out_lab = mapping[ilab]
-                    poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .13f}".format(i) for i in out_array])))
+                    poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .11f}".format(i) for i in out_array])))
         poscar.write(" Feature   conf_id  {}\n".format(title.split()[0]))
         poscar.write("END_CFG\n\n")
 
