@@ -803,10 +803,8 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
         # Then write out the lattice vectors.
         for i in range(3):
             poscar.write("   {}\n".format("      ".join(
-                ["{0: .8f}".format(j) for j in sLV[i]])))
-
+                ["{0: .11f}".format(j) for j in sLV[i]])))
         poscar.write("  ")
-
         poscar.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z\n")
         for iAt in range(structure_data["n"]*system_data["nD"]):
             for ilab in range(system_data["k"]):
@@ -824,7 +822,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
                         out_lab = ilab
                     else:
                         out_lab = mapping[ilab]
-                    poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .8f}".format(i) for i in out_array])))
+                    poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .11f}".format(i) for i in out_array])))
         poscar.write(" Feature   conf_id  {}\n".format(title.split()[0]))
         poscar.write("END_CFG\n\n")
 
@@ -885,12 +883,11 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
     with open(filename,"w+") as poscar:
         # First write the title and the lattice parameter.
         poscar.write(title)
-        poscar.write("{0:.2f}\n".format(lattice_parameter))
+        poscar.write("{0:.3f}\n".format(lattice_parameter))
         # Then write out the lattice vectors.
         for i in range(3):
             poscar.write(" {}\n".format(" ".join(
-                ["{0: .8f}".format(j) for j in sLV[i]])))
-
+                 ["{0: .9f}".format(j) for j in sLV[i]])))
         poscar.write("  ")
 
         # Write the concentrations to the output file. If the species
@@ -922,8 +919,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
                     # the basis plus the total displacement.
                     out_array = array(space_data["aBas"][iAt]) + displace
                     poscar.write(" {}\n".format(
-                        "  ".join(["{0: .8f}".format(i) for i in out_array.tolist()])))
-
+                        "  ".join(["{0: .9f}".format(i) for i in out_array.tolist()])))
 def _make_structures(args):
     """Makes a VASP POSCAR file for the desired structures."""
 
