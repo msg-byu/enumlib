@@ -24,17 +24,17 @@ would appreciate it if you would cite the appropriate paper below. Thank you.
 
 
 [Gus L. W. Hart and Rodney W. Forcade, "Algorithm for generating
-derivative structures," Phys. Rev. B 77 224115, (26 June 2008)](http://msg.byu.edu/papers/GLWHart_enumeration.pdf)
+derivative structures," Phys. Rev. B 77 224115, (26 June 2008)](http://msg.byu.edu/docs/papers/GLWHart-enumeration.pdf)
 
 [Gus L. W. Hart and Rodney W. Forcade, "Generating derivative
 structures from multilattices: Application to hcp alloys,"
-Phys. Rev. B 80 014120 (July 2009)](http://msg.byu.edu/papers/multi.pdf)
+Phys. Rev. B 80 014120 (July 2009)](http://msg.byu.edu/docs/papers/multi.pdf)
 
 [Gus L. W. Hart, Lance J. Nelson, and Rodney W. Forcade, "Generating
 derivative structures at a fixed concentration," Comp. Mat. Sci. 59
-101-107 (March 2012)](http://msg.byu.edu/papers/enum3.pdf)
+101-107 (March 2012)](http://msg.byu.edu/docs/papers/enum3.pdf)
 
-[Wiley S. Morgan, Gus L. W. Hart, Rodney W. Forcade, "Generating derivative superstructures for systems with high configurational freedom," Comp. Mat. Sci. 136 144-149 (May 2017)](http://msg.byu.edu/papers/recStabEnumeration.pdf)
+[Wiley S. Morgan, Gus L. W. Hart, Rodney W. Forcade, "Generating derivative superstructures for systems with high configurational freedom," Comp. Mat. Sci. 136 144-149 (May 2017)](http://msg.byu.edu/docs/papers/recStabEnumeration.pdf)
 
 
 ## COMPILING THE CODE
