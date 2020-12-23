@@ -2,6 +2,7 @@
 from __future__ import print_function
 import warnings
 import numpy as np
+import os
 
 try:
     from termcolor import cprint
@@ -457,8 +458,8 @@ def _get_lat_param_element(lat_vecs,n_basis_atoms,element):
 
     return atom_vol**(1./3.)
 
-def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title,remove_zeros=False):
-    """Finds the lattice parameters for the provided atomic species using Vagars law.
+def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, default_title, scale_factor, remove_zeros=False):
+    """Finds the lattice parameters for the provided atomic species using Vegard's law.
     Args:
         elements (list of str): A list of the elements in the system.
         default_title (str): The default system title.
@@ -491,7 +492,7 @@ def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, de
                     title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
             title = "{0} {1}\n".format(title,default_title.strip())
-    return lat_param, title
+    return lat_param*scale_factor, title
 
 def _cartesian2direct(sLV,aBas, eps):
     """This routine takes three lattice vectors and a list of atomic basis
@@ -786,7 +787,7 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
 
     lattice_parameter, title = _get_lattice_parameter(species,concs,
                                                      system_data["plattice"],system_data["nD"],
-                                                      def_title,remove_zeros=True)
+                                                      def_title,args["scale_factor"],remove_zeros=True)
 
     # Find out the directions for each arrow.
     for arrow in arrows:
@@ -872,7 +873,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
     # user.
     lattice_parameter, title = _get_lattice_parameter(args["species"],concs,
                                                       system_data["plattice"],system_data["nD"],
-                                                      def_title,remove_zeros=args["remove_zeros"])
+                                                      def_title,args["scale_factor"],remove_zeros=args["remove_zeros"])
 
     # Find out the directions for each arrow.
     for arrow in arrows:
@@ -926,6 +927,7 @@ def _make_structures(args):
 
     (system, structure_data) = _read_enum_out(args)
 
+    os.system("rm {}".format(args["outfile"]))
     # for each structure write the vasp POSCAR
     for structure in structure_data:
         # space_data is a dictionary containing the spacial data for
@@ -996,7 +998,7 @@ script_options = {
                         help=("Override the default 'struct_enum.out' file name.")),
     "-mink": dict(default="t", choices=["t","f"],
                         help=("Sets flag to perform minkowski reduction of the basis (T/F)."
-                              " Default is True.")),
+                              " Default is True.")),                              
     "-species": dict(default=None, nargs="+",type=str,
                         help=("Specify the atomic species present in the system.")),
     "-species_mapping": dict(default=None, nargs="+",type=int,
@@ -1010,10 +1012,16 @@ script_options = {
                               "more than the fraction of the displacement provided.")),
     "-config" : dict(default="f",choices=["t","f"],
                    help=("make an MTP config file instead of a VASP POSCAR. If the "
-                         "MTP config file already exists it will be appended to, not "
-                         "overwritten.")),
+                         "MTP config file already exists it will be overwritten, not appended to, unless"
+                         "-append is set to true.")),
+    "-append": dict(default="f", choices=["t","f"],
+                        help=("Appends to the config file if set to 't'.")),
     "-remove_zeros" : dict(default="f",choices=["t","f"],
-                   help=("Remove the zeros from the concentrations string in the 'POSCAR'."))
+                   help=("Remove the zeros from the concentrations string in the 'POSCAR'.")),
+    "-scale_factor" : dict(default=1.0, type=float,
+                        help=("Rescales the lattice parameter. Multiplies the default (Vegard's law) by the "
+                        "given value. (1.0 does nothing.) This only applies when the elements have been "
+                        "specified."))
 }
 """dict: default command-line arguments and their
     :meth:`argparse.ArgumentParser.add_argument` keyword arguments.
