@@ -823,7 +823,8 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
                     else:
                         out_lab = mapping[ilab]
                     poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .11f}".format(i) for i in out_array])))
-        poscar.write(" Feature   conf_id  {}\n".format(title.split()[0]))
+# The write was changed by GLWH Dec 2020 to add ordinal number and symmetry information to conf_id
+        poscar.write("Feature conf_id {}\n".format(def_title.strip()+"_pg"+str(structure_data["pgOps"])))
         poscar.write("END_CFG\n\n")
 
 def _write_POSCAR(system_data,space_data,structure_data,args):
@@ -942,15 +943,15 @@ def _make_structures(args):
 def examples():
     """Print some examples on how to use this python version of the code."""
     script = "makeStr: Makes a vasp style POSCAR for the desired system."
-    explain = ("For all the examples bellow it is assumed you have already "
-               "run the enumeration code and produced an struct_enum.out style file.")
+    explain = ("For all the examples below it is assumed you have already "
+               "run the enumeration code and produced a struct_enum.out style file.")
     contents = [("Make a single POSCAR file",
             "To make a POSCAR file for a specific structure listed in the "
             "`struct_enum.out` style file you will need to identify the structure \n number "
             "(the first number of each row in the file) for the structure you want "
             ". For example to make a POSCAR for structure number 10 \n from an `struct_enum.out` "
             "file.","makeStr.py 10 \n"),
-           ("Make multilpe POSCARS at once",
+           ("Make multiple POSCARS at once",
             "To make multiple POSCARS for a range of values in the `struct_enum.out` style "
             "file simply list the starting and ending structure numbers \n of the range. "
             "To make POSCARS for every structure in the output file use the word `all`.",
