@@ -927,7 +927,8 @@ def _make_structures(args):
 
     (system, structure_data) = _read_enum_out(args)
 
-    os.system("rm {}".format(args["outfile"]))
+    if args["append"]!="t": 
+        os.system("rm {}".format(args["outfile"]))
     # for each structure write the vasp POSCAR
     for structure in structure_data:
         # space_data is a dictionary containing the spacial data for
