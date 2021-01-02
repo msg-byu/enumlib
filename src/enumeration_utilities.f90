@@ -1015,8 +1015,8 @@ CONTAINS
     ! (needed as in put for several routines)
     type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
     type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
-    integer, pointer :: labeling(:), hnf_degen(:)
-    integer, dimension(0,2) :: inactives
+    integer, pointer :: labeling(:)!, hnf_degen(:)
+    !integer, dimension(0,2) :: inactives
     integer, pointer :: label(:,:), digit(:)
     !debug
     !real(dp) Ainv(3,3)

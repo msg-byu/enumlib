@@ -382,7 +382,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
     integer, intent(in) :: LatDim
     real(dp), intent(in) :: eps
 
-    integer iD, nOp, iOp, status, nDfull, iC
+    integer iD, nOp, iOp, status!, iC!, nDfull
     integer, pointer :: aTyp(:), tList(:,:)
     real(dp) :: rd(size(d,1),size(d,2)),tRD(size(d,1),size(d,2))
     real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
@@ -1270,7 +1270,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.3-1-g2eca-dirty"
+    write(23,'(A)') "v2.0.4-26-g75f2-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
