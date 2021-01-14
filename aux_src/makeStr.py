@@ -492,7 +492,8 @@ def _get_lattice_parameter(elements, concentrations, lat_vecs, n_basis_atoms, de
                     title += " {0} ".format(elem)
             lat_param = float(lat_param) / sum(concentrations)
             title = "{0} {1}\n".format(title,default_title.strip())
-    return lat_param*scale_factor, title
+            lat_param = round(scale_factor*lat_param,4)
+    return lat_param, title
 
 def _cartesian2direct(sLV,aBas, eps):
     """This routine takes three lattice vectors and a list of atomic basis
