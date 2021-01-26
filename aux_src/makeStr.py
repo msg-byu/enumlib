@@ -524,7 +524,7 @@ def _map_enumStr_to_real_space(system_data,structure_data,minkowskiReduce):
     """Maps an enumerated structure back to real space. Returns a
     dictionary containing the real space data.
     :arg system_data: a dictionary containing all the information about the sysytem.
-    :arg sturture_data: a dictionary containing the information for this structure.
+    :arg structure_data: a dictionary containing the information for this structure.
     :arg minkowskiReduce: logical indicating if basis should be reduced.
     """
     from numpy import matmul, allclose, matrix, array
@@ -668,11 +668,22 @@ def _read_enum_out(args):
 
     from numpy import transpose
     # which structures are wanted
-    if args["structures"] == None:
+    if args["structures"] == "all":
         with open(args["input"],"r") as f:
             for count, l in enumerate(f):
                 pass
         structures = list(range(1,count-13))
+    elif args["structures"] == "list":
+        if args["index_file"] == "":
+            raise FileNotFoundError("If the 'list' argument is used, the '-index_file' argument must be "
+                                    "used to specify the name of the index file.")
+        if os.path.isfile(args["index_file"]):
+            with open(args["index_file"], 'r') as f:
+                nums = [int(i) for i in f.read().split()]
+                structures = nums
+        else:
+            raise FileNotFoundError("The specified index file, {}, containing structure numbers was not found "
+                                    "on the current path.".format(args["index_file"]))
     else:
         structures = args["structures"]
     # open the enum.out style file.
@@ -826,7 +837,12 @@ def _write_config(system_data,space_data,structure_data,args,mapping=None):
                         out_lab = mapping[ilab]
                     poscar.write("             {0}    {1}       {2}\n".format(iAt+1, out_lab, "  ".join(["{0: .11f}".format(i) for i in out_array])))
 # The write was changed by GLWH Dec 2020 to add ordinal number and symmetry information to conf_id
-        poscar.write("Feature conf_id {}\n".format(def_title.strip()+"_pg"+str(structure_data["pgOps"])))
+# Extended further in Jan 2021 to include additional information in the config files
+        poscar.write("Feature parent_lattice {}\n".format(system_data["title"])) # This assumes the title in 'structenum.in' is the lattice type
+        poscar.write("Feature sym_size {}\n".format(structure_data["pgOps"])) # Number of pointgroup operations for this crystal
+        poscar.write("Feature rescale {}\n".format(args["scale_factor"])) # Scale factor for the volume 
+        poscar.write("Feature set_id {}\n".format(args["set_id"])) # This is a tag that can be set by the user when makeStr.py is called
+        poscar.write("Feature enum_id {}\n".format(structure_data["strN"])) # This is the ordinal number in the structenum.out list
         poscar.write("END_CFG\n\n")
 
 def _write_POSCAR(system_data,space_data,structure_data,args):
@@ -992,7 +1008,10 @@ script_options = {
     "structures": dict(nargs="+",
                         help=("The desired structure numbers from the struct_enum.out file. This "
                               "can be either a single value or a desired range indicated by "
-                              "the starting and stopping structure numbers.")),
+                              "the starting and stopping structure numbers.  If 'all' is given,"
+                              "structures for the entire list are returned. If 'list' is given,"
+                              "a file with a list of structure indices can be used."
+                              "Use the optional argument '-index_file' to specify the filename.")),
     "-displace": dict(default=0.0, type=float,
                         help=("The displacement amount for the arrows in units of the lattice "
                                "parameter. Default is 0.")),
@@ -1023,7 +1042,9 @@ script_options = {
     "-scale_factor" : dict(default=1.0, type=float,
                         help=("Rescales the lattice parameter. Multiplies the default (Vegard's law) by the "
                         "given value. (1.0 does nothing.) This only applies when the elements have been "
-                        "specified."))
+                        "specified.")),
+    "-index_file"  : dict(default="", type=str, help=("Name of file containing a list of structure indices.")),
+    "-set_id"      : dict(default="unspecified", type=str, help=("Use 'set_id' to identify different sets of structures."))
 }
 """dict: default command-line arguments and their
     :meth:`argparse.ArgumentParser.add_argument` keyword arguments.
@@ -1049,26 +1070,20 @@ def run(args):
     """Generates the vasp output file for the desired structure.
     """
 
-    if args == None:
-        exit()
-    if args["structures"] != None :
-        if not RepresentsInt(args["structures"][0]) and args["structures"][0].lower() == "all":
-            args["structures"] = None
-        elif len(args["structures"])  == 1 and RepresentsInt(args["structures"][0]):
-            args["structures"] = [int(args["structures"][0])]
-        elif len(args["structures"]) == 2:
-            args["structures"] = list(range(int(args["structures"][0]),
-                                            int(args["structures"][1])+1))
-        else:
-            raise ValueError("Please enter a single structure number, two structures that "
-                             "indicate the first and last structure to be used in the input "
-                             "file, or all. The values {} don't match this "
-                             "format.".format(args["structures"]))
+    if not RepresentsInt(args["structures"][0]) and args["structures"][0].lower() == "all":
+        args["structures"] = "all"
+    elif not RepresentsInt(args["structures"][0]) and args["structures"][0].lower() == "list":
+        args["structures"] = "list"
+    elif len(args["structures"])  == 1 and RepresentsInt(args["structures"][0]):
+        args["structures"] = [int(args["structures"][0])]
+    elif len(args["structures"]) == 2:
+        args["structures"] = list(range(int(args["structures"][0]),
+                                        int(args["structures"][1])+1))
     else:
         raise ValueError("Please enter a single structure number, two structures that "
-                         "indicate the first and last structure to be used in the input "
-                         "file, or all. The values {} don't match this "
-                         "format.".format(args["structures"]))
+                            "indicate the first and last structure to be used in the input "
+                            "file, or 'all', or 'list'. The values {} don't match this "
+                            "format.".format(args["structures"]))
 
     if args["species_mapping"] is not None:
         args["mapping"] = {}
