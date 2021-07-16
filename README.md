@@ -71,7 +71,7 @@ It is possible to compile enumlib using conda on OSX and Linux. To do
 so use the command:
 
 ```
-conda install --channel matsci enumlib
+conda install --channel conda-forge enumlib
 ```
 
 If you have trouble compiling, please send me a note and I'll try and
