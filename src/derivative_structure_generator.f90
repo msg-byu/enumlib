@@ -369,17 +369,14 @@ CONTAINS
   !!<parameter name="shift" regular="true">fractional shifts of the spacegroup.</parameter>
   !!<parameter name="drplist" regular="true">Output. A list of
   !!permutations effected by the Ops.</parameter>
-  !!<parameter name="Latdim" regular="true">2 or 3 dimensional
-  !!case?</parameter>
   !!<parameter name="eps" regular="true">Finite precision
   !!tolerance.</parameter>
-SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
+SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     real(dp)             :: pLV(3,3)
     real(dp), allocatable    :: d(:,:)
     integer, intent(in)      :: nD
     real(dp), allocatable:: rot(:,:,:), shift(:,:)
     type(RotPermList), intent(out) :: dRPList
-    integer, intent(in) :: LatDim
     real(dp), intent(in) :: eps
 
     integer iD, nOp, iOp, status!, iC!, nDfull
@@ -1270,7 +1267,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-26-g75f2-dirty"
+    write(23,'(A)') "v2.0.4-30-g4fc9-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
@@ -1390,7 +1387,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,LatDim,eps)
 
     call getSpaceGroup_activeSitesOnly(parLV,nDFull,dFull,inactives,LatDim,SGrot,SGt,eps)
     ! The d passed out in the previous line now contains only the *active* dvectors
-    call get_dvector_permutations(parLV,d,nD,SGrot,SGt,ParRPList,LatDim,eps)
+    call get_dvector_permutations(parLV,d,nD,SGrot,SGt,ParRPList,eps)
 
     ! This part generates all the derivative structures. Results are
     ! written to unit 14.
