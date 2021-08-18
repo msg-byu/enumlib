@@ -1011,7 +1011,10 @@ CONTAINS
     real(dp), dimension(3,3) :: pLVtemp, sLVtemp, parLattTest, T
     integer nAt, nuq, nP, SNF(3,3), iAt, ip, j, iop, iuq
     integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
+    type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
+    ! (needed as input for several routines)
     type(RotPermList) :: dRotList ! This is a list of permutations for the d-set (needed as in put for several routines)
+
     type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
     type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
     integer, pointer :: labeling(:), hnf_degen(:)
@@ -1023,7 +1026,6 @@ CONTAINS
     allocate(digit(size(dset,2)))
     label = 1
     digit = 1
-
     open(17,file="debug_gspace_rep.out")
     nAt = size(aBas,2)
     write(17,'("Number of atoms: ",i3)') nAt
@@ -1054,7 +1056,7 @@ CONTAINS
     T = matmul(parLattTest,pLV)
     if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
     write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
-    write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+    write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2)
 
     !** Calls to enumlib routines **
 
@@ -1341,10 +1343,7 @@ CONTAINS
   !!<parameter name="B_labelingList" regular="true">{ labeling#, entry
   !!} permuted labelings</parameter>
   !!<parameter name="match" regular="true">Returns true if structures match.</parameter>
-  SUBROUTINE compare_two_gstructures(LatDim,pLV,dset,eps, A_HNF, A_labeling, B_HNFlist, B_labelingList, match)
-    real(dp), intent(in), dimension(3,3) :: pLV
-    integer, intent(in)                  :: LatDim
-    real(dp), allocatable                :: dset(:,:)     ! (in) changed this to allocatable for uncle, 2/6/20 GLWH
+  SUBROUTINE compare_two_gstructures(A_HNF, A_labeling, B_HNFlist, B_labelingList, match)
     ! "original" structure A:
     integer, intent(in) :: A_HNF(:,:)          ! (in) HNF
     integer, intent(in) :: A_labeling(:)       ! (in) labeling
