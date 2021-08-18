@@ -369,6 +369,8 @@ CONTAINS
   !!<parameter name="shift" regular="true">fractional shifts of the spacegroup.</parameter>
   !!<parameter name="drplist" regular="true">Output. A list of
   !!permutations effected by the Ops.</parameter>
+  !!<parameter name="Latdim" regular="true">2 or 3 dimensional
+  !!case?</parameter>
   !!<parameter name="eps" regular="true">Finite precision
   !!tolerance.</parameter>
 SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
@@ -452,7 +454,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
   !!in the enumeration.</parameter>
   !!<parameter name="surf" regular="true">True is this is a surface
   !!calculation, false otherwise.</parameter>
-  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows, surf)
+  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows,surf)
     real(dp), intent(in) :: A(3,3)
     integer, intent(in), dimension(:,:,:) :: HNF, L, SNF
     type(OpList), intent(in) :: Op(:)
@@ -487,12 +489,14 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     end if
 
     ! build the arrow basis.
-    if (present(surf) .and. (surf .eqv. .True.)) then
+    if (present(surf)) then
+      if (surf .eqv. .True.) then
        allocate(arrow_basis(3,4))
        arrow_basis(:,1) = (/1,0,0/)
        arrow_basis(:,2) = (/-1,0,0/)
        arrow_basis(:,3) = (/0,1,0/)
        arrow_basis(:,4) = (/0,-1,0/)
+      endif
     else
        allocate(arrow_basis(3,6))
        arrow_basis(:,1) = (/1,0,0/)
@@ -1267,7 +1271,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-30-g4fc9-dirty"
+    write(23,'(A)') "v2.0.4-40-gfc3d-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
