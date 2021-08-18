@@ -1013,8 +1013,6 @@ CONTAINS
     integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
     type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
     ! (needed as input for several routines)
-    type(RotPermList) :: dRotList ! This is a list of permutations for the d-set (needed as in put for several routines)
-
     type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
     type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
     integer, pointer :: labeling(:), hnf_degen(:)
@@ -1056,7 +1054,7 @@ CONTAINS
     T = matmul(parLattTest,pLV)
     if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
     write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
-    write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2)
+    write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
 
     !** Calls to enumlib routines **
 
