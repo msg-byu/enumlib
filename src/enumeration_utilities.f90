@@ -1006,23 +1006,20 @@ CONTAINS
     !logical err
 
     integer, pointer :: aTypTemp(:), SNFlabel(:)
-    real(dp), allocatable :: aBasTemp(:,:)
+    real(dp), allocatable :: aBasTemp(:,:), sg_op(:,:,:), sg_fract(:,:)
     real(dp), pointer  :: sLVlist(:,:,:)
     real(dp), dimension(3,3) :: pLVtemp, sLVtemp, parLattTest, T
     integer nAt, nuq, nP, SNF(3,3), iAt, ip, j, iop, iuq
     integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
     type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
     ! (needed as input for several routines)
+    type(RotPermList) :: dRotList ! This is a list of permutations for the d-set (needed as in put for several routines)
+
     type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
     type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
-    integer, pointer :: labeling(:)!, hnf_degen(:)
-    !integer, dimension(0,2) :: inactives
+    integer, pointer :: labeling(:), hnf_degen(:)
     integer, pointer :: label(:,:), digit(:)
-    !debug
-    !real(dp) Ainv(3,3)
     logical err
-    !integer diag(3)
-    ! debug
 
     !write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
     allocate(label(1,size(dset,2)))
@@ -1036,7 +1033,6 @@ CONTAINS
 
     allocate(HNFin(3,3,1))
     HNFin(:,:,1) = HNF(:,:,1) ! The first HNF in the list is the one that is unrotated
-
 
     allocate(aTypTemp(nAt),aBasTemp(3,nAt))
     aTypTemp = aTyp; aBasTemp = aBas
@@ -1060,31 +1056,23 @@ CONTAINS
     T = matmul(parLattTest,pLV)
     if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
     write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
-    write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
-    !write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+    write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2)
+
     !** Calls to enumlib routines **
 
     ! This call generates a list of permutations for the d-set under symmetry operations
-    ! of the parent lattice (need this for d-g table permutations)
-
-    ! Wiley ! If gfortran compile breaks it's because we uncommented
-    ! the write statement for the dRotList%RotIndx(:). Line 1071
-    ! 3 Jan 2019 GLWH. We haven't generalized this code to handle "inactive"
-    ! sites so we'll just load a *fake* one so that we can handle the change in ! the calling interface.
-    !call get_dvector_permutations(pLV,dset,inactives,dRotList,LatDim,eps)
-    !write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
-    ! This call returns a list of operations that fix the
-    ! superlattice. The routine expects a *list* of HNF matrices, but
-    ! here we only need to pass in one because every one in the list is
-    ! rotationally-equivalent. So the input and output lists are only
-    ! one element long (in the last index). E.g., HNFin is a 3x3x1 array
+    ! of the parent lattice (need this for d-g table permutations). This call should use 
+    ! only the *active* d-sites, not "inactive" sites. But at this depth in the code, 
+    ! inactive sites have already been removed.
+    call get_spaceGroup(pLVtemp,aTypTemp,aBasTemp,sg_op,sg_fract,.false.,eps)
+    call get_dvector_permutations(pLVtemp,aBasTemp,size(aTypTemp),sg_op,sg_fract,dRotList,eps)
+    write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
+    ! This call returns a list of operations that fix the superlattice. The routine 
+    ! expects a *list* of HNF matrices, but here we only need to pass in one because every 
+    ! one in the list is rotationally-equivalent. So the input and output lists are 
+    ! only one element long (in the last index). E.g., HNFin is a 3x3x1 array
     ! of integers (original lattice HNF)
-
-    stop "this code needs to be updated. See notes here"
-    !The routine below now requires the space group to be calculated before the call (and then passed in).
-    !This change to the code was necessitated by the update to enumlib for "inactive" sites. This 
-    !code could be fixed to run again, just need the spacegroup and then pass it in.
-    !GLWH 2019 call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
+    call remove_duplicate_lattices(HNFin,LatDim,pLVtemp,sg_op,sg_fract,aBasTemp,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
     write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
     write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
          ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))
