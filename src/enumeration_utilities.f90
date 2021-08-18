@@ -1012,7 +1012,7 @@ CONTAINS
     integer nAt, nuq, nP, SNF(3,3), iAt, ip, j, iop, iuq
     integer,pointer,dimension(:,:,:) :: HNFin, HNFout, L, R, SNFlist, uqSNF
     type(RotPermList) :: dRotList ! This is a list of permutations for the d-set
-    ! (needed as in put for several routines)
+    ! (needed as input for several routines)
     type(opList), pointer :: fixOp(:) ! List of symops that fix the superlattice
     type(RotPermList), pointer :: LattRotList(:) ! List of rotation perms for the superlattice
     integer, pointer :: labeling(:)!, hnf_degen(:)
@@ -1029,12 +1029,10 @@ CONTAINS
     allocate(digit(size(dset,2)))
     label = 1
     digit = 1
-
     open(17,file="debug_gspace_rep.out")
     nAt = size(aBas,2)
     write(17,'("Number of atoms: ",i3)') nAt
     if(nAt/=size(aTyp)) stop "Input to get_gspace_representation is inconsistent: nAt"
-
 
     allocate(HNFin(3,3,1))
     HNFin(:,:,1) = HNF(:,:,1) ! The first HNF in the list is the one that is unrotated
@@ -1064,7 +1062,6 @@ CONTAINS
     write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
     write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
     !write(*,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
-
     !** Calls to enumlib routines **
 
     ! This call generates a list of permutations for the d-set under symmetry operations
@@ -1075,7 +1072,7 @@ CONTAINS
     ! 3 Jan 2019 GLWH. We haven't generalized this code to handle "inactive"
     ! sites so we'll just load a *fake* one so that we can handle the change in ! the calling interface.
     !call get_dvector_permutations(pLV,dset,inactives,dRotList,LatDim,eps)
-    write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
+    !write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
     ! This call returns a list of operations that fix the
     ! superlattice. The routine expects a *list* of HNF matrices, but
     ! here we only need to pass in one because every one in the list is
@@ -1084,7 +1081,9 @@ CONTAINS
     ! of integers (original lattice HNF)
 
     stop "this code needs to be updated. See notes here"
-    !The routine below now requires the space group to be calculated before the call (and then passed in). This change to the code was necessitated by the update to enumlib for "inactive" sites. This code could be fixed to run again, just need the spacegroup and then pass it in.
+    !The routine below now requires the space group to be calculated before the call (and then passed in).
+    !This change to the code was necessitated by the update to enumlib for "inactive" sites. This 
+    !code could be fixed to run again, just need the spacegroup and then pass it in.
     !GLWH 2019 call remove_duplicate_lattices(HNFin,LatDim,pLV,dset,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
     write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
     write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
@@ -1356,10 +1355,7 @@ CONTAINS
   !!<parameter name="B_labelingList" regular="true">{ labeling#, entry
   !!} permuted labelings</parameter>
   !!<parameter name="match" regular="true">Returns true if structures match.</parameter>
-  SUBROUTINE compare_two_gstructures(LatDim,pLV,dset,eps, A_HNF, A_labeling, B_HNFlist, B_labelingList, match)
-    real(dp), intent(in), dimension(3,3) :: pLV
-    integer, intent(in)                  :: LatDim
-    real(dp), allocatable                :: dset(:,:)     ! (in) changed this to allocatable for uncle, 2/6/20 GLWH
+  SUBROUTINE compare_two_gstructures(A_HNF, A_labeling, B_HNFlist, B_labelingList, match)
     ! "original" structure A:
     integer, intent(in) :: A_HNF(:,:)          ! (in) HNF
     integer, intent(in) :: A_labeling(:)       ! (in) labeling
