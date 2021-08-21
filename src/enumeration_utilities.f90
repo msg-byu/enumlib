@@ -518,7 +518,7 @@ CONTAINS
     ! postions into the group. The find_gspace_representation routine
     ! will assume that the *first* HNF in the list in the unrotated
     ! one.
-    call HermiteNormalForm(S,newH,R)
+    call HermiteNormalForm(S,newH,R) ! S is the transform from pLV to sLV
     trow(1,:) = (/newH(1,1),newH(2,1),newH(2,2),newH(3,1),newH(3,2),newH(3,3)/)
 
     idx = (/(i,i=1,nOp)/)
@@ -1034,12 +1034,12 @@ CONTAINS
 
     allocate(aTypTemp(nAt),aBasTemp(3,nAt))
     aTypTemp = aTyp; aBasTemp = aBas
-    sLVtemp = sLV
+    sLVtemp = sLV ! Need a temp variable because sLV is intent(in) and can't be reassigned
 
     call make_primitive(sLVtemp,aTypTemp,aBasTemp,.false.,eps)
     if(nAt/=size(aTypTemp)) then;
        write(17,'(/,"ERROR: The input structure wasn''t primitive")')
-       write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
+       write(17,'("atom types: ",20(i2,1x))') aTypTemp(:)
        write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
        !stop "ERROR: input structure for get_gspace_representation was not primitive";endif
        write(*,'(A)') "WARNING: input structure for get_gspace_representation was not primitive"
@@ -1055,6 +1055,9 @@ CONTAINS
     if(.not. equal(T,nint(T),eps)) stop "Input for get_gspace_representation is inconsistent"
     write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
     write(17,'("d-set: ",/,200(3(f7.3,1x),/))') (dset(:,iAt),iAt=1,size(dset,2))
+    ! Once the equivalence of pLV and pLVtemp have been established, don't use pLVtemp for anything else
+    ! Because pLV and pLVtemp my be equivalent but not identical, using pLVtemp can change the HNF. This
+    ! caused an insidious bug that took a long time to fix.
 
     !** Calls to enumlib routines **
 
@@ -1062,15 +1065,16 @@ CONTAINS
     ! of the parent lattice (need this for d-g table permutations). This call should use 
     ! only the *active* d-sites, not "inactive" sites. But at this depth in the code, 
     ! inactive sites have already been removed.
-    call get_spaceGroup(pLVtemp,aTypTemp,aBasTemp,sg_op,sg_fract,.false.,eps)
-    call get_dvector_permutations(pLVtemp,aBasTemp,size(aTypTemp),sg_op,sg_fract,dRotList,eps)
+    call get_spaceGroup(pLV,aTypTemp,aBasTemp,sg_op,sg_fract,.false.,eps)
+    call get_dvector_permutations(pLV,aBasTemp,size(aTypTemp),sg_op,sg_fract,dRotList,eps)
     write(17,'("d-set permutations: ",200(i3,1x))') dRotList%RotIndx(:)
     ! This call returns a list of operations that fix the superlattice. The routine 
     ! expects a *list* of HNF matrices, but here we only need to pass in one because every 
     ! one in the list is rotationally-equivalent. So the input and output lists are 
     ! only one element long (in the last index). E.g., HNFin is a 3x3x1 array
     ! of integers (original lattice HNF)
-    call remove_duplicate_lattices(HNFin,LatDim,pLVtemp,sg_op,sg_fract,aBasTemp,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
+
+    call remove_duplicate_lattices(HNFin,LatDim,pLV,sg_op,sg_fract,aBasTemp,dRotList,HNFout,fixOp,LattRotList,sLVlist,hnf_degen,eps)
     write(17,'("Number of symmetry operations that fix the superlattice: ",i3,/)') size(fixOp(1)%rot,3)
     write(17,'(200(3(3f7.3,1x,/),"shift:",3(f7.3,1x),//))') &
          ((fixOp(1)%rot(j,:,iOp),j=1,3),fixOp(1)%shift(:,iOp),iOp=1,size(fixOp(1)%rot,3))

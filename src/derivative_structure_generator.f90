@@ -529,18 +529,15 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     ! Make the group member list for the first SNF
     diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
     call make_member_list(diag,g)
-    do im=1,3;write(19,'("Member list: ",3(20(1x,i2)))') g(im,:); enddo
     call matrix_inverse(A,Ainv,err)
     if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
 
     do iH = 1,nH ! loop over each superlattice unless the SNF is
    ! different than the previous (they should be sorted into blocks)
    ! don't bother making the group again. Just use the same one.
-   write(19,'("HNF #: ",i2)') iH
        if(iH > 1) then; if(.not. all(SNF(:,:,ih)==SNF(:,:,ih-1))) then
           diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
           call make_member_list(diag,g)
-          write(19,'("Member list: ")') g
        endif; endif
        ! Make the transform matrices for taking the g's and rotating them
        Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
@@ -564,13 +561,11 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
              if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
              gp = nint(rgp) ! Move the rotated group into an integer array
              ag = nint(rag)
-             write(*,'("gp-premod: ",20(1x,i2))')gp
              gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of
              ! the SNF to bring into group Now that the rotated group
              ! is known, find the mapping of the elements between the
              ! original group and the permuted group. This is the
              ! permutation.
-             write(*,'("gp-pstmod: ",20(1x,i2))')gp
              skip = .false. ! This is just for efficiency
              do im = 1, n
                 do jm = 1, n
@@ -1059,7 +1054,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     do iRot = 1,nRot  ! Loop over each rotation
         thisRot = rot(:,:,iRot) ! Store the rotation
 !       write(*,'("HNF: ",9(i3,1x))') HNF
-
        rotLat = matmul(thisRot,origLat)          ! Compute the rotated superlattice
        ! do i = 1, size(rot,3)
        !    write(*,'(3("orig:   ",3(f10.6,1x),/))') origLat
