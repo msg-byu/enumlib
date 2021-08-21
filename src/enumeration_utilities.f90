@@ -64,36 +64,26 @@ CONTAINS
 
     integer a, b, c, d, e, f ! elements of the HNF matrix
     integer digit ! one of the labelings in the labeling
-    integer ic, z1, z2, z3 ! Counter over number of interior points, steps in the g table
-    !("lattice coords")
+    integer ic, z1, z2, z3 ! Counter over number of interior points, steps in the g table ("lattice coords")
     integer iAt, i, iD, nD
-    real(dp) :: greal(3)   ! Floating point representation of the group element components
-    !(g-vector)
+    real(dp) :: greal(3)   ! Floating point representation of the group element components (g-vector)
     integer  :: g(3)       ! Integer version of greal
 
     nD = size(pBas,2)
-    !allocate(gotAtomFromLabPos(n*nD)); gotAtomFromLabPos = .false.
 
     ! Define the non-zero elements of the HNF matrix
     a = HNF(1,1); b = HNF(2,1); c = HNF(2,2)
     d = HNF(3,1); e = HNF(3,2); f = HNF(3,3)
     ! Compute the superlattice vectors
-    !write(*,'("Parent lattice:",/,3(3f7.3,1x,/))') (pLV(:,i),i=1,3)
-    !write(*,'("Parent lattice:",/,3(3I,1x,/))') (HNF(i,:),i=1,3)
-
     sLV = matmul(pLV,HNF)
-    !write(*,'("Superlattice:",/,3(3f7.3,1x,/))') (sLV(:,i),i=1,3)
 
     ! Find the coordinates of the basis atoms
     allocate(aBas(3,n*nD))
     allocate(spin(n*nD),gIndx(n*nD))
     gIndx=-1
 
-    !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
     ! Let's get the fattest basis (Minkowski reduction)
     if (minkowskiReduce) call minkowski_reduce_basis(sLV,sLV,eps)
-    !write(*,'(3(f7.3,1x))') (sLV(i,:),i=1,3)
-
 
     ! Find each atomic position from the g-space information
     ic = 0  ! Keep track of the number of points mapped so far
