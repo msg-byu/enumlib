@@ -369,6 +369,8 @@ CONTAINS
   !!<parameter name="shift" regular="true">fractional shifts of the spacegroup.</parameter>
   !!<parameter name="drplist" regular="true">Output. A list of
   !!permutations effected by the Ops.</parameter>
+  !!<parameter name="Latdim" regular="true">2 or 3 dimensional
+  !!case?</parameter>
   !!<parameter name="eps" regular="true">Finite precision
   !!tolerance.</parameter>
 SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
@@ -398,8 +400,8 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 
     dRPList%nL = nOp  ! Number of operations that fix the parent
-    dRPList%RotIndx => null()
-    !lattice (but may permute the d-vectors)
+    dRPList%RotIndx => null() !lattice (but may permute the d-vectors)
+    
 
     do iOp = 1, nOp ! Try each operation in turn and see how the
                     ! d-vectors are permuted for each
@@ -452,7 +454,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
   !!in the enumeration.</parameter>
   !!<parameter name="surf" regular="true">True is this is a surface
   !!calculation, false otherwise.</parameter>
-  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows, surf)
+  SUBROUTINE get_rotation_perms_lists(A,HNF,L,SNF,Op,RPlist,dperms,eps,aperms,use_arrows,surf)
     real(dp), intent(in) :: A(3,3)
     integer, intent(in), dimension(:,:,:) :: HNF, L, SNF
     type(OpList), intent(in) :: Op(:)
@@ -487,12 +489,14 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     end if
 
     ! build the arrow basis.
-    if (present(surf) .and. (surf .eqv. .True.)) then
+    if (present(surf)) then
+      if (surf .eqv. .True.) then
        allocate(arrow_basis(3,4))
        arrow_basis(:,1) = (/1,0,0/)
        arrow_basis(:,2) = (/-1,0,0/)
        arrow_basis(:,3) = (/0,1,0/)
        arrow_basis(:,4) = (/0,-1,0/)
+      endif
     else
        allocate(arrow_basis(3,6))
        arrow_basis(:,1) = (/1,0,0/)
@@ -545,6 +549,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
        allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp, size(arrow_basis,2)),STAT=status)
        if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
+       write(19,'("<< d-g Table >>")')
        do iOp = 1, nOp ! For each rotation, find the permutation
           dgp = 0 ! Initialize the (d,g) table
           dap = 0
@@ -600,7 +605,9 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          if (any(dgp==0) .or. (any(dap==0) .and. arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
+          if (any(dgp==0) .or. (any(dap==0) .and. arrows)) then
+            do im = 1,nD; write(19,'(20(1x,i2))') dgp(im,:); enddo
+            stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"; endif
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
@@ -1004,7 +1011,8 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     degeneracy_list = degeneracy_list + 1
   END SUBROUTINE remove_duplicate_lattices
 
-  !!<summary></summary>
+  !!<summary>For the superlattice, find the symops that leave the lattice unchanged, that is,
+  !!the symops that "fix" the superlattice. </summary>
   !!<parameter name="HNF" regular="true"></parameter>
   !!<parameter name="pLV" regular="true"></parameter>
   !!<parameter name="nD" regular="true"></parameter>
@@ -1042,11 +1050,10 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     cDegen = 0
     ic = 0 ! Counter for the fixing operations
     tv = 0; tIndex = 0 ! temp variables
+    origLat = matmul(pLV,HNF)  ! Compute the superlattice
     do iRot = 1,nRot  ! Loop over each rotation
-       thisRot = rot(:,:,iRot) ! Store the rotation
-!       write(*,'(3("orig:   ",3(f10.6,1x),/))') thisRot
+        thisRot = rot(:,:,iRot) ! Store the rotation
 !       write(*,'("HNF: ",9(i3,1x))') HNF
-       origLat = matmul(pLV,HNF)  ! Compute the superlattice
        rotLat = matmul(thisRot,origLat)          ! Compute the rotated superlattice
        ! do i = 1, size(rot,3)
        !    write(*,'(3("orig:   ",3(f10.6,1x),/))') origLat
@@ -1267,7 +1274,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-30-g4fc9-dirty"
+    write(23,'(A)') "v2.0.4-42-gb169-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
