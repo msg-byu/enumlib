@@ -400,8 +400,8 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     if (err) stop "Bad parent lattice vectors in input to get_dvector_permutations"
 
     dRPList%nL = nOp  ! Number of operations that fix the parent
-    dRPList%RotIndx => null()
-    !lattice (but may permute the d-vectors)
+    dRPList%RotIndx => null() !lattice (but may permute the d-vectors)
+    
 
     do iOp = 1, nOp ! Try each operation in turn and see how the
                     ! d-vectors are permuted for each
@@ -529,15 +529,18 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     ! Make the group member list for the first SNF
     diag = (/SNF(1,1,1),SNF(2,2,1),SNF(3,3,1)/)
     call make_member_list(diag,g)
+    do im=1,3;write(19,'("Member list: ",3(20(1x,i2)))') g(im,:); enddo
     call matrix_inverse(A,Ainv,err)
     if(err) stop "Invalid parent lattice vectors in get_rotation_perm_lists"
 
     do iH = 1,nH ! loop over each superlattice unless the SNF is
    ! different than the previous (they should be sorted into blocks)
    ! don't bother making the group again. Just use the same one.
+   write(19,'("HNF #: ",i2)') iH
        if(iH > 1) then; if(.not. all(SNF(:,:,ih)==SNF(:,:,ih-1))) then
           diag = (/SNF(1,1,ih),SNF(2,2,ih),SNF(3,3,ih)/)
           call make_member_list(diag,g)
+          write(19,'("Member list: ")') g
        endif; endif
        ! Make the transform matrices for taking the g's and rotating them
        Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
@@ -549,6 +552,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
        allocate(rperms%perm(nOp,nD*n),taperms%perm(nOp, size(arrow_basis,2)),STAT=status)
        if (status/=0) stop "Allocation failed in get_rotation_perm_lists: rperms%perm"
+       write(19,'("<< d-g Table >>")')
        do iOp = 1, nOp ! For each rotation, find the permutation
           dgp = 0 ! Initialize the (d,g) table
           dap = 0
@@ -560,11 +564,13 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
              if (.not. equal(rgp,nint(rgp),eps)) stop "Transform left big fractional parts"
              gp = nint(rgp) ! Move the rotated group into an integer array
              ag = nint(rag)
+             write(*,'("gp-premod: ",20(1x,i2))')gp
              gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of
              ! the SNF to bring into group Now that the rotated group
              ! is known, find the mapping of the elements between the
              ! original group and the permuted group. This is the
              ! permutation.
+             write(*,'("gp-pstmod: ",20(1x,i2))')gp
              skip = .false. ! This is just for efficiency
              do im = 1, n
                 do jm = 1, n
@@ -604,7 +610,9 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
                 end do !jm
              end do !im
           enddo ! loop over d-vectors (each row in the table)
-          if (any(dgp==0) .or. (any(dap==0) .and. arrows)) stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"
+          if (any(dgp==0) .or. (any(dap==0) .and. arrows)) then
+            do im = 1,nD; write(19,'(20(1x,i2))') dgp(im,:); enddo
+            stop "(d,g)-->(d',g') mapping failed in get_rotation_perm_lists"; endif
 
           ! Now we have the (d',g') table for this rotation. Now
           ! record the permutation
@@ -1008,7 +1016,8 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     degeneracy_list = degeneracy_list + 1
   END SUBROUTINE remove_duplicate_lattices
 
-  !!<summary></summary>
+  !!<summary>For the superlattice, find the symops that leave the lattice unchanged, that is,
+  !!the symops that "fix" the superlattice. </summary>
   !!<parameter name="HNF" regular="true"></parameter>
   !!<parameter name="pLV" regular="true"></parameter>
   !!<parameter name="nD" regular="true"></parameter>
@@ -1046,11 +1055,11 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     cDegen = 0
     ic = 0 ! Counter for the fixing operations
     tv = 0; tIndex = 0 ! temp variables
+    origLat = matmul(pLV,HNF)  ! Compute the superlattice
     do iRot = 1,nRot  ! Loop over each rotation
-       thisRot = rot(:,:,iRot) ! Store the rotation
-!       write(*,'(3("orig:   ",3(f10.6,1x),/))') thisRot
+        thisRot = rot(:,:,iRot) ! Store the rotation
 !       write(*,'("HNF: ",9(i3,1x))') HNF
-       origLat = matmul(pLV,HNF)  ! Compute the superlattice
+
        rotLat = matmul(thisRot,origLat)          ! Compute the rotated superlattice
        ! do i = 1, size(rot,3)
        !    write(*,'(3("orig:   ",3(f10.6,1x),/))') origLat
@@ -1271,7 +1280,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-40-gfc3d-dirty"
+    write(23,'(A)') "v2.0.4-42-gb169-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
