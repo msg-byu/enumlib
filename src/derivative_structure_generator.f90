@@ -382,7 +382,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     real(dp), intent(in) :: eps
 
     integer iD, nOp, iOp, status!, iC!, nDfull
-    integer, pointer :: aTyp(:), tList(:,:)
+    integer, pointer :: tList(:,:)
     real(dp) :: rd(size(d,1),size(d,2)),tRD(size(d,1),size(d,2))
     real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
     real(dp), pointer:: tv(:,:,:)
@@ -940,9 +940,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     type(RotPermList), intent(in) :: dperms
     type(RotPermList), pointer :: RPList(:)
     real(dp), pointer :: latts(:,:,:)
-
     integer nD
-    real(dp), allocatable:: sgrots(:,:,:), sgshift(:,:)
     real(dp), dimension(3,3) :: test_latticei, test_latticej
     integer i, Nhnf, iuq, irot, j, nRot, Nq, status
     integer, allocatable :: temp_hnf(:,:,:)
@@ -1221,7 +1219,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     integer             :: nD
     !Had to change character to 80 from 10 to match the definition in io_utils.read_input
     character(80), intent(in) :: title
-    character(len=255) :: version
     real(dp), intent(in) :: parLV(3,3), eps
     real(dp), allocatable :: dFull(:,:), d(:,:)
     character(1), intent(in) :: pLatTyp
@@ -1235,7 +1232,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     logical, optional, intent(in) :: polya
     logical, optional, intent(in) :: origCrossOutAlgorithm
 
-    integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC, j
+    integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, iC, j
     integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
     integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
     integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -1269,12 +1266,11 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     !!<local name="inactives"> A list of the sites that are _inactive_, that have no configurational degrees of freedom.</local>
     integer, allocatable :: inactives(:,:) ! Each row (2 columns) contains the index of an inactive site and the corresponding label
     real(dp), allocatable :: SGrot(:,:,:), SGt(:,:) ! Last index is iOp
-    integer              :: nInactive, jInactive
     max_binomial = 1E10
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-42-gb169-dirty"
+    write(23,'(A)') "v2.0.4-46-g47e4-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
