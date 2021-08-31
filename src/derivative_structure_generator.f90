@@ -382,7 +382,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     real(dp), intent(in) :: eps
 
     integer iD, nOp, iOp, status!, iC!, nDfull
-    integer, pointer :: aTyp(:), tList(:,:)
+    integer, pointer :: tList(:,:)
     real(dp) :: rd(size(d,1),size(d,2)),tRD(size(d,1),size(d,2))
     real(dp) :: inv_pLV(3,3) ! Inverse of the pLV matrix
     real(dp), pointer:: tv(:,:,:)
@@ -402,7 +402,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     dRPList%nL = nOp  ! Number of operations that fix the parent
     dRPList%RotIndx => null() !lattice (but may permute the d-vectors)
     
-
     do iOp = 1, nOp ! Try each operation in turn and see how the
                     ! d-vectors are permuted for each
        rd = matmul(rot(:,:,iOp),d)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
@@ -480,23 +479,24 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     integer OpIndxInSuperCellList, RowInDxGTable
     integer, allocatable :: arrow_basis(:,:)
     integer, pointer :: temp_perms(:,:) => null()
-    logical :: arrows
+    logical :: arrows, surfcase
 
     if (.not. present(use_arrows)) then
        arrows = .false.
     else
        arrows = use_arrows
     end if
-
-    ! build the arrow basis.
-    if (present(surf)) then
-      if (surf .eqv. .True.) then
+    if (.not. present(surf)) then
+      surfcase = .false.
+    else
+      surfcase = surf
+    endif 
+    if (surfcase) then
        allocate(arrow_basis(3,4))
        arrow_basis(:,1) = (/1,0,0/)
        arrow_basis(:,2) = (/-1,0,0/)
        arrow_basis(:,3) = (/0,1,0/)
        arrow_basis(:,4) = (/0,-1,0/)
-      endif
     else
        allocate(arrow_basis(3,6))
        arrow_basis(:,1) = (/1,0,0/)
@@ -508,7 +508,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     end if
 
     open(19,file="debug_get_rotation_perms_lists.out")
-
     ! Number of HNFs (superlattices); Index of the superlattices;
     ! Number of d-vectors in d set
     nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2)
@@ -940,9 +939,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     type(RotPermList), intent(in) :: dperms
     type(RotPermList), pointer :: RPList(:)
     real(dp), pointer :: latts(:,:,:)
-
     integer nD
-    real(dp), allocatable:: sgrots(:,:,:), sgshift(:,:)
     real(dp), dimension(3,3) :: test_latticei, test_latticej
     integer i, Nhnf, iuq, irot, j, nRot, Nq, status
     integer, allocatable :: temp_hnf(:,:,:)
@@ -1221,7 +1218,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     integer             :: nD
     !Had to change character to 80 from 10 to match the definition in io_utils.read_input
     character(80), intent(in) :: title
-    character(len=255) :: version
     real(dp), intent(in) :: parLV(3,3), eps
     real(dp), allocatable :: dFull(:,:), d(:,:)
     character(1), intent(in) :: pLatTyp
@@ -1235,7 +1231,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     logical, optional, intent(in) :: polya
     logical, optional, intent(in) :: origCrossOutAlgorithm
 
-    integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, status, iC, j
+    integer :: iD, i, ivol, LatDim, Scnt, Tcnt, iBlock, HNFcnt, iC, j
     integer, pointer, dimension(:,:,:) :: HNF => null(),SNF => null(), L => null(), R => null()
     integer, pointer :: SNF_labels(:) =>null(), uqSNF(:,:,:) => null()
     integer, pointer, dimension(:,:,:) :: rdHNF =>null()
@@ -1269,12 +1265,11 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     !!<local name="inactives"> A list of the sites that are _inactive_, that have no configurational degrees of freedom.</local>
     integer, allocatable :: inactives(:,:) ! Each row (2 columns) contains the index of an inactive site and the corresponding label
     real(dp), allocatable :: SGrot(:,:,:), SGt(:,:) ! Last index is iOp
-    integer              :: nInactive, jInactive
     max_binomial = 1E10
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-42-gb169-dirty"
+    write(23,'(A)') "v2.0.4-49-g067d-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)

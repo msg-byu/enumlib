@@ -107,7 +107,6 @@ CONTAINS
     enddo
     if (ic /= n*nD) stop "ERROR: map_enumStr_to_real_space: Didn't find the correct # of basis atoms"
 
-
     allocate(x(k))
     x = 0.0
     if (mod(k,2)==0) then
@@ -131,9 +130,6 @@ CONTAINS
     endif
     x = x/real(n*nD,dp)
 
-    !if (.not. all(gotAtomFromLabPos .eqv. .true.)) stop "Labeling to atom conversion failed
-    !in map_enumStr_to_real_space"
-    !deallocate(gotAtomFromLabPos)
   ENDSUBROUTINE map_enumStr_to_real_space
 
   !!<summary>This routine takes three lattice vectors and a list of
@@ -295,8 +291,7 @@ CONTAINS
     real(dp), intent(in)      :: eps
     integer, intent(in), target, optional :: fixedOcc(:)
     integer, pointer                      :: fixedOcc_(:) ! internal variable for fixedOcc
-    integer, pointer                      :: removedAtoms(:)  ! indices
-    ! of those atoms that were removed by make_primitive
+    integer, pointer                      :: removedAtoms(:)  ! indices of those atoms that were removed by make_primitive
     integer, pointer :: HNF(:,:,:) ! (out)
     integer, intent(out) :: SNF(3,3), L(3,3)
 
@@ -310,6 +305,7 @@ CONTAINS
     integer, allocatable :: trow(:,:), vs(:), idx(:)
     real(dp) :: testsite(3), diff(3)
 
+    open(23,file="get_HNF.debug")
     nAt = size(aBas,2)
     if(nAt/=size(aTyp)) then
       write(*,'(A80)') title
@@ -320,23 +316,14 @@ CONTAINS
     if (present(fixedOcc)) then; fixedOcc_ => fixedOcc
     else; allocate(fixedOcc_(0))
     endif
-
-    ! open(17,file="debug_get_HNF.out")
-    ! write(17,'(3/,"<<< Finding the g-space representation >>>",2/)')
-
-    ! do iAt = 1, nAt
-    !    write(17,'("Atom #: ",i2," position: ",3(f7.3,1x))') iAt, aBas(:,iAt)
-    ! enddo
+    
+    write(23,'(3/,"<<< Finding the HNF corresponding to input structure >>>",2/)')
 
     allocate(aTypTemp(nAt),aBasTemp(3,nAt))
     aTypTemp = aTyp; aBasTemp = aBas
     pLVtemp = sLV
     call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps,removed_=removedAtoms)
     if(nAt/=size(aTypTemp)) then; ! the structure was reduced by make_primitive
-       ! write(17,'(/,"ERROR: The input structure wasn''t primitive")')
-       ! write(17,'("atom type: ",20(i2,1x))') aTypTemp(:)
-       ! write(17,'("number of atoms: ",i2,5x," size of aTyp:",i2)') nAt, size(aTypTemp)
-       !stop "ERROR: input structure for get_HNF_of_derivative_structure was not primitive";endif
        write(*,'(/,A)') "WARNING: input structure for get_HNF_of_derivative_structure was not primitive";
        allocate(hnf(1,1,1)); HNF = 0
        return
@@ -348,7 +335,6 @@ CONTAINS
     aTypTemp(fixedOcc_) = aTyp(fixedOcc_)
     pLVtemp = sLV
     call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-    ! write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
 
     call matrix_inverse(pLVtemp,parLattTest,err)
     if(err) stop "Problem inverting parent lattice basis"
@@ -370,25 +356,17 @@ CONTAINS
     ! not equal. From this point on, use the one from the
     ! struct_enum.out file. (that one is pLV, not pLVtemp)
 
-
     allocate(dsetStruc(3,nD)); dsetStruc = aBasTemp
     call matrix_inverse(pLV,pLVinv,err)
     if(err) stop "matrix inverse failed in get_HNF_of_derivative_structure"
-    ! write(17,'("d-set: ",/,200(3(f8.4,1x),/))') (dsetStruc(:,iAt),iAt=1,size(dsetStruc,2))
-    ! write(17,'("Size of supercell: ",i3)') abs(nint(determinant(sLV)/determinant(pLV)))
-
     ! I think that both of the d-sets (one from struct_enum.out and
     ! one from POSCAR) should be brought the unit cell (if they aren't
     ! already) and it should be the *same* unit cell
 
-    ! write(17,'("After bringing into common unit cell:")')
     do iAt = 1, nD
        call bring_into_cell(dsetStruc(:,iAt),pLVinv,pLV,eps)
        call bring_into_cell(dset     (:,iAt),pLVinv,pLV,eps)
-       ! write(17,'("  dset struc: ",3(F8.4,1x))') dsetStruc(:,iAt)
-       ! write(17,'("  dset      : ",3(F8.4,1x))') dset(:,iAt)
     end do;
-    ! write(17,*)
 
     ! Check that the site basis for both the enum file and POSCAR are
     !  consistent.  They might not have the same origin so try all
@@ -418,20 +396,13 @@ CONTAINS
     ! b) if the 0 shift was not successfull, try everything:
     if (.not. mapped) then
        do iAt = 1, nD
-          !write(*,'("iAt:",i3,"  EnumBas ",3(F8.4,1x))') iAt,EnumBas(:,iAt)
-          !write(*,'("iAt:",i3,"  dset ",3(F8.4,1x))') iAt,dset(:,iAt)
           diff = dsetStruc(:,iAt)-dset(:,1)
-          !write(*,'("iAt:",i3,"  diff ",3(F8.4,1x))') iAt,dset(:,iAt)-EnumBas(:,1)
           do iE = 1, nD
              mapped=.false.
              do iP = 1, nD
                 testsite = dset(:,iP)-diff
-                !write(*,'("iP:",i3,"  testsite",3(F8.4,1x))') iP,testsite
-                call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make
-                ! sure we stay in the same cell write(*,'("iP:",i3,"
-                ! testsite",3(F8.4,1x))') iP,testsite
-                if (equal(testsite,dset(:,iE),eps)) then ! this site
-                   ! maps to one in other lattice
+                call bring_into_cell(testsite,pLVinv,pLV,eps) ! Make sure we stay in the same cell 
+                if (equal(testsite,dset(:,iE),eps)) then ! this site maps to one in other lattice
                    mapped=.true.;
                    exit
                 endif
@@ -450,27 +421,16 @@ CONTAINS
 
     if (.not. mapped) stop "The lattice sites of the two parent lattices are not coincident"
     if (.not. equal(diff,0._dp,eps)) then
-       ! write(17,'("The atomic sites of the parent lattice of the input structure have been shifted by")')
-       ! write(17,'(3(f8.4,1x),/)') diff
-       ! write(*,'("DEBUG: The atomic sites of the parent lattice of the input structure have been shifted by")')
-       ! write(*,'("DEBUG: ",3(f8.4,1x),/)') diff
-
-       !Gus>   dset = dset - spread(diff,2,size(aBas(:,2)))
        dset = dset - spread(diff,2,size(aBas,2))
-
        do iAt = 1, nD
           call bring_into_cell(dset(:,iAt),pLVinv,pLV,eps)
-          ! write(17,'("new pBas: ",3(f8.4,1x))') dset(:,iAt)
        enddo
-       ! write(17,'(/)')
        call matrix_inverse(sLV,sLVinv,err)
        if(err) stop "Superlattice vectors are co-planar in routine ""get_HNF_of_derivative_superstructure"""
        do iAt = 1, size(aBas,2)
           aBas(:,iAt) = aBas(:,iAt) - diff
           call bring_into_cell(aBas(:,iAt),sLVinv,sLV,eps)
-          ! write(17,'("new sLV bas: ",i2,3x,3(f8.4,1x))') iAt, aBas(:,iAt)
        enddo
-       ! write(17,'(//)')
     endif
 
     if(.not. equal(determinant(sLV)/determinant(pLV),nint(determinant(sLV)/determinant(pLV)),eps)) stop &
@@ -478,6 +438,7 @@ CONTAINS
     if(.not. equal(matmul(pLVinv,sLV),nint(matmul(pLVinv,sLV)),eps)) stop &
          "ERROR: HNF was non-integer"
     S = nint(matmul(pLVinv,sLV))
+    write(23,'("Transform matrix, pLV to sLV:",9(1x,i3))')
 
     call get_spaceGroup(pLV,aTypTemp,dset,sgrot,sgshift,.false.,eps)
     ! I think it's OK here not to pass in labels for the types
@@ -485,32 +446,26 @@ CONTAINS
     ! permutations, these will not be effective if the allowed labels
     ! are different. In other words, it can't hurt anything.
 
-    ! write(17,'("After get_spaceGroup:")')
+    write(23,'("Found spaceGroup")')
     do iAt = 1, nD
        call bring_into_cell(dsetStruc(:,iAt),pLVinv,pLV,eps)
        call bring_into_cell(dset     (:,iAt),pLVinv,pLV,eps)
-       ! write(17,'("  dset struc: ",3(F8.4,1x))') dsetStruc(:,iAt)
-       ! write(17,'("  dset      : ",3(F8.4,1x))') dset(:,iAt)
     end do;
 
     nOp = size(sgrot,3)
     allocate(trow(nOp,6),vs(nOp),idx(nOp))
-    ! open(16,file="debug_get_spacegroup.out")
-    ! do iOp = 1, nOp
-    !    do i = 1, 3
-    !       write(16,'("Op#: ",i2,3x,3(f8.4,1x))') iOp,sgrot(i,:,iOp)
-    !    end do
-    !    write(16,'("Shift#: ",3(f8.4,1x),/)') sgshift(:,iOp)
-    ! end do
+    write(23,'("Made it past checks for input structure. Now finding HNF")')
 
     ! Find the unrotated form of this structure's HNF. We'll need this
     ! later to get the SNF's left transform matrix, L, to map atom
     ! postions into the group. The find_gspace_representation routine
     ! will assume that the *first* HNF in the list in the unrotated
     ! one.
-    call HermiteNormalForm(S,newH,R) ! S is the transform from pLV to sLV
-    trow(1,:) = (/newH(1,1),newH(2,1),newH(2,2),newH(3,1),newH(3,2),newH(3,3)/)
 
+    call HermiteNormalForm(S,newH,R) ! S is the transform from pLV to sLV
+    call SmithNormalForm(newH,L,SNF,R) 
+    trow(1,:) = (/newH(1,1),newH(2,1),newH(2,2),newH(3,1),newH(3,2),newH(3,3)/)
+    write(23,'("HNF entries: ",5(1x,i3,","),1x,i3)') trow(1,:)
     idx = (/(i,i=1,nOp)/)
     nuq = 1
     do iOp = 1, nOp
@@ -531,7 +486,7 @@ CONTAINS
           trow(nuq,:) = row
        endif
     enddo
-    ! write(17,'("Unique HNF entries after rotations:")')
+        ! write(17,'("Unique HNF entries after rotations:")')
     ! do i = 1,nuq
     !    write(17,'("row #:",i3,3x,6(i2,1x))') i,trow(i,:)
     ! enddo
@@ -540,13 +495,12 @@ CONTAINS
     do iuq = 1,nuq
        HNF(1,1,iuq) = trow(iuq,1); HNF(2,1,iuq) = trow(iuq,2); HNF(2,2,iuq) = trow(iuq,3)
        HNF(3,1,iuq) = trow(iuq,4); HNF(3,2,iuq) = trow(iuq,5); HNF(3,3,iuq) = trow(iuq,6)
-       ! write(17,'("HNF #: ",i3,/,3(3(i2,1x),/))') iuq,(HNF(iAt,:,iuq),iAt=1,3)
+       write(23,'("HNF #: ",i3,/,3(3(i2,1x),/))') iuq,(HNF(iAt,:,iuq),iAt=1,3)
     enddo
-
-    call SmithNormalForm(S,L,SNF,R)
-    ! write(17,'("Integer transform of superlattice: ",/,3(3(i2,1x),/))') (S(iAt,:),iAt=1,3)
-    ! write(17,'("SNF: ",/,3(3(i2,1x),/))') (SNF(iAt,:),iAt=1,3)
-    ! close(17)
+    
+    write(23,'("Integer transform of superlattice: ",/,3(3(i2,1x),/))') (S(iAt,:),iAt=1,3)
+    write(23,'("SNF: ",/,3(3(i2,1x),/))') (SNF(iAt,:),iAt=1,3)
+    close(23)
 
   END SUBROUTINE get_HNF_of_derivative_structure
 
@@ -1097,18 +1051,6 @@ CONTAINS
        write(17,'("Perm #",i3,":",1x,200(i2,1x))') ip,LattRotList(1)%perm(ip,:)
     enddo
 
-    ! debug
-    !print *,"HNF check",all(HNFin(:,:,1)==HNFout(:,:,1))
-    !call matrix_inverse(pLV,Ainv,err)
-    !diag = (/SNFlist(1,1,1),SNFlist(2,2,1),SNFlist(3,3,1)/)
-    !write(*,'("Left transform:",/,3(3i2,1x,/))') transpose(L(:,:,1))
-    !do iAt = 1,nAt
-    !
-    !   write(*,'("from group: # ",i3,5x," pos.:",3(i2,1x))') iAt, modulo(nint(matmul(L(:,:,1)&
-    !        &,matmul(Ainv,aBas(:,iAt)))),diag)
-    !enddo
-
-
     call find_labeling_from_atom_basis(L(:,:,1),pLV,aBas,dset,aTyp,SNF,eps,labeling)
     write(17,'("Input atom labels: ",200(i2,1x))') aTyp
     write(17,'("Labeling:          ",200(i2,1x))') labeling
@@ -1122,6 +1064,7 @@ CONTAINS
     ! the struct_enum file
     call find_equivalent_labelings(labeling,LattRotList,pLabel,rotProdLabeling)
 
+    ! Write final output to debug file
     nuq = size(pLabel,1)
     write(17,'(/,"Number of unique labelings: ",i5)') nuq
     do iuq = 1, nuq
