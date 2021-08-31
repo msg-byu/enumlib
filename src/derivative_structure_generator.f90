@@ -402,7 +402,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     dRPList%nL = nOp  ! Number of operations that fix the parent
     dRPList%RotIndx => null() !lattice (but may permute the d-vectors)
     
-
     do iOp = 1, nOp ! Try each operation in turn and see how the
                     ! d-vectors are permuted for each
        rd = matmul(rot(:,:,iOp),d)+spread(shift(:,iOp),2,nD) ! Rotate each d and add the shift
@@ -480,23 +479,24 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     integer OpIndxInSuperCellList, RowInDxGTable
     integer, allocatable :: arrow_basis(:,:)
     integer, pointer :: temp_perms(:,:) => null()
-    logical :: arrows
+    logical :: arrows, surfcase
 
     if (.not. present(use_arrows)) then
        arrows = .false.
     else
        arrows = use_arrows
     end if
-
-    ! build the arrow basis.
-    if (present(surf)) then
-      if (surf .eqv. .True.) then
+    if (.not. present(surf)) then
+      surfcase = .false.
+    else
+      surfcase = surf
+    endif 
+    if (surfcase) then
        allocate(arrow_basis(3,4))
        arrow_basis(:,1) = (/1,0,0/)
        arrow_basis(:,2) = (/-1,0,0/)
        arrow_basis(:,3) = (/0,1,0/)
        arrow_basis(:,4) = (/0,-1,0/)
-      endif
     else
        allocate(arrow_basis(3,6))
        arrow_basis(:,1) = (/1,0,0/)
@@ -508,7 +508,6 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     end if
 
     open(19,file="debug_get_rotation_perms_lists.out")
-
     ! Number of HNFs (superlattices); Index of the superlattices;
     ! Number of d-vectors in d set
     nH = size(HNF,3); n = determinant(HNF(:,:,1)); nD = size(RPList(1)%v,2)
@@ -1270,7 +1269,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-46-g47e4-dirty"
+    write(23,'(A)') "v2.0.4-49-g067d-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
