@@ -599,7 +599,6 @@ CONTAINS
     aTypTemp = 1; pLVtemp = sLV
     ! Now make every atom the same and apply make_primitive to find the parent cell
     call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
-    !write(17,'("Parent lattice of input superlattice (columns): ",/,3(3(f8.4,1x),/))') (pLVtemp(iAt,:),iAt=1,3)
     call matrix_inverse(pLVtemp,parLattTest,err)
     if(err) stop "Problem inverting parent lattice basis"
     if (nEnumBas/=size(aTypTemp))then;print*,"Number of parent lattice sites in "//trim(adjustl(sfname))
@@ -1285,14 +1284,9 @@ CONTAINS
     ! structure B that is to be compared to the "original" structure:
     integer, intent(in) :: B_labelingList(:,:) ! (in)
     integer, intent(in) :: B_HNFlist(:,:,:)    ! (in)
-    ! do both structures match?
-    logical, intent(out) :: match
-
-    real(dp) :: eps
-
+    logical, intent(out) :: match ! do both structures match?
     real(dp) :: p(3,3), Ainv(3,3)
-    integer iLab, nLab
-    integer iHNF, nHNF
+    integer iLab, nLab, iHNF, nHNF
     logical foundLab, foundHNF
 
     call matrix_inverse(p,Ainv)
