@@ -164,8 +164,8 @@ CONTAINS
     class(tree) :: self
     integer, allocatable, intent(out) :: labeling(:)
 
-    integer, allocatable :: clabeling(:), freeIndices(:), configList
-    integer              :: ik, cIdx, iIdx, jIdx, ilc, jlc, nEmp, status
+    integer, allocatable :: clabeling(:), freeIndices(:)
+    integer              :: ik, cIdx, iIdx, ilc, jlc, nEmp, status
 
     allocate(labeling(self%n),STAT=status)
     if(status/=0) stop "Allocation failed in generateColoringFromLocation: labeling."
@@ -370,8 +370,7 @@ CONTAINS
     !!<local name="min_stab_a">Temporary array for arrow stabilizers.</local>
     !!<local name="d">Keeps track of how deep in the tree we are.</local>
     integer :: rotatedlabel(size(label))
-    integer :: perm_i, perm_j, stab_size, new_loc, d, status
-    integer, allocatable :: min_stab(:,:), min_stab_a(:,:)
+    integer :: perm_i, perm_j, stab_size, new_loc, d
 
     d = self%depth()
     ! Make sure that the number of stabilizers is initially 0
@@ -463,8 +462,7 @@ CONTAINS
     !!<local name="lastone">The index of the last '1' in the binary array.</local>
     !!<local name="d">Keeps track of how deep in the tree we are.</local>
     integer, allocatable :: new_labeling(:)
-    integer :: site_i, nzeros, numones, lastone, nLeft, d, status
-    integer :: ndigits(1), minl(1)
+    integer :: site_i, nLeft, d, status
 
     d = self%depth()
     ! The labeling needs to have only '1's for the current color, have
@@ -678,7 +676,6 @@ CONTAINS
     !!<local name="i">Loop variable</local>
     !!<local name="jHNF">Which HNF this is in the permIndx</local>
     !!<local name="nHNF">How many of this HNF are there.</local>
-    logical :: conc_check = .true.
     integer :: lab_degen, iHNF, status, i, jHNF, nHNF, nInAct, iD, idx(1), nD
     integer, allocatable :: vsH(:)
     character(105) :: struct_enum_out_formatstring
