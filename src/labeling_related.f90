@@ -625,7 +625,7 @@ CONTAINS
     integer, allocatable :: expLabeling(:)   ! Expanded labeling that includes inactive sites, if present
     logical :: postprocessLabeling           ! do we need to postprocess labeling
     integer, allocatable :: allD2LabelD(:)   ! { full-dset member }:
-    integer              :: nInact, iUC       ! number of inactive sites, counter over unit cells
+    integer              :: nInact           ! number of inactive sites
     integer              :: iD ! Counter over d-set members
     ! respective d-vector ID in the labeling dset
 
@@ -1245,9 +1245,8 @@ CONTAINS
     integer, pointer :: labPerms(:,:) ! List of permutations of the k labels
     integer :: nsp ! Number of superperiodic labelings
     integer :: np, ip, nPerm, status ! Loops over label exchang
-    ! permutations, number of labeling permutatations, allocate error
-    ! flag
-    integer, allocatable :: degen(:),temp(:) ! keep track of degeneracy for each structure.
+    ! permutations, number of labeling permutatations, allocate error flag
+    integer, allocatable :: temp(:)
     integer nUniq
 
     lab => null()
