@@ -9,7 +9,7 @@ implicit none
 
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file, &
-       read_struct_enum_out, read_struct_enum_out_oldstyle, co_ca, read_arrows, check_for_fixed_cells
+       read_struct_enum_out, read_arrows, check_for_fixed_cells
 
 CONTAINS
    !!<summary> This routine looks to see if the enumeration should be limited to a set of fixed cell shapes. If so,
@@ -185,104 +185,6 @@ end subroutine check_for_fixed_cells
     close(99)
     close(10)
   end subroutine read_struct_enum_out
-
-
-  !!<summary>This file reads from struct_enum.*out* file. Used by the
-  !!compare code. This version reads from a struct_enum.out generated
-  !!with the first version of the code whose fast index was over
-  !!configurations, rather than over HNFs with the same group
-  !!structure.! This code is only needed for checking that new
-  !!versions of the code still generate a list of structures
-  !!equivalent to the first version.</summary>
-  !!<parameter name="title" regular="true"></parameter>
-  !!<parameter name="LatDim" regular="true"></parameter>
-  !!<parameter name="pLV" regular="true"></parameter>
-  !!<parameter name="nD" regular="true"></parameter>
-  !!<parameter name="d"></parameter>
-  !!<parameter name="k" regular="true"></parameter>
-  !!<parameter name="eq"></parameter>
-  !!<parameter name="Nmin" regular="true"></parameter>
-  !!<parameter name="Nmax" regular="true"></parameter>
-  !!<parameter name="eps" regular="true"></parameter>
-  !!<parameter name="full" regular="true"></parameter>
-  !!<parameter name="label"></parameter>
-  !!<parameter name="digit"></parameter>
-  !!<parameter name="fname" regular="true"></parameter>
-  !!<parameter name="cRange"></parameter>
-  subroutine read_struct_enum_out_oldstyle(title,LatDim,pLV,nD,d,k,eq,Nmin,Nmax,eps,full,label,digit,fname,cRange)
-
-    character(80) :: title, pLatTyp, fullpart
-    character(800), optional :: fname
-    integer,intent(out):: Nmin, Nmax, k, LatDim, nD
-    real(dp),intent(out) :: pLV(3,3), eps
-    real(dp), pointer :: d(:,:)
-    integer, pointer :: label(:,:), digit(:)
-    integer, pointer :: eq(:), cRange(:,:)
-    !logical, intent(out):: conc_check
-
-    logical :: full, err
-
-    open(99,file="readcheck_enum.out")
-    if(.not. present(fname)) then
-       open(10,file='struct_enum.in',status='old')
-    else
-       open(10,file=fname,status='old')
-    endif
-    call co_ca(10,err)
-    read(10,'(a80)') title
-    write(99,'("Title: ",a80)') title
-    call co_ca(10,err)
-    read(10,'(a4)') pLatTyp
-    call ucase(pLatTyp)
-    write(99,'("Lattice type (bulk or surface): ",a4)') pLatTyp
-    call co_ca(10,err)
-    read(10,*) pLV(:,1)
-    call co_ca(10,err)
-    read(10,*) pLV(:,2)
-    call co_ca(10,err)
-    read(10,*) pLV(:,3)
-    write(99,'(3(f7.3,1x))') transpose(pLV)
-    call co_ca(10,err)
-    call co_ca(10,err)
-    !read(10,*)  nD
-    !write(99,'("Number of d-vectors: ",i3)') nD
-    !label = -1
-    !do iD = 1, nD ! skip over all the d-vectors
-    !   read (10,*) line
-    !enddo
-    ! Read the number of components in the enumeration
-    read(10,'(i2)') k
-    allocate(label(k,1)) ! Assumes only 1 d-vector (OK for old files?)
-    call co_ca(10,err)
-    ! Read in the starting and stopping cell sizes
-    read(10,*) Nmin, Nmax
-    write(99,'("Min and Max cell sizes: ",2(i2,1x))') Nmin, Nmax
-    call co_ca(10,err)
-    !read(10,*) eps
-    !write(99,'("Epsilon: ",g12.4)') eps
-
-    call co_ca(10,err)
-    read(10,*) fullpart
-    fullpart = adjustl(fullpart)
-    call ucase(fullpart)
-    write(99,'("full/part mode: ",a4)') fullpart
-
-    if (pLatTyp(1:4).eq.'SURF') then; LatDim = 2
-       if (.not. equal((/pLV(2,1),pLV(3,1)/),(/0._dp,0._dp/),eps)) &
-            stop 'For "surf" setting, first component of second and third &
-            & must be zero'
-    else if(pLatTyp(1:4).eq.'BULK') then; LatDim = 3
-    else; stop 'Specify "surf" or "bulk" in input file';endif
-    write(99,'("Latdim = ",i1)') LatDim
-    close(99)
-    close(10)
-    nD = 1
-    eps = 1e-10_dp
-    allocate(d(3,1))
-    d = 0._dp ! The code will expect the lattice to have at least one
-    ! lattice point in the unit cell.
-
-  end subroutine read_struct_enum_out_oldstyle
 
   !!<summary>If the user specifies one or more fixed cells in which to
   !!do the enumeration, then read them in using this routine.</summary>
@@ -657,7 +559,7 @@ end subroutine check_for_fixed_cells
   SUBROUTINE write_rotperms_list(rpList,listfile)
     type(RotPermList), intent(in) :: rpList
     character(80), intent(in) :: listfile
-    integer nP, iP, iD
+    integer nP, iP
     open(11,file=listfile)
     nP = rpList%nL
     if(size(rpList%perm,1)/=rpList%nL) stop "rp list not initialized correctly (write_rotperms_list in io_utils)"
