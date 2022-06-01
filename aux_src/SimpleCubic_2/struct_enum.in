@@ -1,0 +1,11 @@
+3D Simple Cubic 
+bulk       # surf/bulk -- 2D? or 3D?
+1.0 0.0 1.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+2
+1          # One lattice point/unit cell
+0 0 0 0/1
+1 6        # Enumerate cells from size # to size #
+.0001      # Finite precision parameter
+full       # full or part (part -- Only generate a partial listing (e.g. consider AAAB==BBBA))
