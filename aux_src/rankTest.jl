@@ -29,11 +29,5 @@ for (j,lat) ∈ enumerate(lattices)
         mkpath(idx)
         println(pwd())
         mv("struct_enum.out",idx*"/struct_enum.out",force=true)
-        cd(idx)
-        elements = "Pd "^(i+1)
-        run(`python ../makeStr.py all -species $elements`)
-        #run(cmd)
-        cd("..")    
     end
-
 end
