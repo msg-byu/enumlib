@@ -1,0 +1,11 @@
+3D lattice
+bulk       # surf/bulk (2D/3D)
+1. 0. 0.   # First lattice vector (only columns 2 and 3 in rows 2 and 3 are used for 2D case) 
+0. 1. 0.   # Second lattice vector
+0. 0. 1.   # Third lattice vector
+2          # knary case
+1          # number of lattice points/unit cell
+0 0 0 0/1  # That lattice point is at the origin
+1 6        # Enumerate 8-atom cells only
+.0001      # Finite precision parameter
+full       # part/full (part -> Only generate a partial listing (e.g. consider AAAB==BBBA)
