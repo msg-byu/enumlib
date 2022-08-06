@@ -923,7 +923,7 @@ def _write_POSCAR(system_data,space_data,structure_data,args):
                 poscar.write("{}   ".format(str(ic)))
 
         poscar.write("\n")
-        poscar.write("D\n")
+        poscar.write("Direct\n")
         # Now write out the atomic positions to the file.
         for ilab in range(system_data["k"]):
             for iAt in range(structure_data["n"]*system_data["nD"]):
@@ -1053,7 +1053,7 @@ script_options = {
 def _parser_options():
     """Parses the options and arguments from the command line."""
     #We have two options: get some of the details from the config file,
-    import argparse
+    import argparse 
 
     pdescr = "POSCAR contstruction."
     parser = argparse.ArgumentParser(parents=[bparser], description=pdescr)
