@@ -1269,7 +1269,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-65-g49c3-dirty"
+    write(23,'(A)') "v2.0.4-67-g6e2d-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)

@@ -9,7 +9,7 @@ implicit none
 
 private
 public read_input, write_lattice_symmetry_ops, write_rotperms_list, read_in_cells_from_file, &
-       read_struct_enum_out, read_arrows, check_for_fixed_cells
+       read_struct_enum_out, read_arrows, check_for_fixed_cells, co_ca
 
 CONTAINS
    !!<summary> This routine looks to see if the enumeration should be limited to a set of fixed cell shapes. If so,

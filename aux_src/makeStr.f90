@@ -10,7 +10,7 @@ use io_utils, only: co_ca
 implicit none
 character(80) fname, title, strname, strNstring
 character(maxLabLength) :: labeling
-integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt, jAt, iSpec, nSpec, idx, foutput_unit
+integer ioerr, iline, ic, i, ilab, pgOps, nD, hnfN, iAt, jAt, nSpec, idx, foutput_unit
 integer k, strN, istrN, strNi, strNf, sizeN, n, diag(3), a,b,c,d,e,f, nType
 integer HNF(3,3), L(3,3), hnf_degen, lab_degen, tot_degen
 integer, pointer :: gIndx(:)
