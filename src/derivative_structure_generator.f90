@@ -539,7 +539,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
           call make_member_list(diag,g)
        endif; endif
        ! Make the transform matrices for taking the g's and rotating them
-       Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err)
+       Tinv = matmul(L(:,:,iH),Ainv); call matrix_inverse(Tinv, T, err,10d-13)
        if (err) stop "Bad inverse for transformation matrix: get_rotation_perm_lists"
 
        nOp = size(Op(iH)%rot,3);
@@ -1269,7 +1269,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
 
     ! Beginning of main routine for enumeration
     open(23,file="VERSION.enum")
-    write(23,'(A)') "v2.0.4-56-gfb67-dirty"
+    write(23,'(A)') "v2.0.4-65-g49c3-dirty"
     close(23)
 
     ![TODO] Get rid of all the junk that crept in (writing files, making inactives table, etc. These should all be in routines so that this main routine is still readable)
