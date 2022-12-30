@@ -1130,7 +1130,7 @@ CONTAINS
     character(80), intent(in) :: fname
     real(dp), intent(in), dimension(3,3) :: pLV
     integer, intent(in), dimension(3,3) :: SNF
-    real(dp), pointer :: dset(:,:) ! (in)
+    real(dp), allocatable :: dset(:,:) ! (in)
     integer, pointer :: pLabel(:,:) ! (in)
     integer, pointer :: HNFin(:,:,:) ! (in)
     integer, intent(in) :: LatDim
