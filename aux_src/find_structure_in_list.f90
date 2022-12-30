@@ -5,7 +5,8 @@ implicit none
 character(80) fname, title, sfname, dummy
 real(dp), dimension(3,3) :: pLV, sLV
 integer,  dimension(3,3) :: SNF, L
-real(dp), pointer :: aBas(:,:), dset(:,:)
+real(dp), pointer :: aBas(:,:)
+real(dp), allocatable :: dset(:,:)
 integer, pointer :: aTyp(:), pLabel(:,:), HNF(:,:,:)
 integer :: LatDim, match
 real(dp) :: eps
