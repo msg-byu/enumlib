@@ -1353,7 +1353,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
     endif
     if (full) then; write(14,'("full list of labelings (including incomplete labelings) is used")')
     else; write(14,'("partial list of labelings (complete labelings only) is used")'); endif
-    write(14,'("(Non)Equivalency list:" ,1000(I2,1x))') equivalencies(:)
+    write(14,'("(Non)Equivalency list:" ,999(I3,1x))') equivalencies(:)
 
     !write(14,'("Symmetry of the primary lattice is of order ",i2)')
 
