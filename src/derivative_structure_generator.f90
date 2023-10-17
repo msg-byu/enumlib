@@ -561,7 +561,7 @@ SUBROUTINE get_dvector_permutations(pLV,d,nD,rot,shift,dRPList,eps)
              gp = nint(rgp) ! Move the rotated group into an integer array
              ag = nint(rag)
              gp = modulo(gp,spread(diag,2,n)) ! Mod by each entry of
-             ! the SNF to bring into group Now that the rotated group
+             ! the SNF to bring into group. Now that the rotated group
              ! is known, find the mapping of the elements between the
              ! original group and the permuted group. This is the
              ! permutation.
