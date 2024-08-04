@@ -40,11 +40,11 @@ here. The vectors should be listed by rows (not by columns)
 (4), etc. This number is the same as the total number of distinct
 labels that are used in Lines 8 and beyond.
 *Line 7: Nd, an integer. Nd, number of d-points, is the number of
-lattice points in the parent lattice. 1 for monotamic cases (like fcc,
+lattice points in the parent lattice. 1 for monoatomic cases (like fcc,
 bcc, etc.), 2 for hcp, e.g., etc.
 *Lines 8--8+Nd-1: The vectors describing each of the parent lattice
 points, given in Cartesian coordinates. After each of the vectors is a
-list "0/1/..." that specificies which types of atoms can be on each
+list "0/1/..." that specifies which types of atoms can be on each
 site. Not every atom type need appear on every lattice site in the
 parent cell.
 *Line 9+Nd-1: The range of supercell sizes to sweep over (size 1 to
@@ -61,7 +61,7 @@ lattice vectors. Almost anything works as long as it's not too small
 symmetrically-distinct configuration is generated (this is what most
 people want). When "part" is specified, structures that are identical
 under atom exchange (A<-->B) are only listed once. For example, in
-enumerating fcc superstructurs of size 4, the L1_2 structure would
+enumerating fcc superstructures of size 4, the L1_2 structure would
 appear twice, once as A_3B and once again as AB_3 with the "full"
 setting. But with the "part" setting, L1_2 would only be listed
 once. The "full" setting lists all structures that are *physically*
@@ -69,7 +69,7 @@ distinct (different energies), whereas the "part" setting lists only
 structures that *crystallographically* distinct. (It doesn't list the
 "concentration mirror image" structures.)
 
-When your run the case for this input file, you will see output like
+When you run the case for this input file, you will see output like
 the following:
 
 ~/codes/enumlib/support/input> ../../src/enum.x struct_enum.in.fcc
@@ -186,13 +186,9 @@ Now that you have enumerated fcc cells up to a volume 8x that of the
 parent cell lets see how to generate a POSCAR for one of the
 structures in the "struct_enum.out" file.
 
-First, compile the structure generating program, makestr.x
-
-`make makestr.x`
-
 Now, assuming your are still in the input directory, type
 
-./makestr.x struct_enum.out 165
+makeStr.py 165
 
 to make structure number 165 into a POSCAR from the "struct_enum.out"
 file. You can replace the "struct_enum.out" by another file of a
