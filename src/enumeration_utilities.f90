@@ -1003,6 +1003,12 @@ CONTAINS
     ! caused an insidious bug that took a long time to fix.
 
     !** Calls to enumlib routines **
+    
+    ! Change pLVtemp to the original basis plV.  
+    pLVtemp = pLV
+
+    ! Apply make primitive one more time.
+    call make_primitive(pLVtemp,aTypTemp,aBasTemp,.false.,eps)
 
     ! This call generates a list of permutations for the d-set under symmetry operations
     ! of the parent lattice (need this for d-g table permutations). This call should use 
